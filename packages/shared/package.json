@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run build && node --test test/**/*.test.mjs",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "echo no lint configured"

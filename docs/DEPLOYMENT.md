@@ -29,7 +29,7 @@ Required env:
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-or-anon-key
 VITE_GAME_URL=/game
 ```
 
@@ -44,8 +44,25 @@ npx vercel --prod
 1. Create a free Supabase project.
 2. Open SQL editor.
 3. Run `supabase/schema.sql`.
-4. Copy project URL and anon key into Vercel env.
-5. Never put `service_role` in frontend env.
+4. Copy project URL and publishable/anon key into Vercel env.
+5. Verify from local shell:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co \
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key \
+npm run db:check
+```
+
+Expected:
+
+```text
+players: ok
+quest_runs: ok
+wallet_proofs: ok
+leaderboard: ok
+```
+
+6. Never put `service_role` in frontend env.
 
 ## Domain
 

@@ -18,6 +18,9 @@
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "doctor:react": "npx react-doctor@latest ./apps/web --no-score --blocking none --yes",
+    "db:check": "node scripts/check-supabase-schema.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "prepare": "husky"
   },
