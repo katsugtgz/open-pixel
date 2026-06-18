@@ -36,6 +36,11 @@ export default {
             image: sprites.shard.image,
             ...Presets.RMSpritesheet(3, 4),
           },
+          {
+            id: "pixel-shard",
+            image: "spritesheets/shard.png",
+            ...Presets.RMSpritesheet(3, 4),
+          },
         ],
         sounds: [
           { id: sounds.collect.id, src: sounds.collect.src },
