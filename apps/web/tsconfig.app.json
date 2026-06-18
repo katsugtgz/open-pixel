@@ -4,11 +4,12 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "@open-pixel/shared": ["../../packages/shared/src/index.ts"]
     },
     "moduleResolution": "bundler",
