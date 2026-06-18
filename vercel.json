@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/game/:path*",
+      "destination": "/game/:path*"
+    }
+  ]
+}
