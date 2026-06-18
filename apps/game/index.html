@@ -26,9 +26,68 @@
         width: 100vw;
         overflow: hidden;
       }
+
+      .control-help {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 20;
+        display: grid;
+        gap: 6px;
+        max-width: min(320px, calc(100vw - 28px));
+        border: 3px solid #16142d;
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #fff4d1;
+        background: rgba(11, 8, 36, 0.84);
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.32);
+        font-family: Fredoka, system-ui, sans-serif;
+        font-size: 13px;
+        line-height: 1.25;
+        pointer-events: none;
+      }
+
+      .control-help .quest-hint,
+      .control-help strong {
+        color: #e3ff37;
+        font-weight: 600;
+      }
+
+      @media (pointer: coarse) {
+        .control-help .desktop-controls {
+          display: none;
+        }
+      }
+
+      @media (pointer: fine) {
+        .control-help .mobile-controls {
+          display: none;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .control-help {
+          right: 12px;
+          left: 12px;
+          max-width: none;
+          font-size: 12px;
+        }
+      }
     </style>
   </head>
   <body>
     <div id="rpg"></div>
+    <aside class="control-help" aria-label="Game controls">
+      <span class="quest-hint"
+        >Start at the AI Guide, then collect 3 Pixel Shards.</span
+      >
+      <span class="desktop-controls"
+        ><strong>Controls:</strong> Arrow keys move · Space talks /
+        collects</span
+      >
+      <span class="mobile-controls"
+        ><strong>Controls:</strong> joystick moves · A talks / collects</span
+      >
+    </aside>
   </body>
 </html>

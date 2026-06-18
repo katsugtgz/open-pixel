@@ -2,6 +2,7 @@ import {
   provideClientGlobalConfig,
   provideClientModules,
   Presets,
+  withMobile,
 } from "@rpgjs/client";
 import { provideMain } from "../modules/main";
 import { provideTiledMap } from "@rpgjs/tiledmap/client";
@@ -14,6 +15,7 @@ export default {
     provideClientGlobalConfig(),
     provideMain(),
     provideClientModules([
+      withMobile(),
       {
         spritesheets: [
           {
@@ -24,6 +26,11 @@ export default {
           {
             id: "female",
             image: "spritesheets/female.png",
+            ...Presets.RMSpritesheet(3, 4),
+          },
+          {
+            id: "pixel-shard",
+            image: "spritesheets/shard.png",
             ...Presets.RMSpritesheet(3, 4),
           },
         ],

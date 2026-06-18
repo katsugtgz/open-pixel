@@ -138,6 +138,11 @@ function HeroSection() {
           collect shards, earn off-chain points, then optionally sign a readable
           wallet proof. No gas, no approvals, no RMT loop.
         </p>
+        <div className="control-guide" aria-label="Demo controls">
+          <span>Desktop: Arrow keys move</span>
+          <span>Space talks / collects</span>
+          <span>Mobile: joystick + A button</span>
+        </div>
         <div className="actions">
           <a className="button primary" href={gameUrl}>
             Play demo
