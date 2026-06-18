@@ -13,6 +13,7 @@
   <a href="#how-it-works">How it works</a> ·
   <a href="#repository-layout">Repository layout</a> ·
   <a href="docs/SECURITY_MODEL.md">Security model</a> ·
+  <a href="docs/VISUAL_STYLE.md">Visual style</a> ·
   <a href="docs/ROADMAP.md">Roadmap</a>
 </p>
 
@@ -144,7 +145,7 @@ open-pixel/
 - **RPG-JS** — game world, map, events, NPC dialog, player variables.
 - **React + Vite** — landing, claim page, wallet proof UX.
 - **Supabase** — free-tier persistence for players, quest runs, proofs, leaderboard.
-- **viem / wallet provider API** — optional `personal_sign` proof flow.
+- **Browser wallet provider API** — optional `personal_sign` proof flow; no tx library required.
 - **Husky + lint-staged + Prettier** — basic repo hygiene.
 
 ## Design choices

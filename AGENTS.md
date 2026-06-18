@@ -57,6 +57,7 @@ npm audit --omit=dev
 - `docs/SECURITY_MODEL.md` — wallet safety rules.
 - `docs/SUBMISSION.md` — hackathon form draft.
 - `docs/ASSETS.md` — asset/license notes.
+- `docs/VISUAL_STYLE.md` — Pixels-inspired palette/style guardrails.
 - `supabase/schema.sql` — Supabase free-tier schema + RLS.
 
 ## Git/GitHub state

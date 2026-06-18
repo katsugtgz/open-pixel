@@ -3,6 +3,7 @@ import { rpgjs, tiledMapFolderPlugin } from "@rpgjs/vite";
 import startServer from "./src/server";
 
 export default defineConfig({
+  base: "./",
   optimizeDeps: {
     include: ["parse-svg-path", "@xmldom/xmldom"],
   },
