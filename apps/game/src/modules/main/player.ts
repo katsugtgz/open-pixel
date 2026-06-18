@@ -2,9 +2,9 @@ import { RpgPlayer, type RpgPlayerHooks, Components } from "@rpgjs/server";
 
 export const player: RpgPlayerHooks = {
   onConnected(player: RpgPlayer) {
-    player.changeMap("simplemap", {
-      x: 300,
-      y: 300,
+    player.changeMap("map", {
+      x: 156,
+      y: 220,
     });
     player.name = "YourName";
     player.setGraphic("hero");

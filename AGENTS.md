@@ -82,6 +82,20 @@ LSP/codegraph tools were not exposed in this Codex surface; map below is from `r
 - Visual direction is cozy pixel RPG, not DeFi dashboard. See `docs/VISUAL_STYLE.md` before UI changes.
 - Demo speed matters more than production completeness; preserve the contest-demo path.
 
+## RPG-JS GAME INTEGRITY
+
+- The game is an RPG-JS v5 game. Treat the RPG-JS canvas, Tiled maps, spritesheets, NPCs, terrain, beach/water scenery, trees, and in-engine movement as the source of truth.
+- Do not replace, cover, hide, fake, or visually override the RPG-JS game with a DOM/HTML/CSS mock game, fallback board, canvas overlay, square-grid prototype, or custom movement layer.
+- Do not set `#rpg canvas { opacity: 0 }`, hide the canvas, or place a full-screen layer above the RPG-JS scene to make a bug look fixed.
+- If the map already renders with the RPG-JS art/assets, preserve that look. Fix controls, quest events, sprites, coordinates, or RPG-JS config in the engine instead of rebuilding the game outside RPG-JS.
+- If the RPG-JS scene breaks or renders blank, stop and debug the RPG-JS pipeline: Vite server, `@rpgjs/*` versions, `@canvasengine/*`, Pixi, Tiled TMX/TSX loading, spritesheets, and server/client providers. Do not ship a fake DOM replacement as a workaround.
+- Use RPG-JS v5 resources before changing game architecture:
+  - Docs: `https://rpgjs.dev/`
+  - Source/version reference: `https://github.com/RSamaium/RPG-JS#v5`
+  - Skill install/reference command when needed: `npx skills add https://github.com/RSamaium/RPG-JS#v5`
+- For game QA, verify the actual RPG-JS scene: visible map art, player sprite, NPC sprite, shard sprite/marker, keyboard movement, Space interaction, mobile GUI/A-button behavior if enabled, and quest progress text/notifications.
+- Any temporary diagnostic overlay must be small, clearly diagnostic, and removed before handing the build back unless the user explicitly approves it.
+
 ## COMMANDS
 
 ```bash
@@ -95,6 +109,17 @@ npm run format:check
 npm run db:check
 npm audit --omit=dev
 ```
+
+## LOCAL DEMO URLS
+
+- Local demo servers must bind to `0.0.0.0` so they are reachable through Tailscale and the LAN subnet.
+- When starting or testing local demo servers, always report specific click-ready URLs for localhost, Tailscale, and LAN IP with the exact port actually assigned by Vite.
+- Current host examples: Tailscale `100.96.209.17`, LAN `192.168.1.5`.
+- Example format after server startup:
+  - Web: `http://localhost:5173/`, `http://100.96.209.17:5173/`, `http://192.168.1.5:5173/`
+  - Game: `http://localhost:5174/`, `http://100.96.209.17:5174/`, `http://192.168.1.5:5174/`
+- If Vite picks fallback ports like `5175` or `5176`, report those exact ports instead of the examples.
+- This Tailscale/LAN URL reporting rule is only for local demo/testing. Do not use Tailscale/LAN URLs for production deployment guidance.
 
 ## NOTES
 
