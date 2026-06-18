@@ -3,6 +3,13 @@
   "outputDirectory": "apps/web/dist",
   "installCommand": "npm install",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/game",
+      "destination": "/game/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/game/:path*",

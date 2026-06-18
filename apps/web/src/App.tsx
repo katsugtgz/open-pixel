@@ -11,7 +11,8 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 const configuredGameUrl = import.meta.env.VITE_GAME_URL as string | undefined;
-const gameUrl = configuredGameUrl || "/game/";
+const rawGameUrl = configuredGameUrl || "/game/";
+const gameUrl = rawGameUrl.endsWith("/game") ? `${rawGameUrl}/` : rawGameUrl;
 const repoUrl = "https://github.com/katsugtgz/open-pixel";
 
 const supabase =
