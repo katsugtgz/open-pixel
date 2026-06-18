@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { useMemo, useReducer } from "react";
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
   createGuestId,
@@ -17,9 +17,7 @@ const gameUrl = rawGameUrl.endsWith("/game") ? `${rawGameUrl}/` : rawGameUrl;
 const repoUrl = "https://github.com/katsugtgz/open-pixel";
 
 const supabase =
-  supabaseUrl && supabasePublishableKey
-    ? createClient(supabaseUrl, supabasePublishableKey)
-    : null;
+  supabaseUrl && supabasePublishableKey ? createSupabaseBrowserClient() : null;
 
 const pillars = [
   {
