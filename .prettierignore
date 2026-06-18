@@ -1,0 +1,8 @@
+node_modules
+**/node_modules
+**/dist
+apps/game/src/tiled/*.tsx
+apps/game/src/tiled/*.tmx
+package-lock.json
+apps/game/package-lock.json
+apps/game/pnpm-lock.yaml

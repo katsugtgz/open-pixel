@@ -1,0 +1,41 @@
+{
+  "name": "open-pixel",
+  "version": "0.1.0",
+  "description": "AI-native Web3 pixel quest game: guest-first, no token economy, optional safe wallet proof.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Open Pixel contributors",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev:game": "npm run dev -w @open-pixel/game",
+    "dev:web": "npm run dev -w @open-pixel/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,css,yml,yaml}": "prettier --write"
+  },
+  "keywords": [
+    "game",
+    "web3",
+    "rpg",
+    "pixel-art",
+    "hackathon",
+    "rpgjs",
+    "supabase"
+  ],
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3"
+  }
+}
