@@ -6,32 +6,36 @@ const providedUrl = process.argv[2];
 const url = providedUrl || "http://127.0.0.1:4173/game/";
 const preview = providedUrl ? null : await startPreview();
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const pageErrors = [];
 const failedRequests = [];
-
-page.on("pageerror", (error) => {
-  pageErrors.push(error.message);
-});
-
-page.on("response", (response) => {
-  const responseUrl = response.url();
-  if (response.status() >= 400 && isGameAssetUrl(responseUrl)) {
-    failedRequests.push(`${response.status()} ${responseUrl}`);
-  }
-});
-
-page.on("requestfailed", (request) => {
-  const requestUrl = request.url();
-  if (isGameAssetUrl(requestUrl)) {
-    failedRequests.push(
-      `request failed ${requestUrl}: ${request.failure()?.errorText || "unknown"}`,
-    );
-  }
-});
+let browser;
 
 try {
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: 800 },
+  });
+
+  page.on("pageerror", (error) => {
+    pageErrors.push(error.message);
+  });
+
+  page.on("response", (response) => {
+    const responseUrl = response.url();
+    if (response.status() >= 400 && isGameAssetUrl(responseUrl)) {
+      failedRequests.push(`${response.status()} ${responseUrl}`);
+    }
+  });
+
+  page.on("requestfailed", (request) => {
+    const requestUrl = request.url();
+    if (isGameAssetUrl(requestUrl)) {
+      failedRequests.push(
+        `request failed ${requestUrl}: ${request.failure()?.errorText || "unknown"}`,
+      );
+    }
+  });
+
   await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
   await page.waitForSelector("#rpg canvas", { timeout: 20_000 });
   await page.waitForTimeout(2_000);
@@ -49,7 +53,7 @@ try {
 
   console.log(`Game render check passed: ${url}`);
 } finally {
-  await browser.close();
+  await browser?.close();
   preview?.kill("SIGTERM");
 }
 
