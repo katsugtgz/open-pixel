@@ -49,7 +49,8 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   position: relative;
 }
 
@@ -146,12 +147,18 @@ body {
   font-weight: 900;
 }
 
+.nav-links .nav-play {
+  color: var(--ink);
+  background: var(--lime);
+}
+
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
-  gap: 34px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 24px;
   align-items: center;
-  padding: 54px 0 42px;
+  min-height: auto;
+  padding: 22px 0 28px;
 }
 
 .hero-copy,
@@ -167,7 +174,11 @@ body {
 }
 
 .hero-copy {
-  padding: clamp(28px, 5vw, 58px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 3.2vw, 42px);
+  background: rgba(22, 20, 45, 0.98);
 }
 
 .eyebrow {
@@ -197,10 +208,10 @@ h3 {
 
 h1 {
   max-width: 780px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   color: #fff;
-  font-size: clamp(42px, 7vw, 86px);
-  letter-spacing: -0.07em;
+  font-size: clamp(32px, 4.7vw, 56px);
+  letter-spacing: 0;
   text-shadow:
     4px 4px 0 var(--purple-dark),
     7px 7px 0 var(--shadow);
@@ -210,7 +221,7 @@ h2 {
   margin-bottom: 16px;
   color: #fff;
   font-size: clamp(28px, 4vw, 48px);
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 h3 {
@@ -224,8 +235,35 @@ h3 {
 .panel li,
 .status-bar span {
   color: #f5edce;
-  font-size: 18px;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.subtitle {
+  margin-top: 18px;
+}
+
+.control-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.control-guide span {
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: var(--lime-soft);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.25;
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.control-guide .mobile-control {
+  display: block;
 }
 
 .actions,
@@ -233,7 +271,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 
 .button,
@@ -281,7 +319,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 
 .trust-row span,
@@ -302,7 +340,8 @@ button:disabled {
 }
 
 .pixel-window {
-  min-height: 520px;
+  display: block;
+  min-height: 360px;
   padding: 30px;
   background: linear-gradient(#7ad7ff 0 44%, #5ec05a 44% 56%, #7c4a2f 56% 100%);
   overflow: hidden;
@@ -374,7 +413,7 @@ button:disabled {
   grid-template-columns: repeat(3, 92px);
   grid-template-rows: repeat(3, 92px);
   gap: 0;
-  transform: translate(-50%, -44%) rotateX(58deg) rotateZ(45deg);
+  transform: translate(-50%, -44%) scale(0.74) rotateX(58deg) rotateZ(45deg);
   transform-style: preserve-3d;
   filter: drop-shadow(18px 22px 0 rgba(18, 12, 46, 0.25));
 }
@@ -546,8 +585,8 @@ button:disabled {
 }
 
 .claim-grid {
-  grid-template-columns: 1.08fr 0.95fr 0.82fr;
-  padding-bottom: 110px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  padding-bottom: 80px;
 }
 
 label,
@@ -577,16 +616,14 @@ input {
   margin: 22px 0;
 }
 
-.claim-stats p,
-.receipt-panel p {
+.claim-stats p {
   display: grid;
   gap: 4px;
   border-bottom: 2px dashed rgba(255, 244, 209, 0.22);
   padding-bottom: 10px;
 }
 
-.claim-stats span,
-.receipt-panel span {
+.claim-stats span {
   color: #cabff0;
   font-size: 12px;
   font-weight: 1000;
@@ -594,18 +631,53 @@ input {
   text-transform: uppercase;
 }
 
-.claim-stats strong,
-.receipt-panel strong {
+.claim-stats strong {
   color: var(--lime-soft);
   overflow-wrap: anywhere;
 }
 
-.wallet-panel ul {
-  padding-left: 20px;
+.safety-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-.wallet-panel li::marker {
-  color: var(--lime);
+.safety-pills span,
+.security-receipt,
+.proof-receipt {
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--ink);
+  background: var(--cream);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.security-receipt,
+.proof-receipt {
+  display: inline-block;
+  margin: 16px 0 0;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.security-receipt {
+  background: var(--lime-soft);
+}
+
+.panel .safety-pills span,
+.panel .security-receipt,
+.panel .proof-receipt {
+  color: var(--ink);
+}
+
+.wallet-helper {
+  margin: 12px 0 0;
+  color: #cabff0;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .status-bar {
@@ -636,7 +708,11 @@ input {
   }
 
   .pixel-window {
-    min-height: 460px;
+    display: none;
+  }
+
+  .control-guide {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -644,14 +720,69 @@ input {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+    gap: 14px;
+    padding-top: 18px;
   }
 
   .nav-links {
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .nav-links a {
+    min-width: 0;
+    padding: 8px 9px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   h1 {
-    font-size: 42px;
+    font-size: clamp(30px, 9.4vw, 38px);
+    line-height: 1.08;
+    text-shadow:
+      3px 3px 0 var(--purple-dark),
+      5px 5px 0 var(--shadow);
+  }
+
+  h2 {
+    font-size: clamp(26px, 8.2vw, 36px);
+    line-height: 1.1;
+  }
+
+  .hero {
+    gap: 16px;
+    padding: 12px 0 22px;
+  }
+
+  .hero-copy {
+    padding: 22px;
+    background: #16142d;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .control-guide .desktop-control {
+    display: none;
+  }
+
+  .control-guide {
+    margin-top: 16px;
+  }
+
+  .trust-row span,
+  .comparison span {
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.2;
   }
 
   .hero-copy,
@@ -671,5 +802,24 @@ input {
   .status-bar {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .actions,
+  .wallet-actions {
+    flex-direction: column;
+  }
+
+  .button,
+  button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .security-receipt,
+  .proof-receipt {
+    font-size: 12px;
+    line-height: 1.35;
   }
 }

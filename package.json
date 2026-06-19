@@ -12,13 +12,14 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:vercel": "npm run build && rm -rf apps/web/dist/game && mkdir -p apps/web/dist/game && cp -R apps/game/dist/. apps/web/dist/game/",
+    "build:vercel": "npm run build && rm -rf apps/web/dist/game apps/web/dist/spritesheets && mkdir -p apps/web/dist/game && cp -R apps/game/dist/. apps/web/dist/game/ && cp apps/game/dist/default-bundle.json apps/game/dist/revoltfx-spritesheet.json apps/web/dist/ && cp -R apps/game/dist/spritesheets apps/web/dist/spritesheets",
     "dev:game": "npm run dev -w @open-pixel/game",
     "dev:web": "npm run dev -w @open-pixel/web",
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run build:vercel && npm run test --workspaces --if-present && npm run test:game:render",
+    "test:game:render": "node scripts/check-game-render.mjs",
     "doctor:react": "npx react-doctor@latest ./apps/web/src --no-score --blocking none --yes",
     "db:check": "node scripts/check-supabase-schema.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -39,10 +40,14 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
+    "playwright": "^1.50.0",
     "prettier": "^3.8.4",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.108.2"
+    "@supabase/supabase-js": "^2.108.1"
+  },
+  "overrides": {
+    "vitest": "4.1.8"
   }
 }

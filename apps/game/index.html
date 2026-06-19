@@ -27,19 +27,34 @@
         overflow: hidden;
       }
 
+      :root {
+        --open-pixel-ink: #16142d;
+        --open-pixel-shadow: rgba(11, 8, 36, 0.42);
+        --open-pixel-cream: #fff4d1;
+        --open-pixel-lime: #e3ff37;
+        --open-pixel-cyan: #7df9ff;
+        --rpg-ui-font: Fredoka, system-ui, sans-serif;
+        --rpg-ui-font-size-lg: 18px;
+        --rpg-ui-accent: var(--open-pixel-lime);
+        --rpg-ui-text: var(--open-pixel-cream);
+        --rpg-ui-surface: rgba(11, 8, 36, 0.86);
+        --rpg-ui-border: var(--open-pixel-ink);
+        --rpg-ui-border-dark: var(--open-pixel-ink);
+      }
+
       .control-help {
         position: fixed;
-        top: 14px;
         left: 14px;
+        top: 14px;
         z-index: 20;
         display: grid;
         gap: 6px;
-        max-width: min(320px, calc(100vw - 28px));
-        border: 3px solid #16142d;
-        border-radius: 10px;
+        max-width: min(360px, calc(100vw - 28px));
         padding: 10px 12px;
         color: #fff4d1;
-        background: rgba(11, 8, 36, 0.84);
+        background: rgba(11, 8, 36, 0.82);
+        border: 3px solid #16142d;
+        border-radius: 8px;
         box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.32);
         font-family: Fredoka, system-ui, sans-serif;
         font-size: 13px;
@@ -47,20 +62,118 @@
         pointer-events: none;
       }
 
-      .control-help .quest-hint,
-      .control-help strong {
+      .control-help .quest-hint {
         color: #e3ff37;
         font-weight: 600;
       }
 
-      @media (pointer: coarse) {
-        .control-help .desktop-controls {
-          display: none;
-        }
+      .control-help strong {
+        color: #e3ff37;
       }
 
-      @media (pointer: fine) {
-        .control-help .mobile-controls {
+      .rpg-ui-dialog-container {
+        position: fixed !important;
+        inset: 0 !important;
+        display: flex !important;
+        align-items: flex-end !important;
+        justify-content: center !important;
+        width: auto !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+        padding: 0 24px 28px !important;
+        pointer-events: none;
+      }
+
+      .rpg-ui-dialog-container[data-position="top"],
+      .rpg-ui-dialog-container[data-position="middle"] {
+        align-items: flex-end !important;
+      }
+
+      .rpg-ui-dialog-container[data-full-width="true"] .rpg-ui-dialog,
+      .rpg-ui-dialog-container[data-full-width="false"] .rpg-ui-dialog,
+      .rpg-ui-dialog {
+        width: min(760px, calc(100vw - 48px)) !important;
+        min-height: 0 !important;
+        max-height: 34vh;
+        margin: 0 auto !important;
+        padding: 16px 18px 18px !important;
+        overflow: visible;
+        color: var(--open-pixel-cream);
+        background: rgba(11, 8, 36, 0.88) !important;
+        border: 4px solid var(--open-pixel-ink) !important;
+        border-radius: 8px !important;
+        box-shadow:
+          6px 6px 0 var(--open-pixel-shadow),
+          inset 0 0 0 2px rgba(255, 244, 209, 0.12) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        pointer-events: auto;
+      }
+
+      .rpg-ui-dialog-body {
+        min-height: 0 !important;
+        gap: 12px !important;
+      }
+
+      .rpg-ui-dialog-content {
+        font-family: Fredoka, system-ui, sans-serif !important;
+        font-size: clamp(16px, 2vw, 20px) !important;
+        font-weight: 600;
+        line-height: 1.38 !important;
+        color: var(--open-pixel-cream) !important;
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45) !important;
+      }
+
+      .rpg-ui-dialog-speaker {
+        top: -18px !important;
+        left: 14px !important;
+        border: 3px solid var(--open-pixel-ink) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+        color: var(--open-pixel-ink) !important;
+        background: var(--open-pixel-lime) !important;
+        font-family: Fredoka, system-ui, sans-serif !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        box-shadow: 4px 4px 0 var(--open-pixel-shadow) !important;
+      }
+
+      .rpg-ui-dialog-indicator {
+        right: 18px !important;
+        bottom: 10px !important;
+        left: auto !important;
+        transform: none !important;
+        border-top-color: var(--open-pixel-lime) !important;
+        filter: none !important;
+      }
+
+      .rpg-ui-notifications {
+        top: 14px !important;
+        right: 14px !important;
+        width: min(300px, calc(100vw - 28px)) !important;
+      }
+
+      .rpg-ui-notification,
+      .rpg-ui-toast {
+        border: 3px solid var(--open-pixel-ink) !important;
+        border-radius: 8px !important;
+        padding: 10px 12px !important;
+        color: var(--open-pixel-cream) !important;
+        background: rgba(11, 8, 36, 0.9) !important;
+        box-shadow: 4px 4px 0 var(--open-pixel-shadow) !important;
+        font-family: Fredoka, system-ui, sans-serif !important;
+      }
+
+      .rpg-ui-notification-message,
+      .rpg-ui-toast-message {
+        font-size: 13px !important;
+        line-height: 1.3 !important;
+      }
+
+      @media (pointer: coarse) {
+        .control-help .desktop-controls {
           display: none;
         }
       }
@@ -71,6 +184,47 @@
           left: 12px;
           max-width: none;
           font-size: 12px;
+        }
+
+        .control-help .desktop-controls {
+          display: none;
+        }
+
+        .control-help .mobile-controls {
+          display: inline;
+        }
+
+        .rpg-ui-dialog-container {
+          padding: 0 12px 18px !important;
+        }
+
+        .rpg-ui-dialog {
+          width: calc(100vw - 24px) !important;
+          max-height: 38vh;
+          padding: 14px !important;
+        }
+
+        .rpg-ui-dialog-content {
+          font-size: 16px !important;
+        }
+
+        .rpg-ui-notifications {
+          top: 82px !important;
+          right: 12px !important;
+          left: 12px !important;
+          width: auto !important;
+        }
+      }
+
+      @media (pointer: fine) and (min-width: 681px) {
+        .control-help .mobile-controls {
+          display: none;
+        }
+      }
+
+      @media (min-width: 681px) {
+        .control-help .mobile-controls {
+          display: none;
         }
       }
     </style>
