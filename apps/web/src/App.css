@@ -49,7 +49,8 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   position: relative;
 }
 
@@ -177,6 +178,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: clamp(24px, 3.2vw, 42px);
+  background: rgba(22, 20, 45, 0.98);
 }
 
 .eyebrow {
@@ -258,6 +260,10 @@ h3 {
   font-weight: 950;
   line-height: 1.25;
   box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.control-guide .mobile-control {
+  display: block;
 }
 
 .actions,
@@ -651,6 +657,19 @@ input {
   background: var(--lime-soft);
 }
 
+.panel .safety-pills span,
+.panel .security-receipt,
+.panel .proof-receipt {
+  color: var(--ink);
+}
+
+.wallet-helper {
+  margin: 12px 0 0;
+  color: #cabff0;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .status-bar {
   display: flex;
   gap: 14px;
@@ -691,14 +710,69 @@ input {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+    gap: 14px;
+    padding-top: 18px;
   }
 
   .nav-links {
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .nav-links a {
+    min-width: 0;
+    padding: 8px 9px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   h1 {
-    font-size: 42px;
+    font-size: clamp(30px, 9.4vw, 38px);
+    line-height: 1.08;
+    text-shadow:
+      3px 3px 0 var(--purple-dark),
+      5px 5px 0 var(--shadow);
+  }
+
+  h2 {
+    font-size: clamp(26px, 8.2vw, 36px);
+    line-height: 1.1;
+  }
+
+  .hero {
+    gap: 16px;
+    padding: 12px 0 22px;
+  }
+
+  .hero-copy {
+    padding: 22px;
+    background: #16142d;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .control-guide .desktop-control {
+    display: none;
+  }
+
+  .control-guide {
+    margin-top: 16px;
+  }
+
+  .trust-row span,
+  .comparison span {
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.2;
   }
 
   .hero-copy,
@@ -718,5 +792,24 @@ input {
   .status-bar {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .actions,
+  .wallet-actions {
+    flex-direction: column;
+  }
+
+  .button,
+  button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .security-receipt,
+  .proof-receipt {
+    font-size: 12px;
+    line-height: 1.35;
   }
 }

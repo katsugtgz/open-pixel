@@ -148,9 +148,9 @@ function HeroSection() {
           badge. Wallet proof stays optional and readable.
         </p>
         <div className="control-guide" aria-label="Demo controls">
-          <span>Desktop: Arrow keys to move</span>
-          <span>Space to talk / collect</span>
-          <span>Mobile: joystick + A button</span>
+          <span className="desktop-control">Desktop: Arrow keys to move</span>
+          <span className="desktop-control">Space to talk / collect</span>
+          <span className="mobile-control">Mobile: joystick + A button</span>
         </div>
         <div className="trust-row" aria-label="Safety summary">
           <span>guest-first</span>
@@ -318,6 +318,9 @@ function ClaimSection({
             Sign readable proof
           </button>
         </div>
+        {!state.walletAddress && (
+          <p className="wallet-helper">Connect wallet first to sign proof.</p>
+        )}
         {state.signature && (
           <p className="proof-receipt">
             Signed: {shortAddress(state.signature)}
