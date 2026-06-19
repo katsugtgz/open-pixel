@@ -3,8 +3,8 @@ import { RpgPlayer, type RpgPlayerHooks, Components } from "@rpgjs/server";
 export const player: RpgPlayerHooks = {
   onConnected(player: RpgPlayer) {
     player.changeMap("simplemap", {
-      x: 300,
-      y: 300,
+      x: 376,
+      y: 217,
     });
     player.name = "YourName";
     player.setGraphic("hero");

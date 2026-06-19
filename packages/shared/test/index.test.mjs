@@ -2,11 +2,21 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildProofMessage,
+  createGuestId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
+
+describe("guest id generation", () => {
+  it("uses the guest UUID format", () => {
+    assert.match(
+      createGuestId(),
+      /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
+});
 
 describe("wallet proof safety copy", () => {
   it("builds a readable personal proof message that denies approvals/tx", () => {
