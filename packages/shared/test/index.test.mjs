@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildProofMessage,
+  buildStoredQuestRun,
   createGuestId,
   formatSupabaseError,
   isSupabaseMissingTableError,
+  normalizeLeaderboardRows,
+  parseStoredQuestRun,
   SECURITY_RECEIPT,
+  serializeQuestRunForStorage,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
 
@@ -90,5 +94,105 @@ describe("Supabase schema diagnostics", () => {
       }),
       `Supabase player save failed: ${SUPABASE_SCHEMA_MISSING_TEXT}`,
     );
+  });
+});
+
+describe("leaderboard row normalization", () => {
+  it("coerces snake_case Supabase rows to camelCase LeaderboardRow", () => {
+    const rows = normalizeLeaderboardRows([
+      {
+        guest_id: "guest_1",
+        display_name: "A",
+        total_points: 50,
+        completed_runs: 1,
+        last_completed_at: "2026-01-01T00:00:00Z",
+      },
+    ]);
+    assert.deepEqual(rows, [
+      {
+        guestId: "guest_1",
+        displayName: "A",
+        totalPoints: 50,
+        completedRuns: 1,
+        lastCompletedAt: "2026-01-01T00:00:00Z",
+      },
+    ]);
+  });
+
+  it("sorts by totalPoints desc then lastCompletedAt asc", () => {
+    const rows = normalizeLeaderboardRows([
+      {
+        guest_id: "a",
+        display_name: "A",
+        total_points: 100,
+        completed_runs: 1,
+        last_completed_at: "2026-01-02T00:00:00Z",
+      },
+      {
+        guest_id: "b",
+        display_name: "B",
+        total_points: 100,
+        completed_runs: 1,
+        last_completed_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        guest_id: "c",
+        display_name: "C",
+        total_points: 130,
+        completed_runs: 1,
+        last_completed_at: "2026-01-03T00:00:00Z",
+      },
+    ]);
+    assert.deepEqual(
+      rows.map((r) => r.guestId),
+      ["c", "b", "a"],
+    );
+  });
+
+  it("caps to default limit 10", () => {
+    const input = Array.from({ length: 15 }, (_, i) => ({
+      guest_id: `g${i}`,
+      display_name: `N${i}`,
+      total_points: i,
+      completed_runs: 1,
+      last_completed_at: "2026-01-01T00:00:00Z",
+    }));
+    assert.equal(normalizeLeaderboardRows(input).length, 10);
+  });
+
+  it("filters junk input without throwing", () => {
+    assert.deepEqual(
+      normalizeLeaderboardRows([null, {}, "junk", 42, { guest_id: "x" }]),
+      [],
+    );
+  });
+});
+
+describe("stored quest run serialization", () => {
+  it("builds a StoredQuestRun with defaults", () => {
+    const run = buildStoredQuestRun({ guestId: "guest_1", displayName: "A" });
+    assert.equal(run.guestId, "guest_1");
+    assert.equal(run.points, 0);
+    assert.equal(run.shards, 0);
+    assert.ok(run.id);
+    assert.ok(run.completedAt);
+    assert.equal(run.questId, "Quest #1 — Gather Pixel Shards");
+  });
+
+  it("round-trips serialize and parse", () => {
+    const run = buildStoredQuestRun({
+      guestId: "guest_1",
+      displayName: "A",
+      points: 130,
+      shards: 3,
+    });
+    const parsed = parseStoredQuestRun(serializeQuestRunForStorage(run));
+    assert.deepEqual(parsed, run);
+  });
+
+  it("parse returns null for junk", () => {
+    assert.equal(parseStoredQuestRun("not json"), null);
+    assert.equal(parseStoredQuestRun(null), null);
+    assert.equal(parseStoredQuestRun(JSON.stringify({ nope: true })), null);
   });
 });

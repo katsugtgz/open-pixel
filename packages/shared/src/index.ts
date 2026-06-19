@@ -96,3 +96,199 @@ export function formatSupabaseError(prefix: string, error: unknown): string {
   }
   return `${prefix}: ${candidate?.message || "Unknown Supabase error"}`;
 }
+
+export type LeaderboardRow = {
+  guestId: string;
+  displayName: string;
+  totalPoints: number;
+  completedRuns: number;
+  lastCompletedAt: string;
+};
+
+type LeaderboardInputRow = Record<string, unknown>;
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Number.isInteger(value) &&
+    value >= 0
+  );
+}
+
+function readStringField(
+  row: LeaderboardInputRow,
+  key: string,
+): string | undefined {
+  const value = row[key];
+  return isNonEmptyString(value) ? value : undefined;
+}
+
+function readNonNegativeIntField(
+  row: LeaderboardInputRow,
+  key: string,
+): number | undefined {
+  const value = row[key];
+  return isNonNegativeInteger(value) ? value : undefined;
+}
+
+export function normalizeLeaderboardRows(
+  rows: unknown,
+  limit: number = 10,
+): LeaderboardRow[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  const normalized: LeaderboardRow[] = [];
+
+  for (const raw of rows) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+      continue;
+    }
+    const row = raw as LeaderboardInputRow;
+
+    const guestId =
+      readStringField(row, "guest_id") ?? readStringField(row, "guestId");
+    const displayName =
+      readStringField(row, "display_name") ??
+      readStringField(row, "displayName");
+    const totalPoints =
+      readNonNegativeIntField(row, "total_points") ??
+      readNonNegativeIntField(row, "totalPoints");
+    const completedRuns =
+      readNonNegativeIntField(row, "completed_runs") ??
+      readNonNegativeIntField(row, "completedRuns");
+    const lastCompletedAt =
+      readStringField(row, "last_completed_at") ??
+      readStringField(row, "lastCompletedAt");
+
+    if (
+      guestId === undefined ||
+      displayName === undefined ||
+      totalPoints === undefined ||
+      completedRuns === undefined ||
+      lastCompletedAt === undefined
+    ) {
+      continue;
+    }
+
+    normalized.push({
+      guestId,
+      displayName,
+      totalPoints,
+      completedRuns,
+      lastCompletedAt,
+    });
+  }
+
+  normalized.sort((a, b) => {
+    if (b.totalPoints !== a.totalPoints) {
+      return b.totalPoints - a.totalPoints;
+    }
+    return a.lastCompletedAt < b.lastCompletedAt
+      ? -1
+      : a.lastCompletedAt > b.lastCompletedAt
+        ? 1
+        : 0;
+  });
+
+  const safeLimit = isNonNegativeInteger(limit) && limit >= 0 ? limit : 0;
+  return normalized.slice(0, safeLimit);
+}
+
+export type StoredQuestRun = {
+  id: string;
+  guestId: string;
+  displayName: string;
+  questId: string;
+  points: number;
+  shards: number;
+  completedAt: string;
+};
+
+export function buildStoredQuestRun(input: {
+  guestId: string;
+  displayName: string;
+  questId?: string;
+  points?: number;
+  shards?: number;
+  id?: string;
+  completedAt?: string;
+}): StoredQuestRun {
+  const questId = isNonEmptyString(input.questId)
+    ? input.questId
+    : "Quest #1 — Gather Pixel Shards";
+  const points = isNonNegativeInteger(input.points) ? input.points : 0;
+  const shards = isNonNegativeInteger(input.shards) ? input.shards : 0;
+  const id = isNonEmptyString(input.id) ? input.id : createRandomId();
+  const completedAt = isNonEmptyString(input.completedAt)
+    ? input.completedAt
+    : new Date().toISOString();
+
+  return {
+    id,
+    guestId: input.guestId,
+    displayName: input.displayName,
+    questId,
+    points,
+    shards,
+    completedAt,
+  };
+}
+
+export function serializeQuestRunForStorage(run: StoredQuestRun): string {
+  return JSON.stringify(run);
+}
+
+export function parseStoredQuestRun(value: unknown): StoredQuestRun | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const row = parsed as Record<string, unknown>;
+  const id = readStringField(row, "id");
+  const guestId = readStringField(row, "guestId");
+  const displayName = readStringField(row, "displayName");
+  const questId = readStringField(row, "questId");
+  const completedAt = readStringField(row, "completedAt");
+  const points = readNonNegativeIntField(row, "points");
+  const shards = readNonNegativeIntField(row, "shards");
+
+  if (
+    id === undefined ||
+    guestId === undefined ||
+    displayName === undefined ||
+    questId === undefined ||
+    completedAt === undefined ||
+    points === undefined ||
+    shards === undefined
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    guestId,
+    displayName,
+    questId,
+    points,
+    shards,
+    completedAt,
+  };
+}
