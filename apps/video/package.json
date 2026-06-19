@@ -1,0 +1,26 @@
+{
+  "name": "@open-pixel/video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "remotion render OpenPixelPromo dist/open-pixel-promo-v2.mp4",
+    "dev": "remotion studio --host 0.0.0.0",
+    "still": "remotion still OpenPixelPromo public/generated/frame-90.png --frame=90 --scale=0.5",
+    "assets:generate": "node scripts/generate-assets.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/media": "4.0.477",
+    "@remotion/cli": "4.0.477",
+    "remotion": "4.0.477",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "~6.0.2"
+  }
+}

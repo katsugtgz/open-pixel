@@ -1,8 +1,5 @@
-node_modules
-**/node_modules
-**/dist
+.worktrees/
+test-results/
+apps/video/dist/
+apps/video/public/generated/
 apps/game/src/tiled/*.tsx
-apps/game/src/tiled/*.tmx
-package-lock.json
-apps/game/package-lock.json
-apps/game/pnpm-lock.yaml
