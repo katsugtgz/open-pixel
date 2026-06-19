@@ -1,0 +1,19 @@
+docs/ROADMAP.md
+  s_cc4c66c9b96594::t_8a15659d0b98b6 16-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "1d95769c6851b9abab9219a25dafb94fead28501",
+  "prompts": {},
+  "sessions": {
+    "s_cc4c66c9b96594": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11e7d08b2ffeaJ67iKt0BUk6ph",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
