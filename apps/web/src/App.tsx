@@ -90,16 +90,62 @@ function getGuestId() {
   return next;
 }
 
+const PROOF_SESSION_KEY = "open_pixel_proof_v1";
+
+type ProofSession = {
+  signature: string;
+  issuedAt: string;
+  expirationTime: string;
+  proofMessage: string;
+};
+
+function loadProofSession(): ProofSession | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(PROOF_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ProofSession>;
+    if (
+      typeof parsed.signature !== "string" ||
+      typeof parsed.issuedAt !== "string" ||
+      typeof parsed.expirationTime !== "string" ||
+      typeof parsed.proofMessage !== "string" ||
+      !parsed.signature ||
+      !parsed.proofMessage
+    ) {
+      return null;
+    }
+    return {
+      signature: parsed.signature,
+      issuedAt: parsed.issuedAt,
+      expirationTime: parsed.expirationTime,
+      proofMessage: parsed.proofMessage,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveProofSession(value: ProofSession): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.setItem(PROOF_SESSION_KEY, JSON.stringify(value));
+  } catch {
+    // sessionStorage unavailable (private mode, quota); non-fatal
+  }
+}
+
 function initialState(): AppState {
+  const proof = loadProofSession();
   return {
     guestId: getGuestId(),
     displayName: "Pixel Runner",
     walletAddress: "",
-    signature: "",
+    signature: proof?.signature ?? "",
     status: "Ready. Play as guest; wallet proof is optional.",
-    issuedAt: "",
-    expirationTime: "",
-    proofMessage: "",
+    issuedAt: proof?.issuedAt ?? "",
+    expirationTime: proof?.expirationTime ?? "",
+    proofMessage: proof?.proofMessage ?? "",
     claimNonce: 0,
   };
 }
@@ -578,6 +624,12 @@ function App() {
         expirationTime: expires.toISOString(),
         proofMessage: message,
       },
+    });
+    saveProofSession({
+      signature: sig,
+      issuedAt: now.toISOString(),
+      expirationTime: expires.toISOString(),
+      proofMessage: message,
     });
     setStatus("Proof signed with personal_sign. No transaction sent.");
 
