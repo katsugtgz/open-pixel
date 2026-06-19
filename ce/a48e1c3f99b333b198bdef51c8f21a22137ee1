@@ -1,0 +1,20 @@
+apps/web/src/App.tsx
+  s_c3b321c68de490::t_137539fd9b3c0e 628-633
+  s_c3b321c68de490::t_2b8b3132f735e6 93-137,139,144,146-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "cea48e1c3f99b333b198bdef51c8f21a22137ee1",
+  "prompts": {},
+  "sessions": {
+    "s_c3b321c68de490": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ead1183ffeNAdxqThJRz2jqw",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
