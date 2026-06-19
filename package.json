@@ -18,7 +18,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run build:vercel && npm run test --workspaces --if-present && npm run test:game:render",
     "test:game:render": "node scripts/check-game-render.mjs",
     "doctor:react": "npx react-doctor@latest ./apps/web/src --no-score --blocking none --yes",
     "db:check": "node scripts/check-supabase-schema.mjs",

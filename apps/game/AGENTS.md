@@ -33,7 +33,7 @@ apps/game/
 | `QuestGiver`         | `src/modules/main/event.ts`  | Starts quest, checks 3 shards, grants +100.               |
 | `PixelShard`         | `src/modules/main/event.ts`  | Requires quest start, increments shard count, grants +10. |
 | `player.onConnected` | `src/modules/main/player.ts` | Spawns player and sets display name/graphic.              |
-| `player.onInput`     | `src/modules/main/player.ts` | Opens main menu on `back`.                                |
+| `player.onInput`     | `src/modules/main/player.ts` | Opens main menu on `"escape"`.                            |
 | default module       | `src/modules/main/server.ts` | Binds events to map.                                      |
 | default server       | `src/server.ts`              | Wires RPG-JS providers.                                   |
 

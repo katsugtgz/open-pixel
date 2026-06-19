@@ -6,26 +6,26 @@ React/Vite claim shell: landing, guest badge, optional wallet proof, Supabase sy
 
 ## WHERE TO LOOK
 
-| Task          | Location                              | Notes                                            |
-| ------------- | ------------------------------------- | ------------------------------------------------ |
-| Page flow     | `src/App.tsx`                         | All major React sections and handlers live here. |
-| Visual polish | `src/App.css`                         | Pixel UI, responsive layout, animations.         |
-| Supabase init | `src/lib/supabase/client.ts`          | Throws if required env is missing.               |
-| Vite aliases  | `vite.config.ts`, `tsconfig.app.json` | `@` maps to `src`.                               |
-| Public assets | `public/`                             | Favicons/icons only.                             |
+| Task          | Location                              | Notes                                                           |
+| ------------- | ------------------------------------- | --------------------------------------------------------------- |
+| Page flow     | `src/App.tsx`                         | All major React sections and handlers live here.                |
+| Visual polish | `src/App.css`                         | Pixel UI, responsive layout, animations.                        |
+| Supabase init | `src/lib/supabase/client.ts`          | Optional; app uses a local status fallback when env is missing. |
+| Vite aliases  | `vite.config.ts`, `tsconfig.app.json` | `@` maps to `src`.                                              |
+| Public assets | `public/`                             | Favicons/icons only.                                            |
 
 ## CODE MAP
 
-| Symbol            | Location                     | Role                                                               |
-| ----------------- | ---------------------------- | ------------------------------------------------------------------ |
-| `Topbar`          | `src/App.tsx`                | In-page nav + repo link.                                           |
-| `HeroSection`     | `src/App.tsx`                | First viewport pitch and game CTA.                                 |
-| `ClaimSection`    | `src/App.tsx`                | Guest badge controls, wallet connect/sign controls.                |
-| `StatusBar`       | `src/App.tsx`                | User-facing operation status.                                      |
-| `claimGuestBadge` | `src/App.tsx`                | Creates local run, upserts `players`, upserts `quest_runs`.        |
-| `connectWallet`   | `src/App.tsx`                | Requests `eth_requestAccounts`; guest flow still works without it. |
-| `signProof`       | `src/App.tsx`                | Builds message, requests `personal_sign`, upserts `wallet_proofs`. |
-| `createClient`    | `src/lib/supabase/client.ts` | `@supabase/ssr` browser client wrapper.                            |
+| Symbol           | Location                     | Role                                                                                    |
+| ---------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| `Topbar`         | `src/App.tsx`                | In-page nav + repo link.                                                                |
+| `HeroSection`    | `src/App.tsx`                | First viewport pitch and game CTA.                                                      |
+| `ClaimSection`   | `src/App.tsx`                | Guest badge controls, wallet connect/sign controls.                                     |
+| `StatusBar`      | `src/App.tsx`                | User-facing operation status.                                                           |
+| `saveGuestClaim` | `src/App.tsx`                | Creates local run, upserts `players`, upserts `quest_runs` when Supabase is configured. |
+| `connectWallet`  | `src/App.tsx`                | Requests `eth_requestAccounts`; guest flow still works without it.                      |
+| `signProof`      | `src/App.tsx`                | Builds message, requests `personal_sign`, upserts `wallet_proofs`.                      |
+| `createClient`   | `src/lib/supabase/client.ts` | `@supabase/ssr` browser client wrapper.                                                 |
 
 ## CONVENTIONS
 

@@ -26,7 +26,7 @@ export function createRandomId(): string {
 }
 
 export function createGuestId(): string {
-  return `guest_${createRandomId()}`;
+  return `guest_${crypto.randomUUID()}`;
 }
 
 export function buildProofMessage(input: {

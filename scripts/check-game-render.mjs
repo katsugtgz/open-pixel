@@ -1,7 +1,10 @@
 import { chromium } from "playwright";
+import { spawn } from "node:child_process";
 import { inflateSync } from "node:zlib";
 
-const url = process.argv[2] || "http://localhost:4173/game/";
+const providedUrl = process.argv[2];
+const url = providedUrl || "http://localhost:4173/game/";
+const preview = providedUrl ? null : await startPreview();
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -14,11 +17,17 @@ page.on("pageerror", (error) => {
 
 page.on("response", (response) => {
   const responseUrl = response.url();
-  if (
-    response.status() >= 400 &&
-    /\/(map|assets|spritesheets)\//.test(responseUrl)
-  ) {
+  if (response.status() >= 400 && isGameAssetUrl(responseUrl)) {
     failedRequests.push(`${response.status()} ${responseUrl}`);
+  }
+});
+
+page.on("requestfailed", (request) => {
+  const requestUrl = request.url();
+  if (isGameAssetUrl(requestUrl)) {
+    failedRequests.push(
+      `request failed ${requestUrl}: ${request.failure()?.errorText || "unknown"}`,
+    );
   }
 });
 
@@ -41,6 +50,44 @@ try {
   console.log(`Game render check passed: ${url}`);
 } finally {
   await browser.close();
+  preview?.kill("SIGTERM");
+}
+
+function isGameAssetUrl(value) {
+  return (
+    /\/(map|assets|spritesheets)\//.test(value) ||
+    /\/(default-bundle|revoltfx-spritesheet)\.json(?:\?|$)/.test(value)
+  );
+}
+
+async function startPreview() {
+  const child = spawn(
+    "npx",
+    ["vite", "preview", "--host", "127.0.0.1", "--port", "4173"],
+    { cwd: "apps/web", stdio: ["ignore", "pipe", "pipe"] },
+  );
+  let output = "";
+  child.stdout.on("data", (chunk) => {
+    output += chunk;
+  });
+  child.stderr.on("data", (chunk) => {
+    output += chunk;
+  });
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (child.exitCode !== null) {
+      throw new Error(`vite preview exited early:\n${output}`);
+    }
+    try {
+      const response = await fetch("http://127.0.0.1:4173/game/");
+      if (response.ok) return child;
+    } catch {
+      // Keep polling until Vite binds the port.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  child.kill("SIGTERM");
+  throw new Error(`vite preview did not start:\n${output}`);
 }
 
 function decodePng(buffer) {
