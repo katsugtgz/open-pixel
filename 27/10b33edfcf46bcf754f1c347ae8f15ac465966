@@ -1,0 +1,30 @@
+packages/shared/src/index.ts
+  s_cc4c66c9b96594::t_8a15659d0b98b6 99-294
+packages/shared/test/index.test.mjs
+  s_3d9a33e7467c42::t_9553a9f0bd74a6 197-198
+  s_cc4c66c9b96594::t_8a15659d0b98b6 5,9-10,12,99-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2710b33edfcf46bcf754f1c347ae8f15ac465966",
+  "prompts": {},
+  "sessions": {
+    "s_3d9a33e7467c42": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ea353e0ffeE1D6y2CzmibzAp",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_cc4c66c9b96594": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11e7d08b2ffeaJ67iKt0BUk6ph",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
