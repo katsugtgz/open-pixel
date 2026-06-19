@@ -6,3 +6,5 @@ apps/game/src/tiled/*.tmx
 package-lock.json
 apps/game/package-lock.json
 apps/game/pnpm-lock.yaml
+.omo/
+.playwright-mcp/

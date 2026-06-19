@@ -9,3 +9,7 @@ build/
 .vite/
 coverage/
 .vercel
+
+# agent artifacts
+.omo/
+.playwright-mcp/
