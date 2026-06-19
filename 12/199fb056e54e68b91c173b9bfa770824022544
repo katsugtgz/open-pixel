@@ -1,0 +1,34 @@
+apps/game/src/modules/main/client.ts
+  s_73b2297dc9ef66::t_80c8ba8d706e76 2-5,25-26
+  s_73b2297dc9ef66::t_e905ed0bdc05ac 1,6-18,24,27-39
+  s_73b2297dc9ef66::t_486d84cc41712b 19-23
+apps/game/src/modules/main/event.ts
+  s_73b2297dc9ef66::t_cdaa83f1ea88ea 23,25-31
+  s_c3b321c68de490::t_2534a41fefc60c 24
+apps/game/src/modules/main/index.ts
+  s_73b2297dc9ef66::t_eedfcc14b8a2c9 2,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "12199fb056e54e68b91c173b9bfa770824022544",
+  "prompts": {},
+  "sessions": {
+    "s_73b2297dc9ef66": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11e356683ffeJk0e1t4MsgC68E",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c3b321c68de490": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ead1183ffeNAdxqThJRz2jqw",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
