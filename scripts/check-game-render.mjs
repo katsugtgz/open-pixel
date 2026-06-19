@@ -1,5 +1,6 @@
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 
 const providedUrl = process.argv[2];
@@ -11,7 +12,10 @@ const failedRequests = [];
 let browser;
 
 try {
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({
+    headless: true,
+    executablePath: findChromiumExecutable(),
+  });
   const page = await browser.newPage({
     viewport: { width: 1280, height: 800 },
   });
@@ -62,6 +66,19 @@ function isGameAssetUrl(value) {
     /\/(map|assets|spritesheets)\//.test(value) ||
     /\/(default-bundle|revoltfx-spritesheet)\.json(?:\?|$)/.test(value)
   );
+}
+
+function findChromiumExecutable() {
+  for (const path of [
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+  ]) {
+    if (path && existsSync(path)) return path;
+  }
+  return undefined;
 }
 
 async function startPreview() {
