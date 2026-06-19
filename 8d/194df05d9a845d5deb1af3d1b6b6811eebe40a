@@ -1,0 +1,19 @@
+packages/shared/test/index.test.mjs
+  s_c3b321c68de490::t_e794eca602cef6 198-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8d194df05d9a845d5deb1af3d1b6b6811eebe40a",
+  "prompts": {},
+  "sessions": {
+    "s_c3b321c68de490": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ead1183ffeNAdxqThJRz2jqw",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
