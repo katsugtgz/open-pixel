@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
@@ -6,6 +6,7 @@ import {
   createRandomId,
   formatSupabaseError,
   normalizeLeaderboardRows,
+  parseStoredQuestRun,
   SECURITY_RECEIPT,
   type LeaderboardRow,
 } from "@open-pixel/shared";
@@ -451,18 +452,34 @@ function App() {
     claimNonce: state.claimNonce,
   });
 
-  const questRun = useMemo(
-    () => ({
-      id: `run_${state.guestId.slice(-8)}`,
-      guestId: state.guestId,
-      displayName: state.displayName.trim() || "Pixel Runner",
-      questId: "Quest #1 — Gather Pixel Shards",
-      points: 130,
-      shards: 3,
-      completedAt: new Date().toISOString(),
-    }),
-    [state.displayName, state.guestId],
-  );
+  const [questRun, setQuestRun] = useState<QuestRunView>(() => {
+    const stored = parseStoredQuestRun(
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("open_pixel_quest_run_v1")
+        : null,
+    );
+    return (
+      stored ?? {
+        id: `run_${state.guestId.slice(-8)}`,
+        guestId: state.guestId,
+        displayName: state.displayName.trim() || "Pixel Runner",
+        questId: "Quest #1 — Gather Pixel Shards",
+        points: 130,
+        shards: 3,
+        completedAt: new Date().toISOString(),
+      }
+    );
+  });
+
+  useEffect(() => {
+    function handleStorage(event: StorageEvent) {
+      if (event.key !== "open_pixel_quest_run_v1") return;
+      const parsed = parseStoredQuestRun(event.newValue);
+      if (parsed) setQuestRun(parsed);
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   function setStatus(value: string) {
     dispatch({ type: "status", value });
