@@ -1,0 +1,58 @@
+apps/web/src/components/ProofCertificate.tsx
+  s_7beded3653b13f::t_5c48c15ea1172b 1
+  s_7beded3653b13f::t_23db8f13da203a 50,52,54,56-58,65-67,80-82
+  s_7beded3653b13f::t_4bb83d7fd0bdff 53,55
+  s_937eb10e84339b::t_5ce902cfc59ad0 2-49,51,59-64,68-79,83-161
+apps/web/src/App.css
+  s_cc4c66c9b96594::t_8a15659d0b98b6 89,816-994
+apps/web/src/App.tsx
+  s_cc4c66c9b96594::t_8a15659d0b98b6 1,8-10,12,63-65,72,74-82,99-101,116-123,131-136,141-179,181-184,283-317,335-339,404,556-564,598,609-620
+  s_c3b321c68de490::t_7e1701fcd1bfca 137-140
+  s_c3b321c68de490::t_221c73c1e7ced4 73
+  s_c3b321c68de490::t_deb9af937b5067 102
+  s_c3b321c68de490::t_a1eb44b97ae013 180
+  s_c3b321c68de490::t_f1987d0bd380eb 449-452
+  s_c3b321c68de490::t_8f42aa8fdbbbd1 114-115
+  s_c3b321c68de490::t_a1650ca31f60fa 511
+  s_c3b321c68de490::t_da17924dc6f22e 66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "462dfcf41b7fc7a339ad1ca210294f6fa11d2277",
+  "prompts": {},
+  "sessions": {
+    "s_7beded3653b13f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11e7fd821ffeyAFwETyK65vaBz",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_937eb10e84339b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ea08c08ffeM6zwunnNv8wpnk",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c3b321c68de490": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11ead1183ffeNAdxqThJRz2jqw",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_cc4c66c9b96594": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11e7d08b2ffeaJ67iKt0BUk6ph",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
