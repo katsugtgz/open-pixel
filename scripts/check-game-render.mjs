@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { inflateSync } from "node:zlib";
 
 const providedUrl = process.argv[2];
-const url = providedUrl || "http://localhost:4173/game/";
+const url = providedUrl || "http://127.0.0.1:4173/game/";
 const preview = providedUrl ? null : await startPreview();
 
 const browser = await chromium.launch({ headless: true });
