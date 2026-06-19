@@ -15,6 +15,7 @@ try {
   browser = await chromium.launch({
     headless: true,
     executablePath: findChromiumExecutable(),
+    timeout: 30_000,
   });
   const page = await browser.newPage({
     viewport: { width: 1280, height: 800 },
@@ -58,7 +59,7 @@ try {
   console.log(`Game render check passed: ${url}`);
 } finally {
   await browser?.close();
-  preview?.kill("SIGTERM");
+  stopPreview(preview);
 }
 
 function isGameAssetUrl(value) {
@@ -81,11 +82,20 @@ function findChromiumExecutable() {
   return undefined;
 }
 
+function stopPreview(child) {
+  if (!child?.pid) return;
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    child.kill("SIGTERM");
+  }
+}
+
 async function startPreview() {
   const child = spawn(
     "npx",
     ["vite", "preview", "--host", "127.0.0.1", "--port", "4173"],
-    { cwd: "apps/web", stdio: ["ignore", "pipe", "pipe"] },
+    { cwd: "apps/web", detached: true, stdio: ["ignore", "pipe", "pipe"] },
   );
   let output = "";
   child.stdout.on("data", (chunk) => {
