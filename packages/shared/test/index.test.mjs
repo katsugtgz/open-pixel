@@ -195,4 +195,31 @@ describe("stored quest run serialization", () => {
     assert.equal(parseStoredQuestRun(null), null);
     assert.equal(parseStoredQuestRun(JSON.stringify({ nope: true })), null);
   });
+
+  it("accepts the exact game emit payload shape (regression)", () => {
+    // Mirrors apps/game/src/modules/main/event.ts QuestGiver emit on quest done.
+    const gameEmitPayload = {
+      id: "run_1",
+      guestId: "1",
+      displayName: "Guest",
+      questId: "Quest #1 — Gather Pixel Shards",
+      points: 130,
+      shards: 3,
+      completedAt: "2026-06-20T03:00:00.000Z",
+    };
+    const parsed = parseStoredQuestRun(JSON.stringify(gameEmitPayload));
+    assert.deepEqual(parsed, gameEmitPayload);
+  });
+
+  it("rejects payload missing id (regression: handoff must round-trip)", () => {
+    const payloadWithoutId = {
+      guestId: "1",
+      displayName: "Guest",
+      questId: "Quest #1 — Gather Pixel Shards",
+      points: 130,
+      shards: 3,
+      completedAt: "2026-06-20T03:00:00.000Z",
+    };
+    assert.equal(parseStoredQuestRun(JSON.stringify(payloadWithoutId)), null);
+  });
 });
