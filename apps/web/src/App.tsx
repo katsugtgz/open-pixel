@@ -3,8 +3,8 @@ import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/clie
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
-  SECURITY_RECEIPT,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -12,7 +12,10 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 const configuredGameUrl = import.meta.env.VITE_GAME_URL as string | undefined;
-const rawGameUrl = configuredGameUrl || "/game/";
+const defaultGameUrl = import.meta.env.DEV
+  ? `${window.location.protocol}//${window.location.hostname}:5174/`
+  : "/game/";
+const rawGameUrl = configuredGameUrl || defaultGameUrl;
 const gameUrl = rawGameUrl.endsWith("/game") ? `${rawGameUrl}/` : rawGameUrl;
 const repoUrl = "https://github.com/katsugtgz/open-pixel";
 
@@ -21,18 +24,18 @@ const supabase =
 
 const pillars = [
   {
-    title: "Explore",
-    body: "Start as a guest, meet the AI Guide, and enter a cozy pixel field.",
+    title: "Play",
+    body: "Enter as guest. Arrow keys move; Space interacts.",
     stat: "guest-first",
   },
   {
     title: "Gather",
-    body: "Collect 3 Pixel Shards, complete the quest, and earn off-chain points.",
+    body: "Talk to the AI Guide, then collect 3 cyan Pixel Shards.",
     stat: "+130 pts",
   },
   {
     title: "Prove",
-    body: "Optional wallet receipt uses readable personal_sign only. No tx. No token.",
+    body: "Claim a badge. Wallet proof stays optional and readable.",
     stat: "safe proof",
   },
 ];
@@ -102,10 +105,6 @@ function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
-function receiptLabel(key: string) {
-  return key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`);
-}
-
 function Topbar() {
   return (
     <nav className="topbar" aria-label="Open Pixel navigation">
@@ -116,6 +115,9 @@ function Topbar() {
         <span>Open Pixel</span>
       </a>
       <div className="nav-links">
+        <a className="nav-play" href={gameUrl}>
+          Play demo
+        </a>
         <a href="#loop">Loop</a>
         <a href="#claim">Claim</a>
         <a href="#proof">Proof</a>
@@ -132,12 +134,7 @@ function HeroSection() {
     <section className="hero" id="top">
       <div className="hero-copy">
         <p className="eyebrow">Zero Cup 2026 · Cozy Web3 RPG</p>
-        <h1>Quest, gather, prove — without a token economy.</h1>
-        <p className="subtitle">
-          A Pixels-inspired browser world where guests complete cozy AI quests,
-          collect shards, earn off-chain points, then optionally sign a readable
-          wallet proof. No gas, no approvals, no RMT loop.
-        </p>
+        <h1>Play a cozy pixel quest. No wallet required.</h1>
         <div className="actions">
           <a className="button primary" href={gameUrl}>
             Play demo
@@ -146,10 +143,19 @@ function HeroSection() {
             Claim badge
           </a>
         </div>
+        <p className="subtitle">
+          Talk to the AI Guide, collect 3 Pixel Shards, claim an off-chain
+          badge. Wallet proof stays optional and readable.
+        </p>
+        <div className="control-guide" aria-label="Demo controls">
+          <span className="desktop-control">Desktop: Arrow keys to move</span>
+          <span className="desktop-control">Space to talk / collect</span>
+          <span className="mobile-control">Mobile: joystick + A button</span>
+        </div>
         <div className="trust-row" aria-label="Safety summary">
           <span>guest-first</span>
-          <span>no token</span>
-          <span>personal_sign only</span>
+          <span>no gas / no token</span>
+          <span>optional personal_sign</span>
         </div>
       </div>
 
@@ -181,8 +187,8 @@ function LoopSection() {
   return (
     <section className="section" id="loop">
       <div className="section-heading">
-        <p className="eyebrow">Gameplay loop</p>
-        <h2>Small, playable, submission-ready.</h2>
+        <p className="eyebrow">Demo loop</p>
+        <h2>Three steps: talk, gather, claim.</h2>
       </div>
       <div className="pillar-grid">
         {pillars.map((pillar) => (
@@ -202,11 +208,11 @@ function DesignSection() {
     <section className="split-section">
       <article className="panel economy-panel">
         <p className="eyebrow">Design stance</p>
-        <h2>Borrow the cozy world feel, not the fragile economy.</h2>
+        <h2>Web3 proof, not Web3 economy.</h2>
         <p>
-          Open Pixel keeps the fun parts: quests, social identity, resource
-          gathering, visible progress. It skips token emissions, staking,
-          marketplace loops, and speculative rewards for this contest build.
+          Open Pixel keeps quests, identity, gathering, and visible progress. It
+          skips token emissions, staking, marketplace loops, and speculative
+          rewards.
         </p>
         <div className="comparison">
           <span>Off-chain points</span>
@@ -283,14 +289,16 @@ function ClaimSection({
 
       <article className="panel wallet-panel" id="proof">
         <p className="eyebrow">Optional wallet proof</p>
-        <h2>Readable signature. Nothing else.</h2>
-        <ul>
-          <li>No transaction</li>
-          <li>No gas</li>
-          <li>No token or NFT approval</li>
-          <li>No swap, permit, or contract call</li>
-          <li>Only a readable personal_sign message</li>
-        </ul>
+        <h2>Sign only if you want proof.</h2>
+        <p>Optional readable personal_sign receipt only.</p>
+        <div className="safety-pills" aria-label="Wallet safety summary">
+          <span>No gas</span>
+          <span>No approvals</span>
+          <span>No transaction</span>
+        </div>
+        <p className="security-receipt">
+          Receipt: personal_sign only · no contract call · no token approval
+        </p>
         <div className="wallet-actions">
           <button
             className="button secondary"
@@ -310,21 +318,12 @@ function ClaimSection({
             Sign readable proof
           </button>
         </div>
-      </article>
-
-      <article className="panel receipt-panel">
-        <p className="eyebrow">Security receipt</p>
-        <h2>What happened?</h2>
-        {Object.entries(SECURITY_RECEIPT).map(([key, value]) => (
-          <p key={key}>
-            <span>{receiptLabel(key)}</span>
-            <strong>{String(value)}</strong>
-          </p>
-        ))}
+        {!state.walletAddress && (
+          <p className="wallet-helper">Connect wallet first to sign proof.</p>
+        )}
         {state.signature && (
-          <p>
-            <span>signature</span>
-            <strong>{shortAddress(state.signature)}</strong>
+          <p className="proof-receipt">
+            Signed: {shortAddress(state.signature)}
           </p>
         )}
       </article>
@@ -435,7 +434,7 @@ function App() {
       questRunId: questRun.id,
       questId: questRun.questId,
       points: questRun.points,
-      nonce: crypto.randomUUID(),
+      nonce: createRandomId(),
       issuedAt: now.toISOString(),
       expirationTime: expires.toISOString(),
     });

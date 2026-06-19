@@ -17,6 +17,14 @@ export type WalletProof = {
   verifiedAt: string;
 };
 
+export function createRandomId(): string {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export function createGuestId(): string {
   return `guest_${crypto.randomUUID()}`;
 }
