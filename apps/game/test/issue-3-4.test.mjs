@@ -39,6 +39,10 @@ test("#3 mobile controls are discoverable", () => {
   assert.match(gameHtml, /A (button|talks|collects)/i);
   assert.match(gameHtml, /@media \(pointer:\s*coarse\)/i);
   assert.match(gameHtml, /@media \(pointer:\s*fine\)/i);
+  assert.match(
+    gameHtml,
+    /@media \(min-width:\s*681px\) and \(pointer:\s*fine\)/i,
+  );
 });
 
 test("#4 map exposes guide plus exactly three shards", () => {
