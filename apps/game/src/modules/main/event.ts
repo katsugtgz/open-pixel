@@ -20,6 +20,15 @@ export function QuestGiver(): EventDefinition {
       if (shards >= 3) {
         player.setVariable(DONE, true);
         player.gold += 100;
+        player.emit("open_pixel:quest_run", {
+          id: `run_${String(player.id).slice(-8)}`,
+          guestId: String(player.id),
+          displayName: typeof player.name === "string" ? player.name : "Guest",
+          questId: "Quest #1 — Gather Pixel Shards",
+          points: 130,
+          shards: 3,
+          completedAt: new Date().toISOString(),
+        });
         await player.showNotification("Quest complete · +100 points", {
           sound: "quest-complete",
           type: "info",
