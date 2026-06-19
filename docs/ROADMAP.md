@@ -13,12 +13,12 @@
 
 ## v0.2 — better prototype
 
-- Persistent player profile.
-- Multiple quest templates.
-- Leaderboard UI.
-- Better map art.
-- Claim certificate page.
-- Server-side proof verification.
+- [ ] Persistent player profile.
+- [ ] Multiple quest templates.
+- [x] Leaderboard UI.
+- [ ] Better map art.
+- [x] Claim certificate page.
+- [ ] Server-side proof verification.
 
 ## v0.3 — social world
 
