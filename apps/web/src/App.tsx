@@ -1,11 +1,15 @@
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
   createGuestId,
   createRandomId,
   formatSupabaseError,
+  normalizeLeaderboardRows,
+  SECURITY_RECEIPT,
+  type LeaderboardRow,
 } from "@open-pixel/shared";
+import ProofCertificate from "@/components/ProofCertificate";
 import "./App.css";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -40,12 +44,6 @@ const pillars = [
   },
 ];
 
-const mockLeaderboard = [
-  { name: "Pixel Runner", score: 130, tag: "guest" },
-  { name: "Shard Scout", score: 90, tag: "proof ready" },
-  { name: "Moss Farmer", score: 70, tag: "guest" },
-];
-
 type QuestRunView = {
   id: string;
   guestId: string;
@@ -62,13 +60,26 @@ type AppState = {
   walletAddress: string;
   signature: string;
   status: string;
+  issuedAt: string;
+  expirationTime: string;
+  proofMessage: string;
+  claimNonce: number;
 };
 
 type AppAction =
   | { type: "displayName"; value: string }
   | { type: "walletAddress"; value: string }
-  | { type: "signature"; value: string }
-  | { type: "status"; value: string };
+  | { type: "status"; value: string }
+  | { type: "claimNonce" }
+  | {
+      type: "proof";
+      value: {
+        signature: string;
+        issuedAt: string;
+        expirationTime: string;
+        proofMessage: string;
+      };
+    };
 
 function getGuestId() {
   const existing = localStorage.getItem("open_pixel_guest_id");
@@ -85,6 +96,10 @@ function initialState(): AppState {
     walletAddress: "",
     signature: "",
     status: "Ready. Play as guest; wallet proof is optional.",
+    issuedAt: "",
+    expirationTime: "",
+    proofMessage: "",
+    claimNonce: 0,
   };
 }
 
@@ -94,15 +109,77 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, displayName: action.value };
     case "walletAddress":
       return { ...state, walletAddress: action.value };
-    case "signature":
-      return { ...state, signature: action.value };
     case "status":
       return { ...state, status: action.value };
+    case "claimNonce":
+      return { ...state, claimNonce: state.claimNonce + 1 };
+    case "proof":
+      return {
+        ...state,
+        signature: action.value.signature,
+        issuedAt: action.value.issuedAt,
+        expirationTime: action.value.expirationTime,
+        proofMessage: action.value.proofMessage,
+      };
   }
 }
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+type LeaderboardState = {
+  rows: LeaderboardRow[];
+  demoData: boolean;
+  loading: boolean;
+};
+
+function useLeaderboard(deps: {
+  enabled: boolean;
+  claimNonce: number;
+}): LeaderboardState {
+  const [state, setState] = useState<LeaderboardState>(() => ({
+    rows: [],
+    demoData: !deps.enabled,
+    loading: deps.enabled,
+  }));
+
+  useEffect(() => {
+    if (!deps.enabled || !supabase) {
+      return;
+    }
+    const controller = new AbortController();
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("leaderboard")
+          .select("*")
+          .limit(10)
+          .abortSignal(controller.signal);
+        if (cancelled) return;
+        if (error) {
+          setState({ rows: [], demoData: true, loading: false });
+          return;
+        }
+        setState({
+          rows: normalizeLeaderboardRows(data),
+          demoData: false,
+          loading: false,
+        });
+      } catch {
+        if (!cancelled) {
+          setState({ rows: [], demoData: true, loading: false });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [deps.enabled, deps.claimNonce]);
+
+  return state;
 }
 
 function Topbar() {
@@ -203,7 +280,41 @@ function LoopSection() {
   );
 }
 
-function DesignSection() {
+function LeaderboardPanel({
+  rows,
+  demoData,
+  loading,
+}: {
+  rows: LeaderboardRow[];
+  demoData: boolean;
+  loading: boolean;
+}) {
+  return (
+    <article className="panel leaderboard-panel">
+      <p className="eyebrow">Leaderboard shell</p>
+      <h2>Proof-ready scores</h2>
+      {demoData && (
+        <p className="demo-data-tag">
+          demo data · connect Supabase to see live scores
+        </p>
+      )}
+      {loading && <p className="leaderboard-loading">Loading live scores…</p>}
+      {!loading && !demoData && rows.length === 0 && (
+        <p className="leaderboard-empty">No runs yet — be the first.</p>
+      )}
+      {rows.map((row, index) => (
+        <div className="leaderboard-row" key={row.guestId}>
+          <strong>#{index + 1}</strong>
+          <span>{row.displayName}</span>
+          <em>{row.totalPoints} pts</em>
+          <small>{row.completedRuns} run(s)</small>
+        </div>
+      ))}
+    </article>
+  );
+}
+
+function DesignSection({ leaderboard }: { leaderboard: LeaderboardState }) {
   return (
     <section className="split-section">
       <article className="panel economy-panel">
@@ -221,18 +332,11 @@ function DesignSection() {
         </div>
       </article>
 
-      <article className="panel leaderboard-panel">
-        <p className="eyebrow">Leaderboard shell</p>
-        <h2>Proof-ready scores</h2>
-        {mockLeaderboard.map((row, index) => (
-          <div className="leaderboard-row" key={row.name}>
-            <strong>#{index + 1}</strong>
-            <span>{row.name}</span>
-            <em>{row.score} pts</em>
-            <small>{row.tag}</small>
-          </div>
-        ))}
-      </article>
+      <LeaderboardPanel
+        rows={leaderboard.rows}
+        demoData={leaderboard.demoData}
+        loading={leaderboard.loading}
+      />
     </section>
   );
 }
@@ -297,7 +401,7 @@ function ClaimSection({
           <span>No transaction</span>
         </div>
         <p className="security-receipt">
-          Receipt: personal_sign only · no contract call · no token approval
+          {`Receipt: ${SECURITY_RECEIPT.method} only · no contract call · no token approval`}
         </p>
         <div className="wallet-actions">
           <button
@@ -342,6 +446,10 @@ function StatusBar({ status }: { status: string }) {
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
+  const leaderboard = useLeaderboard({
+    enabled: !!supabase,
+    claimNonce: state.claimNonce,
+  });
 
   const questRun = useMemo(
     () => ({
@@ -400,6 +508,7 @@ function App() {
     if (showSuccess) {
       setStatus("Guest badge synced. Wallet proof remains optional.");
     }
+    dispatch({ type: "claimNonce" });
     return true;
   }
 
@@ -444,7 +553,15 @@ function App() {
       params: [message, state.walletAddress],
     })) as string;
 
-    dispatch({ type: "signature", value: sig });
+    dispatch({
+      type: "proof",
+      value: {
+        signature: sig,
+        issuedAt: now.toISOString(),
+        expirationTime: expires.toISOString(),
+        proofMessage: message,
+      },
+    });
     setStatus("Proof signed with personal_sign. No transaction sent.");
 
     if (supabase) {
@@ -478,7 +595,7 @@ function App() {
       <Topbar />
       <HeroSection />
       <LoopSection />
-      <DesignSection />
+      <DesignSection leaderboard={leaderboard} />
       <ClaimSection
         state={state}
         questRun={questRun}
@@ -489,6 +606,18 @@ function App() {
         onConnectWallet={() => void connectWallet()}
         onSignProof={() => void signProof()}
       />
+      {state.signature && state.proofMessage && (
+        <ProofCertificate
+          walletAddress={state.walletAddress}
+          questRunId={questRun.id}
+          questId={questRun.questId}
+          points={questRun.points}
+          issuedAt={state.issuedAt}
+          expirationTime={state.expirationTime}
+          proofMessage={state.proofMessage}
+          signature={state.signature}
+        />
+      )}
       <StatusBar status={state.status} />
     </main>
   );

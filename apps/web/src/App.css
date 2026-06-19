@@ -86,6 +86,7 @@ body {
 .section,
 .split-section,
 .claim-grid,
+.certificate-panel,
 .status-bar {
   position: relative;
   z-index: 1;
@@ -812,4 +813,183 @@ input {
     font-size: 12px;
     line-height: 1.35;
   }
+
+  .certificate-summary,
+  .receipt-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .certificate-actions {
+    flex-direction: column;
+  }
+
+  .copy-wrap {
+    width: 100%;
+  }
+
+  .copy-button {
+    width: 100%;
+  }
+}
+
+/* ---- Leaderboard live/demo states ---- */
+
+.demo-data-tag {
+  display: inline-block;
+  margin: 0 0 14px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: var(--ink);
+  background: var(--pink);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.leaderboard-loading,
+.leaderboard-empty {
+  color: #cabff0;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 12px 0;
+}
+
+/* ---- Proof certificate ---- */
+
+.certificate-panel {
+  margin-bottom: 36px;
+}
+
+.certificate-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.summary-field {
+  display: grid;
+  gap: 4px;
+  border: 3px solid rgba(11, 8, 36, 0.72);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(11, 8, 36, 0.55);
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.summary-field span {
+  color: #cabff0;
+  font-size: 11px;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.summary-field strong {
+  color: var(--lime-soft);
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.summary-field em {
+  color: var(--lime);
+  font-style: normal;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.certificate-message,
+.certificate-signature {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 14px 0 0;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 14px;
+  color: var(--cream);
+  background: var(--ink-deep);
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.certificate-signature {
+  word-break: break-all;
+}
+
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.copy-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-button {
+  padding: 10px 14px;
+  font-size: 13px;
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.copy-button:hover {
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.copied-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: var(--ink);
+  background: var(--lime);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 2px dashed rgba(255, 244, 209, 0.22);
+}
+
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 2px solid rgba(11, 8, 36, 0.72);
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: rgba(11, 8, 36, 0.5);
+}
+
+.receipt-line span {
+  color: #cabff0;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receipt-line strong {
+  color: var(--lime);
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
 }
