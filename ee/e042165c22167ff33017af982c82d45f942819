@@ -1,0 +1,42 @@
+AGENTS.md
+  s_4ffbce4626d5c4::t_47f1608396277f 186-193
+apps/game/index.html
+  s_4ffbce4626d5c4::t_cd6059c9d1909b 5
+scripts/ai-game-smoke.mjs
+  s_c8a83eeb4b49de::t_069d8db9dfd8c4 238,250-251,253-265,290-293,306,308-312
+  s_c8a83eeb4b49de::t_de64508e60b356 95-98,111-116,118-119
+  s_c8a83eeb4b49de::t_8bfe6525a5f5e7 143-161,164
+  s_c8a83eeb4b49de::t_2a435e41fc744d 9-15
+  s_c8a83eeb4b49de::t_87fe3f093ffda4 117
+  s_c8a83eeb4b49de::t_ab9be0dbd27257 239-249,252,266-289,294-305,307
+  s_c8a83eeb4b49de::t_a52d91b4b5c592 140-142,162-163,165-166,169-170,173-175
+  s_c8a83eeb4b49de::t_e72a81cf7ba061 218-232
+  s_4ffbce4626d5c4::t_918ccfbac3eed8 333
+  s_4ffbce4626d5c4::t_ef5fa0e246d119 334
+scripts/ai-game-agent-runner.py
+  s_4ffbce4626d5c4::t_7655513825b833 190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "eee042165c22167ff33017af982c82d45f942819",
+  "prompts": {},
+  "sessions": {
+    "s_4ffbce4626d5c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11504096cffeVXkjVFXnUvHvXA",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c8a83eeb4b49de": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_110ab27a4ffe61r8E7pPsMCWYX",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
