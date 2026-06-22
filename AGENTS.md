@@ -82,6 +82,16 @@ LSP/codegraph tools were not exposed in this Codex surface; map below is from `r
 - Visual direction is cozy pixel RPG, not DeFi dashboard. See `docs/VISUAL_STYLE.md` before UI changes.
 - Demo speed matters more than production completeness; preserve the contest-demo path.
 
+## AI GAME E2E / SMOKE TEST
+
+- For gameplay, map, sprites, RPG-JS config, quest events, NPCs, shards, input, or build-output changes, run `npm run build:vercel && npm run test:game:render && npm run test:game:ai`.
+- `npm run test:game:ai` invokes `scripts/ai-game-smoke.mjs`: screenshot-driven autonomous smoke runner over the real RPG-JS canvas.
+- CI runs the AI smoke test on PR/push and uploads `artifacts/ai-game-smoke/` reports/screenshots.
+- For full autonomous VLM QA, run `npm run test:game:agent` with `AI_GAME_VLM_BASE_URL`, `AI_GAME_VLM_MODEL`, and `AI_GAME_VLM_API_KEY` set.
+- Full AI tester files: `scripts/run-ai-game-e2e.sh`, `scripts/ai-game-agent-runner.py`, `requirements-ai-game-e2e.txt`, `docs/AI_GAME_AGENT_WORKFLOW.md`.
+- See `docs/AI_GAME_E2E.md` and `docs/AI_GAME_AGENT_WORKFLOW.md` before changing the harness or bypassing failures.
+- Do not fix AI smoke/agent failures by hiding/replacing the RPG-JS canvas with DOM fallback.
+
 ## RPG-JS GAME INTEGRITY
 
 - The game is an RPG-JS v5 game. Treat the RPG-JS canvas, Tiled maps, spritesheets, NPCs, terrain, beach/water scenery, trees, and in-engine movement as the source of truth.
