@@ -20,6 +20,8 @@
     "format:check": "prettier --check .",
     "test": "npm run build:vercel && npm run test --workspaces --if-present && npm run test:game:render",
     "test:game:render": "node scripts/check-game-render.mjs",
+    "test:game:ai": "node scripts/ai-game-smoke.mjs",
+    "test:game:agent": "bash scripts/run-ai-game-e2e.sh",
     "doctor:react": "npx react-doctor@latest ./apps/web/src --no-score --blocking none --yes",
     "db:check": "node scripts/check-supabase-schema.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
