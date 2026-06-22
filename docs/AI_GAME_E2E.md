@@ -11,8 +11,7 @@ build web+game -> start Vite preview -> open real game page -> observe screensho
 ## Files
 
 - `scripts/ai-game-smoke.mjs` — agent smoke runner.
-- `.github/workflows/ci.yml` — PR/push gate.
-- `artifacts/ai-game-smoke/` — local reports/screenshots; ignored by CI artifact upload path.
+- `artifacts/ai-game-smoke/` — local reports/screenshots.
 
 ## Local usage
 
@@ -49,9 +48,9 @@ Pass criteria:
 - RPG-JS canvas appears.
 - canvas is not tiny/missing.
 - screenshots change after movement/interactions.
-- no page errors.
-- no failed RPG-JS asset requests.
-- no visual freeze/softlock pattern.
+- page console stays clean.
+- RPG-JS asset requests succeed.
+- visual freeze/softlock pattern is absent.
 
 ## VLM autonomous mode
 
@@ -59,6 +58,7 @@ Enable only when an OpenAI-compatible vision endpoint is available.
 
 ```bash
 AI_GAME_VLM_ENABLED=1 \
+# local Tailscale example only; replace with your own endpoint
 AI_GAME_VLM_BASE_URL=http://ktzserver.tail3d7914.ts.net:20128/v1 \
 AI_GAME_VLM_MODEL=<your-vision-model> \
 AI_GAME_VLM_API_KEY=dummy \
@@ -68,7 +68,8 @@ npm run test:game:ai
 Notes:
 
 - `gemini/gemini-embedding-2-preview` is embeddings-only; not enough for screenshot decisions.
-- This runner needs a **vision chat model** for VLM mode.
+- This runner needs a **vision chat model** for VLM mode, e.g. `gpt-4o-mini`, `gemini-2.0-flash`, or `claude-3-5-sonnet-latest` via an OpenAI-compatible proxy.
+- The Tailscale URL above is local-dev only; external users need their own OpenAI-compatible endpoint and real API key. `dummy` is only valid for local endpoints that ignore auth.
 - If VLM fails/non-JSON, runner falls back to scripted action for that step.
 
 Expected VLM response format:
@@ -91,20 +92,13 @@ Click action:
 
 ## CI behavior
 
-GitHub Actions runs:
+GitHub Actions does not run this harness until `.github/workflows/ci.yml` includes `npm run test:game:ai`. Local validation command:
 
 ```bash
-npm ci
-npm run format:check
-npm test
 npm run test:game:ai
-npm run build
-npx react-doctor@0.5.2 ./apps/web --no-score --blocking none --yes
 ```
 
-For pull requests, merge is blocked if AI game smoke fails.
-
-CI uploads artifacts on every run:
+If wired into CI, upload artifacts from:
 
 ```text
 artifacts/ai-game-smoke/report.json

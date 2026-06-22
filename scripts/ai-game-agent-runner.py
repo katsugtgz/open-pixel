@@ -140,16 +140,17 @@ def main() -> int:
                 reason = f"high severity bug: {bug.get('title')}"
                 break
             if stuck_count >= 8:
-                passed = True
-                reason = "game rendered; visual unchanged after smoke inputs without fatal bug"
+                reason = "visual freeze/softlock: screenshot unchanged for 8 consecutive steps"
                 break
 
         if not passed and reason == "unknown":
             if bugs:
                 reason = f"bugs found: {len(bugs)}"
-            elif len(steps) >= min(8, MAX_STEPS):
+            elif len(steps) >= min(8, MAX_STEPS) and has_gameplay_progress(steps):
                 passed = True
-                reason = "autonomous exploration completed without fatal bug"
+                reason = "autonomous exploration showed gameplay progress without fatal bug"
+            elif len(steps) >= min(8, MAX_STEPS):
+                reason = "no gameplay progress detected"
             else:
                 reason = "agent stopped early"
 
@@ -263,7 +264,27 @@ def execute(action: dict[str, Any]) -> None:
     if action["type"] == "click":
         pyautogui.click(action["x"], action["y"])
     elif action["type"] == "key":
-        pyautogui.press(action["key"])
+        pyautogui.press(to_pyautogui_key(action["key"]))
+
+
+def to_pyautogui_key(key: str) -> str:
+    return {
+        "ArrowUp": "up",
+        "ArrowDown": "down",
+        "ArrowLeft": "left",
+        "ArrowRight": "right",
+        "Space": "space",
+        "Enter": "enter",
+        "Escape": "esc",
+    }.get(key, key)
+
+
+def has_gameplay_progress(steps: list[Step]) -> bool:
+    progress = {s.progress.lower() for s in steps}
+    text = " ".join(f"{s.progress} {s.observation}".lower() for s in steps)
+    return bool(progress & {"move", "npc", "dialogue", "shard", "quest", "done"}) or any(
+        token in text for token in ["moved", "npc", "dialogue", "shard", "quest"]
+    )
 
 
 def fallback_action(index: int) -> dict[str, str]:
@@ -341,7 +362,7 @@ def wait_for_url(url: str, preview: subprocess.Popen[str] | None = None, timeout
             raise RuntimeError(f"Preview server exited early with code {preview.returncode}:\n{output}")
         try:
             res = requests.get(url, timeout=1)
-            if res.status_code < 500:
+            if 200 <= res.status_code < 300:
                 return
             last_error = f"HTTP {res.status_code}"
         except Exception as exc:  # noqa: BLE001

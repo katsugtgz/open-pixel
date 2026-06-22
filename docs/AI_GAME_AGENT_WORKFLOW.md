@@ -58,13 +58,16 @@ embedding model cannot inspect screenshots
 ```bash
 cd /home/katsu/open-pixel
 
+# local Tailscale example only; replace with your own endpoint
 AI_GAME_VLM_BASE_URL=http://ktzserver.tail3d7914.ts.net:20128/v1 \
 AI_GAME_VLM_MODEL=<vision-chat-model> \
 AI_GAME_VLM_API_KEY=*** \
 npm run test:game:agent
 ```
 
-If endpoint has no key:
+The Tailscale endpoint is local-dev only. Cloud examples: OpenAI `https://api.openai.com/v1` + `gpt-4o-mini`; OpenAI-compatible Gemini proxy + `gemini-2.0-flash`; local Ollama OpenAI shim + a vision model. Use real provider keys for cloud.
+
+If local endpoint has no key:
 
 ```bash
 AI_GAME_VLM_API_KEY=dummy

@@ -31,22 +31,16 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 VENV_DIR="${AI_GAME_PYTHON_VENV:-$ROOT/.venv-ai-game-e2e}"
-
-if ! "$PYTHON_BIN" - <<'PY' >/dev/null 2>&1
-import pyautogui, mss, PIL, requests
-PY
-then
-  if [[ ! -x "$VENV_DIR/bin/python" ]]; then
-    "$PYTHON_BIN" -m venv "$VENV_DIR"
-  fi
-  "$VENV_DIR/bin/python" -m ensurepip --upgrade >/dev/null 2>&1 || true
-  if ! "$VENV_DIR/bin/python" -m pip --version >/dev/null 2>&1; then
-    echo "pip unavailable in venv. Install python3-venv/python3-full, then retry." >&2
-    exit 1
-  fi
-  "$VENV_DIR/bin/python" -m pip install -r requirements-ai-game-e2e.txt
-  PYTHON_BIN="$VENV_DIR/bin/python"
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi
+"$VENV_DIR/bin/python" -m ensurepip --upgrade >/dev/null 2>&1 || true
+if ! "$VENV_DIR/bin/python" -m pip --version >/dev/null 2>&1; then
+  echo "pip unavailable in venv. Install python3-venv/python3-full, then retry." >&2
+  exit 1
+fi
+"$VENV_DIR/bin/python" -m pip install -r requirements-ai-game-e2e.txt
+PYTHON_BIN="$VENV_DIR/bin/python"
 
 if [[ -z "${AI_GAME_SKIP_BUILD:-}" ]]; then
   npm run build:vercel

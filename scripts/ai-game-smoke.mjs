@@ -7,7 +7,8 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { chromium } from "playwright";
 
 const config = {
-  url: process.env.AI_GAME_URL || process.argv[2] || "http://127.0.0.1:4173/game/",
+  url:
+    process.env.AI_GAME_URL || process.argv[2] || "http://127.0.0.1:4173/game/",
   headless: process.env.AI_GAME_HEADLESS !== "false",
   maxSteps: numberEnv("AI_GAME_MAX_STEPS", 18),
   stepDelayMs: numberEnv("AI_GAME_STEP_DELAY_MS", 450),
@@ -33,7 +34,9 @@ try {
     executablePath: findChromiumExecutable(),
     timeout: 30_000,
   });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: 800 },
+  });
 
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
@@ -48,7 +51,9 @@ try {
   });
   page.on("requestfailed", (request) => {
     if (isGameAssetUrl(request.url())) {
-      failedRequests.push(`request failed ${request.url()}: ${request.failure()?.errorText || "unknown"}`);
+      failedRequests.push(
+        `request failed ${request.url()}: ${request.failure()?.errorText || "unknown"}`,
+      );
     }
   });
 
@@ -60,21 +65,33 @@ try {
   let lastHash = "";
   let changedFrames = 0;
   let stableFrames = 0;
+  let froze = false;
   const actions = initialActions();
 
   for (let index = 0; index < config.maxSteps; index += 1) {
     const screenshot = await page.screenshot({ fullPage: false });
     const hash = createHash("sha256").update(screenshot).digest("hex");
-    const screenshotPath = join(config.outputDir, `step-${String(index).padStart(2, "0")}.png`);
+    const screenshotPath = join(
+      config.outputDir,
+      `step-${String(index).padStart(2, "0")}.png`,
+    );
     writeFileSync(screenshotPath, screenshot);
 
-    if (lastHash && hash !== lastHash) changedFrames += 1;
+    if (lastHash && hash !== lastHash) {
+      changedFrames += 1;
+      stableFrames = 0;
+    }
     if (lastHash && hash === lastHash) stableFrames += 1;
     lastHash = hash;
 
     const canvas = await page.locator("#rpg canvas").boundingBox();
     const action = config.useVlm
-      ? await askVlmForAction({ screenshot, index, steps, fallback: actions[index % actions.length] })
+      ? await askVlmForAction({
+          screenshot,
+          index,
+          steps,
+          fallback: actions[index % actions.length],
+        })
       : actions[index % actions.length];
 
     await executeAction(page, action);
@@ -83,18 +100,26 @@ try {
     steps.push({ index, action, hash, screenshot: screenshotPath, canvas });
 
     if (stableFrames >= 8) {
-      reason = "visual freeze/softlock: screenshot unchanged for 8 observed frames";
+      froze = true;
+      reason =
+        "visual freeze/softlock: screenshot unchanged for 8 consecutive observed frames";
       break;
     }
   }
 
-  if (pageErrors.length) reason = "page/console errors detected";
+  if (froze) reason = reason;
+  else if (pageErrors.length) reason = "page/console errors detected";
   else if (failedRequests.length) reason = "game asset requests failed";
-  else if (steps.length < Math.min(4, config.maxSteps)) reason = "agent loop stopped too early";
-  else if (!steps.some((step) => step.canvas?.width > 200 && step.canvas?.height > 200)) reason = "RPG-JS canvas missing or too small";
+  else if (steps.length < Math.min(4, config.maxSteps))
+    reason = "agent loop stopped too early";
+  else if (
+    !steps.some((step) => step.canvas?.width > 200 && step.canvas?.height > 200)
+  )
+    reason = "RPG-JS canvas missing or too small";
   else if (steps.length >= Math.min(8, config.maxSteps)) {
     const uniqueHashes = new Set(steps.map((step) => step.hash)).size;
-    if (uniqueHashes < 3) reason = "low visual progress: fewer than 3 unique frames";
+    if (uniqueHashes < 3)
+      reason = "low visual progress: fewer than 3 unique frames";
     else {
       passed = true;
       reason = "AI game smoke flow passed";
@@ -116,7 +141,10 @@ try {
     artifacts: config.outputDir,
     timestamp: new Date().toISOString(),
   };
-  writeFileSync(join(config.outputDir, "report.json"), JSON.stringify(report, null, 2));
+  writeFileSync(
+    join(config.outputDir, "report.json"),
+    JSON.stringify(report, null, 2),
+  );
   writeFileSync(join(config.outputDir, "summary.md"), toMarkdown(report));
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = passed ? 0 : 1;
@@ -153,7 +181,12 @@ async function askVlmForAction({ screenshot, index, steps, fallback }) {
         role: "user",
         content: [
           { type: "text", text: prompt },
-          { type: "image_url", image_url: { url: `data:image/png;base64,${screenshot.toString("base64")}` } },
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:image/png;base64,${screenshot.toString("base64")}`,
+            },
+          },
         ],
       },
     ],
@@ -161,25 +194,61 @@ async function askVlmForAction({ screenshot, index, steps, fallback }) {
     max_tokens: 120,
   };
   try {
-    const response = await fetch(`${config.vlmBaseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${config.vlmApiKey}`,
+    const response = await fetch(
+      `${config.vlmBaseUrl.replace(/\/$/, "")}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${config.vlmApiKey}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) return { ...fallback, note: `vlm http ${response.status}; fallback` };
+    );
+    if (!response.ok)
+      return { ...fallback, note: `vlm http ${response.status}; fallback` };
     const json = await response.json();
     const text = json.choices?.[0]?.message?.content || "";
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return { ...fallback, note: "vlm non-json; fallback" };
-    const action = JSON.parse(match[0]);
-    if (action.type === "key" || action.type === "click" || action.type === "wait") return action;
+    const action = validateAction(JSON.parse(match[0]));
+    if (action) return action;
+    return { ...fallback, note: "vlm invalid action; fallback" };
   } catch (error) {
     return { ...fallback, note: `vlm error ${error.message}; fallback` };
   }
   return fallback;
+}
+
+function validateAction(action) {
+  if (!action || typeof action !== "object") return null;
+  if (action.type === "wait")
+    return { type: "wait", note: action.note || "wait" };
+  if (action.type === "key") {
+    const allowed = new Set([
+      "ArrowDown",
+      "ArrowUp",
+      "ArrowLeft",
+      "ArrowRight",
+      "Space",
+      "Enter",
+      "Escape",
+    ]);
+    return allowed.has(action.key)
+      ? { type: "key", key: action.key, note: action.note || "vlm key" }
+      : null;
+  }
+  if (action.type === "click") {
+    return Number.isFinite(action.x) && Number.isFinite(action.y)
+      ? {
+          type: "click",
+          x: action.x,
+          y: action.y,
+          note: action.note || "vlm click",
+        }
+      : null;
+  }
+  return null;
 }
 
 function toMarkdown(report) {
@@ -187,7 +256,10 @@ function toMarkdown(report) {
 }
 
 function isGameAssetUrl(value) {
-  return /\/(map|assets|spritesheets)\//.test(value) || /\/(default-bundle|revoltfx-spritesheet)\.json(?:\?|$)/.test(value);
+  return (
+    /\/(map|assets|spritesheets)\//.test(value) ||
+    /\/(default-bundle|revoltfx-spritesheet)\.json(?:\?|$)/.test(value)
+  );
 }
 
 function findChromiumExecutable() {
@@ -204,16 +276,21 @@ function findChromiumExecutable() {
 }
 
 async function startPreview() {
-  const child = spawn("npx", ["vite", "preview", "--host", "127.0.0.1", "--port", "4173"], {
-    cwd: "apps/web",
-    detached: true,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const child = spawn(
+    "npx",
+    ["vite", "preview", "--host", "127.0.0.1", "--port", "4173"],
+    {
+      cwd: "apps/web",
+      detached: true,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let output = "";
   child.stdout.on("data", (chunk) => (output += chunk));
   child.stderr.on("data", (chunk) => (output += chunk));
   for (let attempt = 0; attempt < 150; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`vite preview exited early:\n${output}`);
+    if (child.exitCode !== null)
+      throw new Error(`vite preview exited early:\n${output}`);
     try {
       const response = await fetch("http://127.0.0.1:4173/game/");
       if (response.ok) return child;
