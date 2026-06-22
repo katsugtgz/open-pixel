@@ -6,6 +6,13 @@ import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { chromium } from "playwright";
 
+const MOVEMENT_KEYS = new Set([
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+]);
+
 const config = {
   url:
     process.env.AI_GAME_URL || process.argv[2] || "http://127.0.0.1:4173/game/",
@@ -85,6 +92,10 @@ try {
     lastHash = hash;
 
     const canvas = await page.locator("#rpg canvas").boundingBox();
+    // Capture ground-truth gameplay state (sprite position + dialog text) so
+    // the pass criteria can verify real movement/quest progress instead of
+    // relying on screenshot-hash diversity alone.
+    const gameState = await captureGameState(page);
     const action = config.useVlm
       ? await askVlmForAction({
           screenshot,
@@ -97,7 +108,15 @@ try {
     await executeAction(page, action);
     await sleep(config.stepDelayMs);
 
-    steps.push({ index, action, hash, screenshot: screenshotPath, canvas });
+    steps.push({
+      index,
+      action,
+      hash,
+      screenshot: screenshotPath,
+      canvas,
+      gameState: gameState.allPositions,
+      dialogText: gameState.dialog,
+    });
 
     if (stableFrames >= 8) {
       froze = true;
@@ -118,11 +137,42 @@ try {
     reason = "RPG-JS canvas missing or too small";
   else if (steps.length >= Math.min(8, config.maxSteps)) {
     const uniqueHashes = new Set(steps.map((step) => step.hash)).size;
+    // Stronger pass criteria: verify ACTUAL gameplay progress, not just visual
+    // changes. Screenshot hashes can diverge from HUD/animation jitter even
+    // when the player never moves, producing false positives.
+    //
+    // Player position identification: collect the set of all sprite positions
+    // observed at step 0 (the static map baseline), then for each subsequent
+    // step find the sprite whose position is NOT in that baseline. That moving
+    // sprite is the player; the count of distinct player positions across the
+    // run is the real "did the character move" signal.
+    const baseline = new Set(steps[0]?.gameState || []);
+    const playerPositions = steps.map((s) => {
+      const all = s.gameState || [];
+      // Prefer a position that is new relative to baseline (= the player moved).
+      const moved = all.find((p) => !baseline.has(p));
+      if (moved) return moved;
+      // Step 0 itself, or no movement yet: return the first non-baseline-like
+      // position (fallback to first coord) for a stable signature.
+      return all[0] || null;
+    });
+    const uniquePositions = new Set(
+      playerPositions.filter(Boolean),
+    ).size;
+    const dialogs = steps.map((s) => s.dialogText).filter(Boolean);
+    const questProgressed = dialogs.some((d) =>
+      /\/3|quest complete|collected|shard/i.test(d),
+    );
+
     if (uniqueHashes < 3)
       reason = "low visual progress: fewer than 3 unique frames";
+    else if (uniquePositions < 3)
+      reason = `character did not move enough: only ${uniquePositions} unique sprite positions (need >= 3); screenshots changed but player stayed put`;
     else {
       passed = true;
-      reason = "AI game smoke flow passed";
+      reason = `AI game smoke flow passed: ${uniqueHashes} unique frames, ${uniquePositions} unique sprite positions${
+        questProgressed ? ", quest progressed" : ""
+      }`;
     }
   }
 } catch (error) {
@@ -165,10 +215,99 @@ function initialActions() {
 
 async function executeAction(page, action) {
   if (!action || action.type === "wait") return;
-  if (action.type === "key") return page.keyboard.press(action.key);
+  if (action.type === "key") {
+    // RPG-JS / canvasengine only processes input on preStep() ticks and only
+    // when getDirection()==="none". An instant keydown+keyup from press()
+    // usually fires keyup before the engine's ~160ms movement frame, so the
+    // player never moves. We hold movement keys long enough to cover several
+    // engine ticks; action keys (Space/Enter) trigger on keydown but we still
+    // hold briefly to avoid missing the engine frame.
+    const holdMs = MOVEMENT_KEYS.has(action.key)
+      ? numberEnv("AI_GAME_MOVE_HOLD_MS", 700)
+      : numberEnv("AI_GAME_ACTION_HOLD_MS", 200);
+    await page.keyboard.down(action.key);
+    await sleep(holdMs);
+    await page.keyboard.up(action.key);
+    return;
+  }
   if (action.type === "text") return page.keyboard.type(action.text || "");
   if (action.type === "click") return page.mouse.click(action.x, action.y);
   throw new Error(`unsupported action: ${JSON.stringify(action)}`);
+}
+
+// Reads ground-truth gameplay state from the live page:
+//   - all in-world sprite positions via the PIXI stage tree (window.__PIXI_STAGE__)
+//   - current quest/dialog text via DOM (.rpg-ui-dialog-body if RPG-JS renders
+//     dialog to DOM, or the .quest-hint HUD tracker as a fallback)
+//
+// The player sprite is not at a fixed depth in the (minified) pixi-viewport
+// tree, so we walk the whole viewport subtree and collect every finite,
+// in-world (x,y). The pass criteria then identifies the player as the sprite
+// whose position is NOT in the step-0 baseline (i.e. the one that moved).
+//
+// Both reads are best-effort; failures return null/empty fields instead of
+// throwing so a missing PIXI node or closed dialog never aborts the smoke loop.
+async function captureGameState(page) {
+  return page.evaluate(() => {
+    const result = { allPositions: [], dialog: null };
+    try {
+      const stage = window.__PIXI_STAGE__;
+      if (stage) {
+        const findViewport = (node) => {
+          if (!node) return null;
+          if (node.viewport) return node;
+          for (const child of node.children || []) {
+            const found = findViewport(child);
+            if (found) return found;
+          }
+          return null;
+        };
+        const vp = findViewport(stage);
+        if (vp) {
+          const seen = new WeakSet();
+          const walk = (node, depth) => {
+            if (!node || depth > 12 || seen.has(node)) return;
+            seen.add(node);
+            const x = Number(node.x);
+            const y = Number(node.y);
+            // Collect any finite in-world coord (skip 0,0 anchors and obvious
+            // screen-space values); the player lives alongside map tiles and
+            // other sprites, all of which are < 4000 in this map.
+            if (
+              Number.isFinite(x) &&
+              Number.isFinite(y) &&
+              (x !== 0 || y !== 0) &&
+              Math.abs(x) < 4000 &&
+              Math.abs(y) < 4000
+            ) {
+              result.allPositions.push(`${Math.round(x)},${Math.round(y)}`);
+            }
+            if (node.children) {
+              for (const child of node.children) walk(child, depth + 1);
+            }
+          };
+          walk(vp, 0);
+        }
+      }
+    } catch {}
+    try {
+      // RPG-JS dialog body (in-canvas DOM overlay) when present...
+      const dialogEl = document.querySelector(".rpg-ui-dialog-body");
+      // ...or the React-shell quest tracker that is always present.
+      const hintEl = document.querySelector(".quest-hint");
+      const texts = [];
+      if (dialogEl) {
+        const t = dialogEl.textContent?.trim();
+        if (t) texts.push(t);
+      }
+      if (hintEl) {
+        const t = hintEl.textContent?.trim();
+        if (t) texts.push(t);
+      }
+      if (texts.length) result.dialog = texts.join(" | ").slice(0, 400);
+    } catch {}
+    return result;
+  });
 }
 
 async function askVlmForAction({ screenshot, index, steps, fallback }) {
@@ -191,7 +330,8 @@ async function askVlmForAction({ screenshot, index, steps, fallback }) {
       },
     ],
     temperature: 0.1,
-    max_tokens: 120,
+    max_tokens: 1000,
+    stream: false,
   };
   try {
     const response = await fetch(
