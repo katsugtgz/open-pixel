@@ -1,0 +1,53 @@
+apps/game/index.html
+  s_4ab02e1fe09aac::t_3d8ab970764c85 549-561,592-652
+  s_f2c3c31a669c6e::t_7299d7b892cad1 73-99
+  s_f2c3c31a669c6e::t_5072214998c4b4 581-583,653-681,693-705,711-712,714-715,733-789
+  s_f2c3c31a669c6e::t_5d0968912a5b16 682-692
+  s_4ab02e1fe09aac::t_ee87613c621b19 306-414
+  s_9d60f915a3a64a::t_5943a84b3a69c9 562-578
+  s_d8ffe50204f13d::t_b395665525d27d 100-149
+  s_9d60f915a3a64a::t_ddd41500386e59 415-545
+  s_d8ffe50204f13d::t_1e6c7d6a9464f1 706-710,713,716-732
+  s_9d60f915a3a64a::t_9fdad556f0e6ac 790-845,847,849-918
+  s_9d60f915a3a64a::t_a16e6388085ddb 846,848
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d96e85e95bdaae3c41d2b80f3b9555a6b982acbe",
+  "prompts": {},
+  "sessions": {
+    "s_4ab02e1fe09aac": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f704630ffekDlVilEp4x2RjR",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_9d60f915a3a64a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f3f01e3ffeyHd5Ttc58juOKA",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_d8ffe50204f13d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f5ab731ffeTUqfpT4q4OdChr",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_f2c3c31a669c6e": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f83315affeti2uB16zLJ8zql",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
