@@ -70,6 +70,83 @@
         color: #e3ff37;
       }
 
+      /* Dynamic objective HUD target. Pulsing cyan dot signals a live goal;
+         text is updated via MutationObserver on RPG-JS dialog/notification
+         elements (see script at end of body). textContent only — never
+         innerHTML — to keep user-facing proof text XSS-safe. */
+      .control-help #open-pixel-objective::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: var(--open-pixel-cyan);
+        box-shadow: 0 0 6px rgba(125, 249, 255, 0.7);
+        vertical-align: middle;
+        animation: open-pixel-pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes open-pixel-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.35;
+        }
+      }
+
+      /* Pickup juice — when a Pixel Shard is collected the objective counter
+         scales up briefly and the HUD box emits a cyan glow ring. Pure CSS;
+         JS toggles a class when the shard count rises. Reuses :root tokens. */
+      @keyframes open-pixel-objective-bump {
+        0% {
+          transform: scale(1);
+          color: var(--open-pixel-lime);
+        }
+        35% {
+          transform: scale(1.35);
+          color: var(--open-pixel-cyan);
+          text-shadow: 0 0 8px rgba(125, 249, 255, 0.8);
+        }
+        100% {
+          transform: scale(1);
+          color: var(--open-pixel-lime);
+        }
+      }
+
+      .control-help #open-pixel-objective.open-pixel-objective--bump {
+        animation: open-pixel-objective-bump 340ms ease-out;
+        transform-origin: left center;
+      }
+
+      @keyframes open-pixel-hud-glow {
+        0%,
+        100% {
+          border-color: var(--open-pixel-ink);
+          box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.32);
+        }
+        40% {
+          border-color: var(--open-pixel-cyan);
+          box-shadow:
+            0 0 0 3px var(--open-pixel-cyan),
+            0 0 20px rgba(125, 249, 255, 0.65),
+            4px 4px 0 rgba(0, 0, 0, 0.32);
+        }
+      }
+
+      .control-help.open-pixel-hud--glow {
+        animation: open-pixel-hud-glow 340ms ease-out;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .control-help #open-pixel-objective.open-pixel-objective--bump,
+        .control-help.open-pixel-hud--glow {
+          animation: none;
+        }
+      }
+
       .rpg-ui-dialog-container {
         position: fixed !important;
         inset: 0 !important;
@@ -226,12 +303,284 @@
           display: none;
         }
       }
+
+      /* Title splash — overlays RPG-JS canvas until first input. Fixed,
+         full-viewport, z-index 100 (above canvas + .control-help HUD at 20).
+         Fades out over 300ms on dismissal, then display:none. Cozy palette
+         reuses :root tokens (ink/cream/lime/cyan) — no hardcoded colors. */
+      #open-pixel-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 24px;
+        text-align: center;
+        box-sizing: border-box;
+        font-family: var(--rpg-ui-font);
+        color: var(--open-pixel-cream);
+        background:
+          radial-gradient(
+            ellipse at center,
+            rgba(22, 20, 45, 0.62) 0%,
+            rgba(11, 8, 36, 0.92) 65%,
+            rgba(11, 8, 36, 0.98) 100%
+          );
+        opacity: 1;
+        transition: opacity 300ms ease-out;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #open-pixel-splash.open-pixel-splash--hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #open-pixel-splash.open-pixel-splash--removed {
+        display: none;
+      }
+
+      #open-pixel-splash .open-pixel-splash__badge {
+        display: inline-block;
+        padding: 6px 14px;
+        margin-bottom: 6px;
+        border: 3px solid var(--open-pixel-ink);
+        border-radius: 999px;
+        background: var(--open-pixel-cyan);
+        color: var(--open-pixel-ink);
+        font-family: var(--rpg-ui-font);
+        font-size: clamp(11px, 1.4vw, 13px);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: none;
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      #open-pixel-splash .open-pixel-splash__title {
+        margin: 0;
+        font-family: var(--rpg-ui-font);
+        font-size: clamp(48px, 9vw, 96px);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        color: var(--open-pixel-lime);
+        text-shadow:
+          4px 4px 0 var(--open-pixel-ink),
+          8px 8px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      #open-pixel-splash .open-pixel-splash__subtitle {
+        margin: 0;
+        font-family: var(--rpg-ui-font);
+        font-size: clamp(16px, 2.4vw, 22px);
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--open-pixel-cream);
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+        animation: open-pixel-splash-pulse 1.6s ease-in-out infinite;
+      }
+
+      #open-pixel-splash .open-pixel-splash__hint {
+        margin: 4px 0 0;
+        font-family: var(--rpg-ui-font);
+        font-size: clamp(12px, 1.6vw, 14px);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        color: var(--open-pixel-cream);
+        opacity: 0.7;
+      }
+
+      @keyframes open-pixel-splash-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #open-pixel-splash,
+        #open-pixel-splash .open-pixel-splash__subtitle {
+          transition: none;
+          animation: none;
+        }
+      }
+
+      /* Task 11 — Victory overlay. Centered banner, z-index 50 (below splash
+         at 100, above HUD at 20). Pops when the victory notification fires in
+         event.ts ("★ Victory ... 130 ★"). Auto-dismisses after 6s OR on any
+         key/pointer input. Canvas opacity stays 1 — overlay is a separate
+         DOM layer that fades out cleanly. Cozy palette reuses :root tokens. */
+      #open-pixel-victory {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 24px;
+        text-align: center;
+        box-sizing: border-box;
+        font-family: var(--rpg-ui-font);
+        color: var(--open-pixel-cream);
+        background:
+          radial-gradient(
+            ellipse at center,
+            rgba(22, 20, 45, 0.72) 0%,
+            rgba(11, 8, 36, 0.88) 60%,
+            rgba(11, 8, 36, 0.94) 100%
+          );
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 400ms ease-out;
+      }
+
+      #open-pixel-victory.open-pixel-victory--visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #open-pixel-victory.open-pixel-victory--hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #open-pixel-victory.open-pixel-victory--removed {
+        display: none;
+      }
+
+      #open-pixel-victory .open-pixel-victory__badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border: 3px solid var(--open-pixel-ink);
+        border-radius: 999px;
+        background: var(--open-pixel-cyan);
+        color: var(--open-pixel-ink);
+        font-size: clamp(11px, 1.4vw, 13px);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: none;
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+        animation: open-pixel-victory-pop 600ms ease-out;
+      }
+
+      #open-pixel-victory .open-pixel-victory__title {
+        margin: 0;
+        font-size: clamp(40px, 7vw, 72px);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        color: var(--open-pixel-lime);
+        text-shadow:
+          4px 4px 0 var(--open-pixel-ink),
+          8px 8px 0 rgba(0, 0, 0, 0.35);
+        animation: open-pixel-victory-pop 600ms ease-out 80ms backwards;
+      }
+
+      #open-pixel-victory .open-pixel-victory__score {
+        margin: 0;
+        font-size: clamp(28px, 4.5vw, 44px);
+        font-weight: 600;
+        line-height: 1;
+        color: var(--open-pixel-cyan);
+        text-shadow: 3px 3px 0 var(--open-pixel-ink);
+        animation: open-pixel-victory-pop 600ms ease-out 160ms backwards;
+      }
+
+      #open-pixel-victory .open-pixel-victory__cta {
+        margin: 4px 0 0;
+        font-size: clamp(14px, 2vw, 18px);
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--open-pixel-cream);
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+        animation: open-pixel-victory-pop 600ms ease-out 240ms backwards;
+      }
+
+      #open-pixel-victory .open-pixel-victory__hint {
+        margin: 8px 0 0;
+        font-size: clamp(11px, 1.4vw, 13px);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        color: var(--open-pixel-cream);
+        opacity: 0.7;
+        animation: open-pixel-victory-pop 600ms ease-out 320ms backwards;
+      }
+
+      @keyframes open-pixel-victory-pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.6) translateY(12px);
+        }
+        60% {
+          opacity: 1;
+          transform: scale(1.08) translateY(-2px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #open-pixel-victory,
+        #open-pixel-victory .open-pixel-victory__badge,
+        #open-pixel-victory .open-pixel-victory__title,
+        #open-pixel-victory .open-pixel-victory__score,
+        #open-pixel-victory .open-pixel-victory__cta,
+        #open-pixel-victory .open-pixel-victory__hint {
+          transition: none;
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
+    <div
+      id="open-pixel-splash"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Open Pixel title splash"
+    >
+      <span class="open-pixel-splash__badge">Cozy Pixel Quest</span>
+      <h1 class="open-pixel-splash__title">Open Pixel</h1>
+      <p class="open-pixel-splash__subtitle">Press Space / tap to start</p>
+      <p class="open-pixel-splash__hint">
+        Guest-first · No wallet required · Arrow keys move · Space talks
+      </p>
+    </div>
+    <div
+      id="open-pixel-victory"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Quest complete victory banner"
+      aria-hidden="true"
+    >
+      <span class="open-pixel-victory__badge">★ Quest Complete ★</span>
+      <h2 class="open-pixel-victory__title">Victory!</h2>
+      <p class="open-pixel-victory__score">130 off-chain points</p>
+      <p class="open-pixel-victory__cta">
+        Return to the web page to claim your guest badge
+      </p>
+      <p class="open-pixel-victory__hint">
+        Guest-first · No wallet required · Tap or press any key to dismiss
+      </p>
+    </div>
     <div id="rpg"></div>
     <aside class="control-help" aria-label="Game controls">
-      <span class="quest-hint">Talk to AI Guide → collect 3 cyan shards.</span>
+      <span id="open-pixel-objective" class="quest-hint"
+        >Next: Talk to the AI Guide</span
+      >
       <span class="desktop-controls"
         ><strong>Controls:</strong> Arrow keys move · Space talks /
         collects</span
@@ -240,5 +589,332 @@
         ><strong>Controls:</strong> joystick moves · A talks / collects</span
       >
     </aside>
+    <script>
+      // Title splash — one-shot dismissal on first qualifying input.
+      // Listens on document for: keydown (Space or Enter), pointerdown,
+      // touchstart. Also auto-dismisses after TIMEOUT_MS as a QA/headless
+      // safety net. Does NOT touch the canvas; only fades + display:nones
+      // the splash overlay. window.__openPixelSplashDismissed is exposed
+      // for downstream tasks (e.g. analytics hooks).
+      (function () {
+        var splash = document.getElementById("open-pixel-splash");
+        if (!splash) {
+          window.__openPixelSplashDismissed = true;
+          return;
+        }
+
+        var FADE_MS = 300;
+        var TIMEOUT_MS = 5000;
+        var dismissed = false;
+        window.__openPixelSplashDismissed = false;
+
+        function dismiss() {
+          if (dismissed) return;
+          dismissed = true;
+          window.__openPixelSplashDismissed = true;
+          splash.classList.add("open-pixel-splash--hidden");
+          document.removeEventListener("keydown", onKey, true);
+          document.removeEventListener("pointerdown", onPointer, true);
+          document.removeEventListener("touchstart", onPointer, true);
+          window.clearTimeout(fallback);
+          window.setTimeout(function () {
+            splash.classList.add("open-pixel-splash--removed");
+          }, FADE_MS + 20);
+        }
+
+        function onKey(e) {
+          if (
+            e.key === " " ||
+            e.code === "Space" ||
+            e.key === "Enter" ||
+            e.keyCode === 32 ||
+            e.keyCode === 13
+          ) {
+            e.preventDefault();
+            dismiss();
+          }
+        }
+
+        function onPointer(e) {
+          e.preventDefault();
+          dismiss();
+        }
+
+        var fallback = window.setTimeout(dismiss, TIMEOUT_MS);
+        document.addEventListener("keydown", onKey, true);
+        document.addEventListener("pointerdown", onPointer, true);
+        document.addEventListener(
+          "touchstart",
+          onPointer,
+          { capture: true, passive: false },
+        );
+      })();
+    </script>
+    <script>
+      (function () {
+        // Dynamic objective HUD — observes RPG-JS dialog/notification DOM and
+        // drives the #open-pixel-objective span through 4 quest states.
+        // State is inferred purely from rendered text; event.ts is untouched.
+        var obj = document.getElementById("open-pixel-objective");
+        if (!obj) return;
+
+        // state: 'pre-start' | 'in-progress' | 'return' | 'complete'
+        var state = "pre-start";
+        var shards = 0; // monotonic high-water mark
+
+        function render() {
+          if (state === "complete") {
+            obj.textContent = "Quest complete — claim your badge on the web page";
+          } else if (state === "return") {
+            obj.textContent = "Return to the AI Guide";
+          } else if (state === "in-progress") {
+            obj.textContent = "Pixel Shards: " + shards + "/3";
+          } else {
+            obj.textContent = "Next: Talk to the AI Guide";
+          }
+        }
+
+        function classify(text) {
+          if (state === "complete") return; // terminal — sticky
+          if (!text) return;
+          var lower = text.toLowerCase();
+
+          // COMPLETE — matches all completion strings in event.ts:
+          //   notification: "Quest complete · +100 points"
+          //   dialog:       "Quest complete! +100 off-chain…"
+          //   dialog:       "Run complete. Return to the web page…"
+          //   dialog:       "Victory, traveler! 130 off-chain points earned…"
+          // The "Victory" variant lacks the word "complete", so we also match
+          // the canonical score "130" (the task spec's second signal).
+          if (
+            lower.indexOf("complete") !== -1 ||
+            lower.indexOf("130") !== -1
+          ) {
+            state = "complete";
+            render();
+            return;
+          }
+
+          // Shard count — dialog "Progress: N/3" (lines 34, 73) or
+          // notification "· N/3" (line 66).
+          var m =
+            text.match(/Progress:\s*(\d+)\s*\/\s*3/) ||
+            text.match(/[·•]\s*(\d+)\s*\/\s*3/);
+          if (m) {
+            var n = parseInt(m[1], 10);
+            if (!isNaN(n)) {
+              // Bump fires ONLY on a genuine count rise — not on stale
+              // notifications re-scanned by the 300ms fallback poll, and not
+              // when the dialog re-reports the same N the toast already set.
+              var increased = n > shards;
+              if (increased) shards = n; // monotonic — stale notifications can't regress
+              state = shards >= 3 ? "return" : "in-progress";
+              render();
+              if (increased) bumpObjective();
+            }
+          }
+        }
+
+        // Pickup juice — scale-bump the objective counter + cyan-glow the HUD
+        // box. Re-trigger technique (remove class, force reflow, re-add) so
+        // rapid consecutive collects re-fire the animation each time.
+        function bumpObjective() {
+          if (!obj || !obj.parentElement) return;
+          var hud = obj.parentElement; // <aside class="control-help">
+          obj.classList.remove("open-pixel-objective--bump");
+          hud.classList.remove("open-pixel-hud--glow");
+          void obj.offsetWidth; // force reflow so animation restarts cleanly
+          obj.classList.add("open-pixel-objective--bump");
+          hud.classList.add("open-pixel-hud--glow");
+          window.setTimeout(function () {
+            obj.classList.remove("open-pixel-objective--bump");
+            hud.classList.remove("open-pixel-hud--glow");
+          }, 380);
+        }
+
+        function scan(node) {
+          if (!node || node.nodeType !== 1) return;
+          var targets = [];
+          var SELECTOR =
+            ".rpg-ui-dialog-content, .rpg-ui-notification-message, .rpg-ui-toast-message";
+          if (typeof node.matches === "function" && node.matches(SELECTOR)) {
+            targets.push(node);
+          }
+          if (typeof node.querySelectorAll === "function") {
+            var found = node.querySelectorAll(SELECTOR);
+            for (var i = 0; i < found.length; i++) targets.push(found[i]);
+          }
+          for (var j = 0; j < targets.length; j++) {
+            classify(targets[j].textContent || "");
+          }
+        }
+
+        render();
+
+        var observer = new MutationObserver(function (mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var mut = mutations[i];
+            if (
+              mut.type === "characterData" &&
+              mut.target &&
+              mut.target.parentElement
+            ) {
+              scan(mut.target.parentElement);
+            }
+            if (mut.addedNodes) {
+              for (var k = 0; k < mut.addedNodes.length; k++) {
+                scan(mut.addedNodes[k]);
+              }
+            }
+          }
+        });
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        // Fallback poll — RPG-JS may rewrite text nodes without firing a
+        // characterData mutation we can attribute. 300ms is cheap and well
+        // below the 500ms dialog/round-trip cadence.
+        setInterval(function () {
+          var nodes = document.querySelectorAll(
+            ".rpg-ui-dialog-content, .rpg-ui-notification-message, .rpg-ui-toast-message",
+          );
+          for (var i = 0; i < nodes.length; i++) {
+            classify(nodes[i].textContent || "");
+          }
+        }, 300);
+      })();
+    </script>
+    <script>
+      (function () {
+        // Task 11 — Victory overlay. Watches RPG-JS notification/toast DOM
+        // (NOT dialog — avoids the typewriter race documented in TASK-5-HUD)
+        // for the victory marker from event.ts: /victory/i + "130". Pops a
+        // centered celebratory banner (z-index 50, below splash 100, above
+        // HUD 20) that auto-dismisses after 6s OR on any key/pointer input.
+        // Canvas opacity stays 1; overlay fades out cleanly. Guest-badge copy
+        // only — no wallet coupling.
+        var overlay = document.getElementById("open-pixel-victory");
+        if (!overlay) {
+          window.__openPixelVictoryShown = function () {
+            return false;
+          };
+          return;
+        }
+
+        var DISMISS_MS = 6000;
+        var FADE_MS = 400;
+        var shown = false;
+        var dismissTimer = null;
+
+        function show() {
+          if (shown) return;
+          shown = true;
+          overlay.setAttribute("aria-hidden", "false");
+          overlay.classList.add("open-pixel-victory--visible");
+          document.addEventListener("keydown", dismiss, true);
+          document.addEventListener("pointerdown", dismiss, true);
+          document.addEventListener(
+            "touchstart",
+            dismiss,
+            { capture: true, passive: true },
+          );
+          dismissTimer = window.setTimeout(dismiss, DISMISS_MS);
+        }
+
+        function dismiss() {
+          if (!shown) return;
+          shown = true; // idempotent — stay shown flag prevents re-show
+          overlay.classList.remove("open-pixel-victory--visible");
+          overlay.classList.add("open-pixel-victory--hidden");
+          overlay.setAttribute("aria-hidden", "true");
+          document.removeEventListener("keydown", dismiss, true);
+          document.removeEventListener("pointerdown", dismiss, true);
+          document.removeEventListener("touchstart", dismiss, true);
+          window.clearTimeout(dismissTimer);
+          window.setTimeout(function () {
+            overlay.classList.add("open-pixel-victory--removed");
+          }, FADE_MS + 20);
+        }
+
+        function matches(text) {
+          if (!text) return false;
+          var lower = text.toLowerCase();
+          // Load-bearing marker from event.ts victory notification:
+          // "★ Quest complete! 130 points · Claim your guest badge ... ★"
+          return (
+            lower.indexOf("complete") !== -1 && lower.indexOf("130") !== -1
+          );
+        }
+
+        function scan(node) {
+          if (shown) return;
+          if (!node || node.nodeType !== 1) return;
+          // Notifications/toasts ONLY — dialog excluded to avoid the RPG-JS
+          // typewriter race (dialog text grows char-by-char; matching mid-
+          // type would pop the overlay while the dialog is still open).
+          var SELECTOR =
+            ".rpg-ui-notification-message, .rpg-ui-toast-message";
+          var targets = [];
+          if (typeof node.matches === "function" && node.matches(SELECTOR)) {
+            targets.push(node);
+          }
+          if (typeof node.querySelectorAll === "function") {
+            var found = node.querySelectorAll(SELECTOR);
+            for (var i = 0; i < found.length; i++) targets.push(found[i]);
+          }
+          for (var j = 0; j < targets.length; j++) {
+            if (matches(targets[j].textContent || "")) {
+              show();
+              return;
+            }
+          }
+        }
+
+        var observer = new MutationObserver(function (mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var mut = mutations[i];
+            if (
+              mut.type === "characterData" &&
+              mut.target &&
+              mut.target.parentElement
+            ) {
+              scan(mut.target.parentElement);
+            }
+            if (mut.addedNodes) {
+              for (var k = 0; k < mut.addedNodes.length; k++) {
+                scan(mut.addedNodes[k]);
+              }
+            }
+          }
+        });
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        // Fallback poll — same rationale as Task 5 HUD (300ms).
+        setInterval(function () {
+          if (shown) return;
+          var nodes = document.querySelectorAll(
+            ".rpg-ui-notification-message, .rpg-ui-toast-message",
+          );
+          for (var i = 0; i < nodes.length; i++) {
+            if (matches(nodes[i].textContent || "")) {
+              show();
+              return;
+            }
+          }
+        }, 300);
+
+        // Public hook for QA/Playwright.
+        window.__openPixelVictoryShown = function () {
+          return shown;
+        };
+      })();
+    </script>
   </body>
 </html>
