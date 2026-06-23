@@ -1,0 +1,20 @@
+apps/game/package.json
+  s_184c238353743a::t_c9458b3364c790 10
+  s_184c238353743a::t_d0f8d6438844f9 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8c4bfcd4be7de0eaa2ca9d943a779e09fc1910f3",
+  "prompts": {},
+  "sessions": {
+    "s_184c238353743a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f70462cffeF64hi5SYr3d4rV",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
