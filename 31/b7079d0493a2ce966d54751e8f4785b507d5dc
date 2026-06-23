@@ -1,0 +1,29 @@
+apps/game/src/modules/main/player.ts
+  s_ebd66024c5265b::t_922e5d0c76ecb4 3-68,75,77-88
+apps/game/test/sanitize-name.test.mjs
+  s_184c238353743a::t_f98d7a90dd177f 1-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "31b7079d0493a2ce966d54751e8f4785b507d5dc",
+  "prompts": {},
+  "sessions": {
+    "s_184c238353743a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f70462cffeF64hi5SYr3d4rV",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_ebd66024c5265b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_10f833149ffeVAaLDPI7w3wPH6",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
