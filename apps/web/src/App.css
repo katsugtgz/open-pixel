@@ -314,7 +314,8 @@ button:disabled {
 }
 
 .trust-row,
-.comparison {
+.comparison,
+.control-guide {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -322,11 +323,20 @@ button:disabled {
 }
 
 .trust-row span,
-.comparison span {
+.comparison span,
+.control-guide span {
   color: var(--ink);
   background: var(--cream);
   font-size: 13px;
   text-transform: uppercase;
+}
+
+.control-guide span {
+  border: 3px solid rgba(11, 8, 36, 0.72);
+  border-radius: 999px;
+  padding: 9px 13px;
+  box-shadow: 3px 3px 0 rgba(18, 12, 46, 0.45);
+  font-weight: 900;
 }
 
 .pixel-window {

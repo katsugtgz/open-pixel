@@ -29,7 +29,7 @@ export default {
             ...Presets.RMSpritesheet(3, 4),
           },
           {
-            id: "shard",
+            id: "pixel-shard",
             image: "spritesheets/shard.png",
             ...Presets.RMSpritesheet(3, 4),
           },

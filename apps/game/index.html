@@ -60,6 +60,7 @@
         font-family: Fredoka, system-ui, sans-serif;
         font-size: 13px;
         line-height: 1.25;
+        pointer-events: none;
       }
 
       .control-help .quest-hint {
@@ -222,7 +223,7 @@
         }
       }
 
-      @media (min-width: 681px) {
+      @media (min-width: 681px) and (pointer: fine) {
         .control-help .mobile-controls {
           display: none;
         }
@@ -232,7 +233,9 @@
   <body>
     <div id="rpg"></div>
     <aside class="control-help" aria-label="Game controls">
-      <span class="quest-hint">Talk to AI Guide → collect 3 cyan shards.</span>
+      <span class="quest-hint"
+        >Start at the AI Guide, then collect 3 Pixel Shards.</span
+      >
       <span class="desktop-controls"
         ><strong>Controls:</strong> Arrow keys move · Space talks /
         collects</span

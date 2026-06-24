@@ -135,14 +135,6 @@ function HeroSection() {
       <div className="hero-copy">
         <p className="eyebrow">Zero Cup 2026 · Cozy Web3 RPG</p>
         <h1>Play a cozy pixel quest. No wallet required.</h1>
-        <div className="actions">
-          <a className="button primary" href={gameUrl}>
-            Play demo
-          </a>
-          <a className="button secondary" href="#claim">
-            Claim badge
-          </a>
-        </div>
         <p className="subtitle">
           Talk to the AI Guide, collect 3 Pixel Shards, claim an off-chain
           badge. Wallet proof stays optional and readable.
@@ -151,6 +143,14 @@ function HeroSection() {
           <span className="desktop-control">Desktop: Arrow keys to move</span>
           <span className="desktop-control">Space to talk / collect</span>
           <span className="mobile-control">Mobile: joystick + A button</span>
+        </div>
+        <div className="actions">
+          <a className="button primary" href={gameUrl}>
+            Play demo
+          </a>
+          <a className="button secondary" href="#claim">
+            Claim badge
+          </a>
         </div>
         <div className="trust-row" aria-label="Safety summary">
           <span>guest-first</span>

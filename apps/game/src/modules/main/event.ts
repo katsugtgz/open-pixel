@@ -31,7 +31,7 @@ export function QuestGiver(): EventDefinition {
       }
       player.setVariable(STARTED, true);
       await player.showText(
-        `AI Quest: gather 3 glowing cyan Pixel Shards. Press Space near each shard. Progress: ${shards}/3`,
+        `AI Guide: press Space near me to start. Then gather 3 Pixel Shards. Press Space near each shard. Progress: ${shards}/3`,
       );
     },
   };
@@ -40,7 +40,7 @@ export function QuestGiver(): EventDefinition {
 export function PixelShard(): EventDefinition {
   return {
     onInit() {
-      this.setGraphic("shard");
+      this.setGraphic("pixel-shard");
     },
     async onAction(player: RpgPlayer) {
       const shardKey = `open_pixel_collected_${this.id}`;
@@ -59,18 +59,21 @@ export function PixelShard(): EventDefinition {
         return;
       }
       const next = (player.getVariable<number>(SHARDS) || 0) + 1;
+      const progress = Math.min(next, 3);
       player.setVariable(shardKey, true);
-      player.setVariable(SHARDS, Math.min(next, 3));
+      player.setVariable(SHARDS, progress);
       player.gold += 10;
       await player.showNotification(
-        `Pixel Shard collected · ${Math.min(next, 3)}/3`,
+        `Pixel Shard collected · Progress: ${progress}/3`,
         {
           sound: "collect",
           type: "info",
         },
       );
       await player.showText(
-        `Pixel Shard collected. Progress: ${Math.min(next, 3)}/3. +10 points.`,
+        progress >= 3
+          ? "Pixel Shard collected. Progress: 3/3. Return to the AI Guide to finish the quest. +10 points."
+          : `Pixel Shard collected. Progress: ${progress}/3. +10 points.`,
       );
     },
   };
