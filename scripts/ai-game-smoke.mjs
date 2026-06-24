@@ -147,21 +147,57 @@ try {
     // sprite is the player; the count of distinct player positions across the
     // run is the real "did the character move" signal.
     const baseline = new Set(steps[0]?.gameState || []);
+    // Track a stable sprite identity across steps. The previous approach
+    // (all.find((p) => !baseline.has(p)) on every step) could pick a DIFFERENT
+    // non-baseline sprite each step — e.g. transient sprites appearing at
+    // different positions — and falsely satisfy uniquePositions >= 3 without
+    // the player actually moving. We now lock onto the player once and follow
+    // it by nearest-neighbor distance so the same character is tracked across
+    // the whole run.
+    const parsePos = (p) => {
+      if (!p) return null;
+      const [xs, ys] = p.split(",");
+      const x = Number(xs);
+      const y = Number(ys);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return { x, y };
+    };
+    let lastPlayer = null; // stable identity: previous-step player position
     const playerPositions = steps.map((s) => {
-      const all = s.gameState || [];
-      // Prefer a position that is new relative to baseline (= the player moved).
-      const moved = all.find((p) => !baseline.has(p));
-      if (moved) return moved;
-      // Step 0 itself, or no movement yet: return the first non-baseline-like
-      // position (fallback to first coord) for a stable signature.
-      return all[0] || null;
+      const all = (s.gameState || []).filter((p) => parsePos(p));
+      if (all.length === 0)
+        return lastPlayer ? `${lastPlayer.x},${lastPlayer.y}` : null;
+      // Lock-on phase: no player identified yet. Look for a sprite position
+      // that is new relative to the step-0 baseline (= the player moved).
+      if (lastPlayer === null) {
+        const moved = all.find((p) => !baseline.has(p));
+        if (moved) {
+          lastPlayer = parsePos(moved);
+        }
+        // Return the (possibly baseline) chosen position so step 0 and the
+        // first move both contribute real values.
+        return moved || all[0];
+      }
+      // Tracking phase: choose the sprite nearest to last known player
+      // position. This keeps us following the same character even if other
+      // transient sprites enter/leave the viewport.
+      let best = all[0];
+      let bestDist = Infinity;
+      for (const p of all) {
+        const pos = parsePos(p);
+        const dist = Math.hypot(pos.x - lastPlayer.x, pos.y - lastPlayer.y);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = p;
+        }
+      }
+      lastPlayer = parsePos(best);
+      return best;
     });
-    const uniquePositions = new Set(
-      playerPositions.filter(Boolean),
-    ).size;
+    const uniquePositions = new Set(playerPositions.filter(Boolean)).size;
     const dialogs = steps.map((s) => s.dialogText).filter(Boolean);
     const questProgressed = dialogs.some((d) =>
-      /\/3|quest complete|collected|shard/i.test(d),
+      /\/3|quest complete|collected/i.test(d),
     );
 
     if (uniqueHashes < 3)
@@ -248,66 +284,75 @@ async function executeAction(page, action) {
 // Both reads are best-effort; failures return null/empty fields instead of
 // throwing so a missing PIXI node or closed dialog never aborts the smoke loop.
 async function captureGameState(page) {
-  return page.evaluate(() => {
-    const result = { allPositions: [], dialog: null };
-    try {
-      const stage = window.__PIXI_STAGE__;
-      if (stage) {
-        const findViewport = (node) => {
-          if (!node) return null;
-          if (node.viewport) return node;
-          for (const child of node.children || []) {
-            const found = findViewport(child);
-            if (found) return found;
-          }
-          return null;
-        };
-        const vp = findViewport(stage);
-        if (vp) {
-          const seen = new WeakSet();
-          const walk = (node, depth) => {
-            if (!node || depth > 12 || seen.has(node)) return;
-            seen.add(node);
-            const x = Number(node.x);
-            const y = Number(node.y);
-            // Collect any finite in-world coord (skip 0,0 anchors and obvious
-            // screen-space values); the player lives alongside map tiles and
-            // other sprites, all of which are < 4000 in this map.
-            if (
-              Number.isFinite(x) &&
-              Number.isFinite(y) &&
-              (x !== 0 || y !== 0) &&
-              Math.abs(x) < 4000 &&
-              Math.abs(y) < 4000
-            ) {
-              result.allPositions.push(`${Math.round(x)},${Math.round(y)}`);
+  const fallback = { allPositions: [], dialog: null };
+  try {
+    return await page.evaluate(() => {
+      const result = { allPositions: [], dialog: null };
+      try {
+        const stage = window.__PIXI_STAGE__;
+        if (stage) {
+          const findViewport = (node) => {
+            if (!node) return null;
+            if (node.viewport) return node;
+            for (const child of node.children || []) {
+              const found = findViewport(child);
+              if (found) return found;
             }
-            if (node.children) {
-              for (const child of node.children) walk(child, depth + 1);
-            }
+            return null;
           };
-          walk(vp, 0);
+          const vp = findViewport(stage);
+          if (vp) {
+            const seen = new WeakSet();
+            const walk = (node, depth) => {
+              if (!node || depth > 12 || seen.has(node)) return;
+              seen.add(node);
+              const x = Number(node.x);
+              const y = Number(node.y);
+              // Collect any finite in-world coord (skip 0,0 anchors and obvious
+              // screen-space values); the player lives alongside map tiles and
+              // other sprites, all of which are < 4000 in this map.
+              if (
+                Number.isFinite(x) &&
+                Number.isFinite(y) &&
+                (x !== 0 || y !== 0) &&
+                Math.abs(x) < 4000 &&
+                Math.abs(y) < 4000
+              ) {
+                result.allPositions.push(`${Math.round(x)},${Math.round(y)}`);
+              }
+              if (node.children) {
+                for (const child of node.children) walk(child, depth + 1);
+              }
+            };
+            walk(vp, 0);
+          }
         }
-      }
-    } catch {}
-    try {
-      // RPG-JS dialog body (in-canvas DOM overlay) when present...
-      const dialogEl = document.querySelector(".rpg-ui-dialog-body");
-      // ...or the React-shell quest tracker that is always present.
-      const hintEl = document.querySelector(".quest-hint");
-      const texts = [];
-      if (dialogEl) {
-        const t = dialogEl.textContent?.trim();
-        if (t) texts.push(t);
-      }
-      if (hintEl) {
-        const t = hintEl.textContent?.trim();
-        if (t) texts.push(t);
-      }
-      if (texts.length) result.dialog = texts.join(" | ").slice(0, 400);
-    } catch {}
-    return result;
-  });
+      } catch {}
+      try {
+        // RPG-JS dialog body (in-canvas DOM overlay) when present...
+        const dialogEl = document.querySelector(".rpg-ui-dialog-body");
+        // ...or the React-shell quest tracker that is always present.
+        const hintEl = document.querySelector(".quest-hint");
+        const texts = [];
+        if (dialogEl) {
+          const t = dialogEl.textContent?.trim();
+          if (t) texts.push(t);
+        }
+        if (hintEl) {
+          const t = hintEl.textContent?.trim();
+          if (t) texts.push(t);
+        }
+        if (texts.length) result.dialog = texts.join(" | ").slice(0, 400);
+      } catch {}
+      return result;
+    });
+  } catch {
+    // Playwright-level failure (page navigated, context destroyed, evaluation
+    // rejected, etc.). The inner try/catch blocks above only handle errors
+    // thrown inside the browser context; this outer guard keeps the smoke
+    // loop alive and returns the documented empty default.
+    return fallback;
+  }
 }
 
 async function askVlmForAction({ screenshot, index, steps, fallback }) {
