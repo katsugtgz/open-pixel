@@ -1,0 +1,21 @@
+scripts/ai-game-smoke.mjs
+  s_f26d2f90835ff7::t_323ae3d7f44091 288-300,302,304-329,331-356
+  s_f26d2f90835ff7::t_080ca5271085c7 201
+  s_f26d2f90835ff7::t_8b78a703abf71e 150-165,167-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "baa72dbcc0123d68d5d2c15c3c3292a8e1ba400a",
+  "prompts": {},
+  "sessions": {
+    "s_f26d2f90835ff7": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_108326202ffeWPrpGauJM8CS3A",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
