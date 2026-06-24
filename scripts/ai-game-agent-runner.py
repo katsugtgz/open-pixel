@@ -187,7 +187,7 @@ def ask_vlm(img: Image.Image, steps: list[Step], stuck_count: int) -> dict[str, 
             },
         ],
         "temperature": 0.2,
-        "max_tokens": 350,
+        "max_tokens": 1000,
         "stream": False,
     }
     res = requests.post(
