@@ -184,10 +184,9 @@ rtk pip list            rtk pnpm install        rtk npm run <script>
 - `rtk proxy <cmd>` runs command without filtering but tracks usage
 <!-- /headroom:rtk-instructions -->
 
-## MODEL-SPECIFIC RULES (PERSISTENT)
+## Agent Skills
 
-### When running on GLM model from Z.AI Coding Plan
-
-**Model IDs:** `zai-coding-plan/glm-*` (e.g., `zai-coding-plan/glm-5.2`)
-
-**Rule:** For ALL visual/image/screenshot analysis tasks, use **zai MCP tools** (`zai-mcp-server_analyze_image`, `zai-mcp-server_ui_to_artifact`, etc.) instead of the built-in `look_at` tool. The zai MCP vision models are optimized for GLM's inference pipeline and produce more reliable results than the default multimodal tools. This applies to: game canvas verification, UI screenshots, diagram analysis, error screenshots, and any other image-based verification work.
+- Issue tracker: GitHub Issues for `katsugtgz/open-pixel`.
+- Tracker workflow docs: `docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`, `docs/agents/domain.md`.
+- Use `ready-for-agent` for PRDs or issues ready for implementation.
+- Preserve the root glossary terms in `CONTEXT.md` when writing PRDs, issues, and implementation notes.
