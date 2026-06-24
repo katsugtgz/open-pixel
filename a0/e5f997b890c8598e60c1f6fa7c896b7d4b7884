@@ -1,0 +1,19 @@
+AGENTS.md
+  s_918f3f628a3c2d::t_7e3205ba6b8b5a 187,189-192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "a0e5f997b890c8598e60c1f6fa7c896b7d4b7884",
+  "prompts": {},
+  "sessions": {
+    "s_918f3f628a3c2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef7a7-be7c-79b3-b3d4-1f02f23aada5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
