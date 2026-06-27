@@ -44,6 +44,41 @@ from public.quest_runs
 group by guest_id
 order by total_points desc, last_completed_at asc;
 
+-- Auto-refresh updated_at on players and verified_at on wallet_proofs
+-- so upserts (ON CONFLICT … DO UPDATE) bump the timestamp instead of
+-- leaving it frozen at the original INSERT time.
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create or replace function public.touch_verified_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.verified_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_players_touch_updated_at on public.players;
+create trigger trg_players_touch_updated_at
+  before update on public.players
+  for each row
+  execute function public.touch_updated_at();
+
+drop trigger if exists trg_wallet_proofs_touch_verified_at on public.wallet_proofs;
+create trigger trg_wallet_proofs_touch_verified_at
+  before update on public.wallet_proofs
+  for each row
+  execute function public.touch_verified_at();
+
 alter table public.players enable row level security;
 alter table public.quest_runs enable row level security;
 alter table public.wallet_proofs enable row level security;
