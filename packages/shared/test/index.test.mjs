@@ -3,11 +3,21 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
+
+describe("random id generation", () => {
+  it("returns a unique non-empty string", () => {
+    const a = createRandomId();
+    const b = createRandomId();
+    assert.ok(typeof a === "string" && a.length > 0);
+    assert.notEqual(a, b);
+  });
+});
 
 describe("guest id generation", () => {
   it("uses the guest UUID format", () => {

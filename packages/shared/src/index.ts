@@ -26,7 +26,10 @@ export function createRandomId(): string {
 }
 
 export function createGuestId(): string {
-  return `guest_${crypto.randomUUID()}`;
+  if (globalThis.crypto?.randomUUID) {
+    return `guest_${globalThis.crypto.randomUUID()}`;
+  }
+  return `guest_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 export function buildProofMessage(input: {
