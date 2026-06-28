@@ -116,6 +116,8 @@ try {
       canvas,
       gameState: gameState.allPositions,
       dialogText: gameState.dialog,
+      hint: gameState.hint,
+      domOverride: gameState.domOverride,
     });
 
     if (stableFrames >= 8) {
@@ -135,7 +137,10 @@ try {
     !steps.some((step) => step.canvas?.width > 200 && step.canvas?.height > 200)
   )
     reason = "RPG-JS canvas missing or too small";
-  else if (steps.length >= Math.min(8, config.maxSteps)) {
+  else if (steps.some((step) => step.domOverride)) {
+    const overrideStep = steps.find((step) => step.domOverride);
+    reason = `DOM overlay replaces RPG-JS canvas: ${overrideStep.domOverride} (canvas integrity violation — do not hide the real WebGL/Pixi scene behind a DOM mock)`;
+  } else if (steps.length >= Math.min(8, config.maxSteps)) {
     const uniqueHashes = new Set(steps.map((step) => step.hash)).size;
     // Stronger pass criteria: verify ACTUAL gameplay progress, not just visual
     // changes. Screenshot hashes can diverge from HUD/animation jitter even
@@ -195,10 +200,29 @@ try {
       return best;
     });
     const uniquePositions = new Set(playerPositions.filter(Boolean)).size;
-    const dialogs = steps.map((s) => s.dialogText).filter(Boolean);
-    const questProgressed = dialogs.some((d) =>
-      /\/3|quest complete|collected/i.test(d),
+    // Resource-village loop evidence. The game emits showNotification /
+    // showText for each resource action ("Harvested Popberry", "Tree felled",
+    // "Mined Ochrux Matrix", "Order fulfilled"). We group the observed DYNAMIC
+    // text (dialog body + notification overlay — never the static .quest-hint,
+    // which always lists the verbs) into distinct action categories so the
+    // smoke can verify >=2 distinct resource actions and flag an order
+    // fulfillment signal when the player reaches the Task Board.
+    const observedText = steps
+      .map((s) => s.dialogText)
+      .filter(Boolean)
+      .join(" | ")
+      .toLowerCase();
+    const RESOURCE_SIGNAL = {
+      crop: /popberry|harvested|\bplot\b|seeded|watered|ripe|\bplant\b/i,
+      tree: /whittlewood|tree fell|\bchop\b/i,
+      mine: /ochrux|\bmined\b|depleted/i,
+      order: /order fulfill|fulfilled|could not fulfill|reward:/i,
+    };
+    const hitCategories = Object.keys(RESOURCE_SIGNAL).filter((key) =>
+      RESOURCE_SIGNAL[key].test(observedText),
     );
+    const resourceActionsDetected = hitCategories.length;
+    const fulfillmentDetected = RESOURCE_SIGNAL.order.test(observedText);
 
     if (uniqueHashes < 3)
       reason = "low visual progress: fewer than 3 unique frames";
@@ -206,9 +230,30 @@ try {
       reason = `character did not move enough: only ${uniquePositions} unique sprite positions (need >= 3); screenshots changed but player stayed put`;
     else {
       passed = true;
-      reason = `AI game smoke flow passed: ${uniqueHashes} unique frames, ${uniquePositions} unique sprite positions${
-        questProgressed ? ", quest progressed" : ""
-      }`;
+      const parts = [
+        `${uniqueHashes} unique frames`,
+        `${uniquePositions} unique sprite positions`,
+      ];
+      if (resourceActionsDetected >= 2) {
+        parts.push(
+          `resource-loop verified: ${hitCategories.join("/")}${
+            fulfillmentDetected ? " (+order fulfillment signal)" : ""
+          }`,
+        );
+      } else if (resourceActionsDetected === 1) {
+        parts.push(
+          `partial resource-loop evidence: ${hitCategories[0]} only (need >=2 distinct actions for full verification)`,
+        );
+      } else {
+        // Informational, not a failure: headless Chrome cannot render the
+        // WebGL/Pixi canvas (documented limitation), so notifications may not
+        // fire even though the player moved. Visual + positional progress still
+        // prove the RPG-JS scene booted and accepted input.
+        parts.push(
+          "no resource-action text captured this run (player did not land on a plot/tree/mine; see docs/AI_GAME_E2E.md for the headless WebGL limit)",
+        );
+      }
+      reason = `Cozy resource-village smoke passed: ${parts.join(", ")}`;
     }
   }
 } catch (error) {
@@ -237,15 +282,23 @@ try {
 }
 
 function initialActions() {
+  // Resource-village loop: walk the map and press Space after each move so the
+  // player has several chances to land adjacent to a crop plot, tree, or mine
+  // and trigger a plant/water/harvest/chop/mine notification. Enter advances
+  // any open dialog and confirms Task Board interactions.
   return [
-    { type: "key", key: "ArrowDown", note: "move down" },
-    { type: "key", key: "ArrowRight", note: "move right" },
-    { type: "key", key: "ArrowUp", note: "move up" },
-    { type: "key", key: "ArrowLeft", note: "move left" },
-    { type: "key", key: "Space", note: "interact" },
-    { type: "key", key: "Enter", note: "confirm/dialogue" },
-    { type: "key", key: "ArrowRight", note: "explore" },
-    { type: "key", key: "Space", note: "interact again" },
+    { type: "key", key: "ArrowDown", note: "walk south toward plots" },
+    { type: "key", key: "Space", note: "interact: plant/water/harvest crop" },
+    { type: "key", key: "ArrowRight", note: "explore east (trees/mines)" },
+    { type: "key", key: "Space", note: "interact: chop tree or mine rock" },
+    { type: "key", key: "ArrowUp", note: "explore north" },
+    { type: "key", key: "Space", note: "interact with nearby node" },
+    { type: "key", key: "ArrowLeft", note: "explore west" },
+    { type: "key", key: "Space", note: "interact with plot/tree/mine" },
+    { type: "key", key: "ArrowRight", note: "explore toward Task Board" },
+    { type: "key", key: "Space", note: "interact: open Task Board / fulfill order" },
+    { type: "key", key: "Enter", note: "advance dialog or confirm order" },
+    { type: "key", key: "Space", note: "interact again before run ends" },
   ];
 }
 
@@ -273,21 +326,29 @@ async function executeAction(page, action) {
 
 // Reads ground-truth gameplay state from the live page:
 //   - all in-world sprite positions via the PIXI stage tree (window.__PIXI_STAGE__)
-//   - current quest/dialog text via DOM (.rpg-ui-dialog-body if RPG-JS renders
-//     dialog to DOM, or the .quest-hint HUD tracker as a fallback)
+//   - dynamic gameplay text via DOM: .rpg-ui-dialog-body (showText) PLUS the
+//     .rpg-ui-notification / .rpg-ui-toast overlay (showNotification), where
+//     resource-loop actions emit their evidence ("Harvested Popberry",
+//     "Mined Ochrux Matrix", "Order fulfilled", ...).
+//   - the static .quest-hint controls reference, captured separately so it can
+//     NEVER satisfy resource-loop assertions (it always lists the verbs).
+//   - domOverride: flags a large <div>/<section>/<main> whose class contains
+//     "game"/"mock"/"fallback"/"fake" laid over the #rpg canvas. This guards
+//     the RPG-JS integrity invariant (no DOM/HTML mock game may hide the real
+//     WebGL/Pixi scene).
 //
 // The player sprite is not at a fixed depth in the (minified) pixi-viewport
 // tree, so we walk the whole viewport subtree and collect every finite,
 // in-world (x,y). The pass criteria then identifies the player as the sprite
 // whose position is NOT in the step-0 baseline (i.e. the one that moved).
 //
-// Both reads are best-effort; failures return null/empty fields instead of
+// All reads are best-effort; failures return null/empty fields instead of
 // throwing so a missing PIXI node or closed dialog never aborts the smoke loop.
 async function captureGameState(page) {
-  const fallback = { allPositions: [], dialog: null };
+  const fallback = { allPositions: [], dialog: null, hint: null, domOverride: null };
   try {
     return await page.evaluate(() => {
-      const result = { allPositions: [], dialog: null };
+      const result = { allPositions: [], dialog: null, hint: null, domOverride: null };
       try {
         const stage = window.__PIXI_STAGE__;
         if (stage) {
@@ -329,20 +390,78 @@ async function captureGameState(page) {
         }
       } catch {}
       try {
-        // RPG-JS dialog body (in-canvas DOM overlay) when present...
+        // DYNAMIC text only: RPG-JS dialog body (showText) + notification/toast
+        // overlay (showNotification). Resource-loop actions emit their evidence
+        // here, so both must be collected to verify real gameplay progress.
         const dialogEl = document.querySelector(".rpg-ui-dialog-body");
-        // ...or the React-shell quest tracker that is always present.
-        const hintEl = document.querySelector(".quest-hint");
+        const notifEls = document.querySelectorAll(
+          ".rpg-ui-notification, .rpg-ui-notification-message, .rpg-ui-toast, .rpg-ui-toast-message, .rpg-ui-notifications",
+        );
         const texts = [];
         if (dialogEl) {
           const t = dialogEl.textContent?.trim();
           if (t) texts.push(t);
         }
+        notifEls.forEach((el) => {
+          const t = el.textContent?.trim();
+          if (t) texts.push(t);
+        });
+        if (texts.length) result.dialog = texts.join(" | ").slice(0, 800);
+      } catch {}
+      try {
+        // STATIC controls hint, kept separate so its always-present verbs
+        // ("Plant/Water/Harvest ... Chop ... Mine") can never be mistaken for
+        // real resource-loop evidence.
+        const hintEl = document.querySelector(".quest-hint");
         if (hintEl) {
           const t = hintEl.textContent?.trim();
-          if (t) texts.push(t);
+          if (t) result.hint = t.slice(0, 400);
         }
-        if (texts.length) result.dialog = texts.join(" | ").slice(0, 400);
+      } catch {}
+      try {
+        // DOM-replace detection: a large block element whose class contains
+        // "mock"/"fallback"/"fake"/"game[-board]"/"dom-game" overlapping the
+        // #rpg canvas is treated as a DOM mock covering the real RPG-JS scene.
+        const canvasEl = document.querySelector("#rpg canvas");
+        if (canvasEl) {
+          const cRect = canvasEl.getBoundingClientRect();
+          const canvasArea = Math.max(1, cRect.width * cRect.height);
+          const isSuspiciousToken = (token) =>
+            /mock|fallback|fake/i.test(token) ||
+            /^game(-|board|$)/i.test(token) ||
+            /^dom[-_]?game/i.test(token);
+          const nodes = document.querySelectorAll(
+            "body div, body section, body main",
+          );
+          for (const el of nodes) {
+            if (el === canvasEl) continue;
+            if (el.contains(canvasEl) || canvasEl.contains(el)) continue;
+            if (el.closest(".control-help")) continue;
+            const raw = el.className;
+            const cls = typeof raw === "string" ? raw : "";
+            const hit = cls
+              .split(/\s+/)
+              .some((token) => token && isSuspiciousToken(token));
+            if (!hit) continue;
+            const r = el.getBoundingClientRect();
+            if (r.width < 400 || r.height < 300) continue;
+            const overlap =
+              Math.max(
+                0,
+                Math.min(cRect.right, r.right) - Math.max(cRect.left, r.left),
+              ) *
+              Math.max(
+                0,
+                Math.min(cRect.bottom, r.bottom) - Math.max(cRect.top, r.top),
+              );
+            if (overlap / canvasArea > 0.5) {
+              result.domOverride = `<${el.tagName.toLowerCase()} class="${cls.slice(0, 120)}"> covers ~${Math.round(
+                (100 * overlap) / canvasArea,
+              )}% of #rpg canvas`;
+              break;
+            }
+          }
+        }
       } catch {}
       return result;
     });
@@ -357,7 +476,7 @@ async function captureGameState(page) {
 
 async function askVlmForAction({ screenshot, index, steps, fallback }) {
   if (!config.vlmBaseUrl || !config.vlmModel) return fallback;
-  const prompt = `You are testing Open Pixel, an RPG-JS pixel quest game. Goal: verify real game flow, not DOM. Use one action only. Find menu/start/dialogue/player movement/quest/shards. Return strict JSON: {"type":"key","key":"ArrowDown|ArrowUp|ArrowLeft|ArrowRight|Space|Enter|Escape","note":"short reason"} or {"type":"click","x":640,"y":400,"note":"short reason"}. Step ${index}. Recent actions: ${JSON.stringify(steps.slice(-5).map((s) => s.action))}`;
+  const prompt = `You are testing Open Pixel, a cozy RPG-JS resource-village game. Goal: verify real gameplay flow, not DOM. Use one action only. Walk to farm plots, trees, mine rocks, and the Task Board; press Space near each to plant/water/harvest crops, chop trees, mine rocks, and fulfill orders. Return strict JSON: {"type":"key","key":"ArrowDown|ArrowUp|ArrowLeft|ArrowRight|Space|Enter|Escape","note":"short reason"} or {"type":"click","x":640,"y":400,"note":"short reason"}. Step ${index}. Recent actions: ${JSON.stringify(steps.slice(-5).map((s) => s.action))}`;
   const body = {
     model: config.vlmModel,
     messages: [

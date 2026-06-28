@@ -18,6 +18,8 @@ Xvfb desktop
 
 It tests the real RPG-JS canvas like a human player. No DOM selectors. No Playwright control loop.
 
+The current objective is the **cozy resource-village loop**: walk to crop plots, trees, and mine rocks; press Space to plant/water/harvest Popberry, chop trees for Whittlewood Log, and mine rocks for Ochrux Matrix; then open the Task Board and fulfill an order. The VLM is told to look for floating `+N ItemName` notifications, inventory updates, and the "Order fulfilled" signal.
+
 ## Files
 
 ```text
