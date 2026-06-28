@@ -1,0 +1,36 @@
+apps/game/src/modules/village/items.ts
+  s_0cd54753dab07a::t_91900f7f0b8931 15,20-22,36-37,60
+  s_ef1c1fa1aee8dc::t_5fd999fdfd1eef 1-14,29-30,53
+  s_0cd54753dab07a::t_39bd3a51084919 16-19,23-28,31-34,38-52,54-59,61-66
+  s_0cd54753dab07a::t_67d035d2f663d2 35
+apps/game/src/server.ts
+  s_ef1c1fa1aee8dc::t_eefba67d03bdd5 20-22
+  s_ef1c1fa1aee8dc::t_592729ed6f18f2 9-14,23-32
+apps/game/test/items.test.mjs
+  s_ef1c1fa1aee8dc::t_320fe8d1fbc5ca 21-24,53-55,61
+  s_ef1c1fa1aee8dc::t_8115f7860314ab 1-20,25-52,56-60,62-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "da79f305eecb556e836c8afaf5d364ad2251af92",
+  "prompts": {},
+  "sessions": {
+    "s_0cd54753dab07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f148fcb0ffeukSQDjBRWNHq11",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_ef1c1fa1aee8dc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f10d402dffe41YyCzfEwBXZgI",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
