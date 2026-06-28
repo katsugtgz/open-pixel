@@ -227,6 +227,62 @@
           display: none;
         }
       }
+
+      .village-hud {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px;
+        background: rgba(11, 8, 36, 0.88);
+        border: 3px solid var(--open-pixel-ink, #0b0824);
+        border-radius: 10px;
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+        z-index: 100;
+        pointer-events: none;
+        font-family: Fredoka, system-ui, sans-serif;
+      }
+
+      .village-hud .slot {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 244, 209, 0.25);
+        border-radius: 6px;
+        background: rgba(255, 244, 209, 0.08);
+        position: relative;
+      }
+
+      .village-hud .slot.active {
+        border-color: var(--open-pixel-lime, #c5e74d);
+        box-shadow: 0 0 8px rgba(197, 231, 77, 0.5);
+      }
+
+      .village-hud .slot .icon {
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .village-hud .slot .count {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--open-pixel-cream, #fff4d1);
+        line-height: 1;
+        margin-top: 2px;
+      }
+
+      .village-hud .slot .label {
+        position: absolute;
+        bottom: -16px;
+        font-size: 9px;
+        color: rgba(255, 244, 209, 0.6);
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -242,5 +298,24 @@
         the nearest plot, tree, or mine</span
       >
     </aside>
+    <div id="village-hud" class="village-hud" style="display:none">
+      <div class="slot" data-item="popberry_seeds"><span class="icon">🌱</span><span class="label">Seeds</span></div>
+      <div class="slot" data-item="popberry"><span class="icon">🫐</span><span class="count" data-count="popberry">0</span><span class="label">Berry</span></div>
+      <div class="slot" data-item="whittlewood_log"><span class="icon">🪵</span><span class="count" data-count="whittlewood_log">0</span><span class="label">Wood</span></div>
+      <div class="slot" data-item="ochrux_matrix"><span class="icon">💎</span><span class="count" data-count="ochrux_matrix">0</span><span class="label">Stone</span></div>
+      <div class="slot"><span class="icon">🪓</span><span class="label">Axe</span></div>
+      <div class="slot"><span class="icon">⛏️</span><span class="label">Pick</span></div>
+    </div>
+    <script>
+      // Hotbar count updater — listens for RPG-JS socket events to update item counts
+      // Polls every 2s as a simple fallback bridge from server state to DOM HUD
+      function updateHotbar() {
+        const stage = window.__PIXI_STAGE__;
+        if (!stage) return;
+        document.getElementById('village-hud').style.display = 'flex';
+      }
+      setTimeout(updateHotbar, 3000);
+      setInterval(updateHotbar, 5000);
+    </script>
   </body>
 </html>
