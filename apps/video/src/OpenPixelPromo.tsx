@@ -23,8 +23,8 @@ const FPS = 30;
 
 const chapters = [
   "Guest first",
-  "AI Guide",
-  "3 Pixel Shards",
+  "Farm village",
+  "Gather resources",
   "Off-chain points",
   "Optional proof",
 ];
@@ -36,7 +36,7 @@ const scenes = [
     kind: "intro",
     kicker: "Zero Cup prototype",
     title: "Open Pixel",
-    body: "A cozy pixel quest RPG with optional Web3 proof.",
+    body: "A cozy resource-village RPG with optional Web3 proof.",
   },
   {
     from: 135,
@@ -44,15 +44,15 @@ const scenes = [
     kind: "game",
     kicker: "Playable first",
     title: "Start as a guest",
-    body: "Open the browser game, move around with WASD, and meet the AI Guide in the field.",
+    body: "Open the browser game, move around with WASD, and explore the farm village.",
   },
   {
     from: 315,
     duration: 180,
     kind: "gameZoom",
     kicker: "Core loop",
-    title: "Gather 3 Pixel Shards",
-    body: "Small quest loop: talk, explore, collect, score. No wallet required to play.",
+    title: "Gather village resources",
+    body: "Cozy loop: plant, harvest, chop, mine, fulfill orders. No wallet required to play.",
   },
   {
     from: 480,
@@ -75,7 +75,7 @@ const scenes = [
     duration: 105,
     kind: "outro",
     kicker: "Demo-ready loop",
-    title: "Quest. Gather. Prove.",
+    title: "Farm. Fulfill. Prove.",
     body: "Open Pixel keeps Web3 optional and the game playable first.",
   },
 ] as const;
@@ -214,8 +214,8 @@ function GameScene({ scene, zoom = 1 }: { scene: Scene; zoom?: number }) {
       <CopyBlock scene={scene} />
       <div className="badge-strip">
         <span>WASD movement</span>
-        <span>AI Guide NPC</span>
-        <span>Pixel Shards</span>
+        <span>Farm village</span>
+        <span>Crops, trees, ore</span>
       </div>
       <ProgressBar frame={scene.from + frame} />
     </SceneShell>

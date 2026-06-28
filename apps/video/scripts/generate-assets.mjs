@@ -9,11 +9,11 @@ const voiceModel =
   process.env.NINEROUTER_TTS_MODEL ||
   "el/eleven_multilingual_v2/hpp4J3VqNfWAUOO0d1Us";
 const narration = [
-  "Open Pixel is a cozy AI native Web3 pixel quest game built for a hackathon demo.",
-  "You start as a guest, open the browser game, and move through the field with simple WASD controls.",
-  "The AI Guide gives one focused quest: gather three Pixel Shards, earn off chain points, and claim a badge.",
+  "Open Pixel is a cozy Web3 pixel RPG built for a hackathon demo.",
+  "You start as a guest, open the browser game, and move through the farm village with simple WASD controls.",
+  "The Cozy Resource-Village Loop lets you plant, water, and harvest crops, chop trees, mine rocks, and fulfill village orders to earn off-chain points and claim a badge.",
   "The Web3 layer stays optional. The proof is a readable personal sign receipt only: no token, no gas, no approvals, no swaps, and no permit.",
-  "Open Pixel keeps the game playable first, with proof as a clear safety receipt after the quest.",
+  "Open Pixel keeps the game playable first, with proof as a clear safety receipt after the village loop.",
 ].join(" ");
 
 function headers(extra = {}) {
