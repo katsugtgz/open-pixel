@@ -1,0 +1,21 @@
+CREDITS.txt
+  s_0f64ccd15ed758::t_aa09ad72650b4d 5-6
+  s_0f64ccd15ed758::t_ea51cbce764903 2-4
+  s_0f64ccd15ed758::t_4fef7b9393223a 7-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "016ec790e00bfbfe2f7427c474a9a66826bc50e0",
+  "prompts": {},
+  "sessions": {
+    "s_0f64ccd15ed758": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f12457eaffeSUFw0hmhTfJ2Y6",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
