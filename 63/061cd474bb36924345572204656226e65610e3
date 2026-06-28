@@ -1,0 +1,35 @@
+apps/game/src/tiled/lpc-house.tsx
+  s_127ed519e5c05a::t_3abbc12103de67 1-4
+apps/game/src/tiled/lpc-grass.tsx
+  s_127ed519e5c05a::t_150d8a45b1eb3c 1-4
+apps/game/src/modules/main/player.ts
+  s_127ed519e5c05a::t_4e95d675e12934 5-7
+apps/game/src/tiled/lpc-crops.tsx
+  s_127ed519e5c05a::t_5adf6daf212294 1-4
+apps/game/src/tiled/lpc-rock.tsx
+  s_127ed519e5c05a::t_bb89269875c156 1-4
+apps/game/src/tiled/lpc-dirt.tsx
+  s_127ed519e5c05a::t_0d8fbdd8a23c45 1-4
+apps/game/src/tiled/lpc-trees.tsx
+  s_127ed519e5c05a::t_a70c9590a2a209 1-4
+apps/game/src/tiled/lpc-water.tsx
+  s_127ed519e5c05a::t_13fa8429e3c91f 1-4
+apps/game/src/tiled/village.tmx
+  s_127ed519e5c05a::t_ccdf9915eac910 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "63061cd474bb36924345572204656226e65610e3",
+  "prompts": {},
+  "sessions": {
+    "s_127ed519e5c05a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f0ecb893ffeFZcAtG4qO7BliG",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
