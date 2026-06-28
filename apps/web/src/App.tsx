@@ -409,11 +409,20 @@ function App() {
       setStatus("No wallet detected. You can still use guest claim.");
       return;
     }
-    const accounts = (await ethereum.request({
-      method: "eth_requestAccounts",
-    })) as string[];
-    dispatch({ type: "walletAddress", value: accounts[0] || "" });
-    setStatus("Wallet connected. No approval or transaction requested.");
+    try {
+      const accounts = (await ethereum.request({
+        method: "eth_requestAccounts",
+      })) as string[];
+      dispatch({ type: "walletAddress", value: accounts[0] || "" });
+      setStatus("Wallet connected. No approval or transaction requested.");
+    } catch (error: unknown) {
+      const code = (error as { code?: number }).code;
+      if (code === 4001) {
+        setStatus("Wallet connection cancelled. Guest mode still works.");
+      } else {
+        setStatus("Wallet connection failed. You can still use guest claim.");
+      }
+    }
   }
 
   async function signProof() {
@@ -439,10 +448,21 @@ function App() {
       expirationTime: expires.toISOString(),
     });
 
-    const sig = (await ethereum.request({
-      method: "personal_sign",
-      params: [message, state.walletAddress],
-    })) as string;
+    let sig: string;
+    try {
+      sig = (await ethereum.request({
+        method: "personal_sign",
+        params: [message, state.walletAddress],
+      })) as string;
+    } catch (error: unknown) {
+      const code = (error as { code?: number }).code;
+      if (code === 4001) {
+        setStatus("Signature cancelled. No transaction was sent.");
+      } else {
+        setStatus("Signature failed. No transaction was sent.");
+      }
+      return;
+    }
 
     dispatch({ type: "signature", value: sig });
     setStatus("Proof signed with personal_sign. No transaction sent.");
