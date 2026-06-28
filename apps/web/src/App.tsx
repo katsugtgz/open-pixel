@@ -3,8 +3,10 @@ import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/clie
 import {
   buildProofMessage,
   createGuestId,
+  createQuestRun,
   createRandomId,
   formatSupabaseError,
+  type QuestRun,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -30,7 +32,7 @@ const pillars = [
   },
   {
     title: "Gather",
-    body: "Talk to the AI Guide, then collect 3 cyan Pixel Shards.",
+    body: "Harvest crops, gather wood and ore, fulfill village orders.",
     stat: "+130 pts",
   },
   {
@@ -45,16 +47,6 @@ const mockLeaderboard = [
   { name: "Shard Scout", score: 90, tag: "proof ready" },
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
-
-type QuestRunView = {
-  id: string;
-  guestId: string;
-  displayName: string;
-  questId: string;
-  points: number;
-  shards: number;
-  completedAt: string;
-};
 
 type AppState = {
   guestId: string;
@@ -144,8 +136,8 @@ function HeroSection() {
           </a>
         </div>
         <p className="subtitle">
-          Talk to the AI Guide, collect 3 Pixel Shards, claim an off-chain
-          badge. Wallet proof stays optional and readable.
+          Harvest crops, gather wood and ore, fulfill village orders, then claim
+          an off-chain badge. Wallet proof stays optional and readable.
         </p>
         <div className="control-guide" aria-label="Demo controls">
           <span className="desktop-control">Desktop: Arrow keys to move</span>
@@ -176,7 +168,7 @@ function HeroSection() {
         </div>
         <div className="dialog-card">
           <strong>AI Guide</strong>
-          <span>Gather 3 Pixel Shards → +130 pts</span>
+          <span>Popberry · WhittlewoodLog · OchruxMatrix → +130 pts</span>
         </div>
       </div>
     </section>
@@ -239,7 +231,7 @@ function DesignSection() {
 
 type ClaimSectionProps = {
   state: AppState;
-  questRun: QuestRunView;
+  questRun: QuestRun;
   onDisplayNameChange(value: string): void;
   onClaim(): void;
   onConnectWallet(): void;
@@ -276,9 +268,12 @@ function ClaimSection({
             <strong>{questRun.questId}</strong>
           </p>
           <p>
-            <span>Result</span>
+            <span>Resources</span>
             <strong>
-              {questRun.shards}/3 shards · {questRun.points} pts
+              {questRun.resources.popberry} Popberry ·{" "}
+              {questRun.resources.whittlewood_log} WhittlewoodLog ·{" "}
+              {questRun.resources.ochrux_matrix} OchruxMatrix ·{" "}
+              {questRun.points} pts
             </strong>
           </p>
         </div>
@@ -344,15 +339,21 @@ function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
 
   const questRun = useMemo(
-    () => ({
-      id: `run_${state.guestId.slice(-8)}`,
-      guestId: state.guestId,
-      displayName: state.displayName.trim() || "Pixel Runner",
-      questId: "Quest #1 — Gather Pixel Shards",
-      points: 130,
-      shards: 3,
-      completedAt: new Date().toISOString(),
-    }),
+    () =>
+      createQuestRun({
+        id: `run_${state.guestId.slice(-8)}`,
+        guestId: state.guestId,
+        displayName: state.displayName.trim() || "Pixel Runner",
+        questId: "Quest #1 — Gather Pixel Shards",
+        points: 130,
+        resources: {
+          popberry: 4,
+          whittlewood_log: 3,
+          ochrux_matrix: 2,
+        },
+        completedAt: new Date().toISOString(),
+        shards: 3,
+      }),
     [state.displayName, state.guestId],
   );
 
@@ -388,7 +389,8 @@ function App() {
       display_name: questRun.displayName,
       quest_id: questRun.questId,
       points: questRun.points,
-      shards: questRun.shards,
+      resources: questRun.resources,
+      shards: questRun.shards ?? 0,
       completed_at: questRun.completedAt,
     });
 

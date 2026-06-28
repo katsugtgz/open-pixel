@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createQuestRun,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
@@ -15,6 +16,66 @@ describe("guest id generation", () => {
       createGuestId(),
       /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
+  });
+});
+
+describe("QuestRun resources shape (W1.2 module contract)", () => {
+  it("exposes the new resources shape keyed by village-loop item ids", () => {
+    const run = createQuestRun({
+      id: "run_abc",
+      guestId: "guest_abc",
+      displayName: "Pixel Runner",
+      questId: "Quest #1",
+      points: 130,
+      resources: {
+        popberry: 4,
+        whittlewood_log: 3,
+        ochrux_matrix: 2,
+      },
+      completedAt: "2026-06-28T00:00:00.000Z",
+    });
+
+    assert.deepEqual(run.resources, {
+      popberry: 4,
+      whittlewood_log: 3,
+      ochrux_matrix: 2,
+    });
+  });
+
+  it("keeps the legacy shards field populated for Supabase row back-compat", () => {
+    const run = createQuestRun({
+      id: "run_abc",
+      guestId: "guest_abc",
+      displayName: "Pixel Runner",
+      questId: "Quest #1",
+      points: 130,
+      resources: { popberry: 0, whittlewood_log: 0, ochrux_matrix: 0 },
+      completedAt: "2026-06-28T00:00:00.000Z",
+    });
+
+    assert.equal(typeof run.shards, "number");
+    assert.equal(run.shards, 0);
+  });
+
+  it("preserves off-chain points for the readable personal_sign proof flow", () => {
+    const run = createQuestRun({
+      id: "run_abc",
+      guestId: "guest_abc",
+      displayName: "Pixel Runner",
+      questId: "Quest #1",
+      points: 130,
+      resources: { popberry: 4, whittlewood_log: 3, ochrux_matrix: 2 },
+      completedAt: "2026-06-28T00:00:00.000Z",
+      shards: 3,
+    });
+
+    assert.equal(run.points, 130);
+    assert.equal(run.shards, 3);
+    assert.deepEqual(run.resources, {
+      popberry: 4,
+      whittlewood_log: 3,
+      ochrux_matrix: 2,
+    });
   });
 });
 
