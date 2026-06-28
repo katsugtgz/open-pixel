@@ -1,0 +1,36 @@
+packages/shared/test/index.test.mjs
+  s_7022ded7739307::t_b55669c50cc070 6
+  s_7022ded7739307::t_5f93a52b327555 22-79
+  s_7022ded7739307::t_b4815976453f7c 80-81
+supabase/migrations/20260628_resources_column.sql
+  s_7022ded7739307::t_548c2d22826d4b 1-11
+apps/web/src/App.tsx
+  s_7022ded7739307::t_c8bba4d968a5a0 342-356
+  s_7022ded7739307::t_a526be897c53d3 35
+  s_7022ded7739307::t_ecedbf36749682 139-140
+  s_7022ded7739307::t_5f00c009753711 234
+  s_7022ded7739307::t_cdbc68d09c90af 271,273-276
+  s_7022ded7739307::t_b198bc5e339279 392-393
+  s_7022ded7739307::t_535015dd55f458 171
+  s_7022ded7739307::t_04086c297e5af9 6,9
+packages/shared/src/index.ts
+  s_7022ded7739307::t_e2efe148d3fcbf 1-7,13-14,16-38
+package-lock.json
+  s_7022ded7739307::t_090e82e9ee1e66 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "900a1b37e154d3cd1c48361399c97e9d1c520d9c",
+  "prompts": {},
+  "sessions": {
+    "s_7022ded7739307": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f123b50effegUDbHB9Pzjpvyr",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
