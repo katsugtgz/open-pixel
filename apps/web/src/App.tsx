@@ -33,7 +33,7 @@ const pillars = [
   {
     title: "Gather",
     body: "Harvest crops, gather wood and ore, fulfill village orders.",
-    stat: "+130 pts",
+    stat: "off-chain pts",
   },
   {
     title: "Prove",
@@ -167,8 +167,8 @@ function HeroSection() {
           <div className="tile crystal small" />
         </div>
         <div className="dialog-card">
-          <strong>AI Guide</strong>
-          <span>Popberry · WhittlewoodLog · OchruxMatrix → +130 pts</span>
+          <strong>Village Loop</strong>
+          <span>Popberry · WhittlewoodLog · OchruxMatrix → off-chain pts</span>
         </div>
       </div>
     </section>
@@ -180,7 +180,7 @@ function LoopSection() {
     <section className="section" id="loop">
       <div className="section-heading">
         <p className="eyebrow">Demo loop</p>
-        <h2>Three steps: talk, gather, claim.</h2>
+        <h2>Three steps: gather, fulfill, claim.</h2>
       </div>
       <div className="pillar-grid">
         {pillars.map((pillar) => (
@@ -349,7 +349,7 @@ function App() {
         id: `run_${state.guestId.slice(-8)}`,
         guestId: state.guestId,
         displayName: state.displayName.trim() || "Pixel Runner",
-        questId: "Quest #1 — Gather Pixel Shards",
+        questId: "Quest #1 — Village Resource Loop",
         points: 130,
         resources: {
           popberry: 4,
