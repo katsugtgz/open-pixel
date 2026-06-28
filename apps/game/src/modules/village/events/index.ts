@@ -1,8 +1,7 @@
-// W2.2 - Barrel re-exports for the village event factories.
+// Barrel re-exports for the village event factories.
 //
-// The map adapter imports all factories from this single path. The order board
-// factory (OrderBoardFactory) is intentionally absent - it lands in W3.1 with
-// the orders/inventory work and must not be created here (see MUST NOT DO).
+// The map adapter imports all factories from this single path. W3.1 adds the
+// OrderBoardFactory used by the workstations layer (kind=board).
 export { CropPlotFactory } from "./crop-plot";
 export type { CropPlotProps } from "./crop-plot";
 export { VILLAGE_POINTS_KEY } from "./crop-plot";
@@ -12,3 +11,6 @@ export type { TreeNodeProps } from "./tree";
 
 export { MineFactory } from "./mine";
 export type { MineNodeProps } from "./mine";
+
+export { OrderBoardFactory } from "./order-board";
+export type { OrderBoardProps } from "./order-board";

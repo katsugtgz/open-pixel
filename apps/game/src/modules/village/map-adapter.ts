@@ -38,6 +38,7 @@ import type { PlotState } from "./state";
 import { CropPlotFactory } from "./events/crop-plot";
 import { TreeFactory } from "./events/tree";
 import { MineFactory } from "./events/mine";
+import { OrderBoardFactory } from "./events/order-board";
 
 /** Layers that carry bindable gameplay objects. `decor`/`collisions`/`spawn` are skipped. */
 const GAMEPLAY_LAYERS = [
@@ -112,8 +113,8 @@ function forEachBindableObject(
 
 /**
  * Map a parsed Tiled object's `kind` to a concrete EventDefinition. Returns null
- * for kinds that have no factory yet (board/workstation -> W3.1) or that are
- * non-gameplay (collision, spawn, decor).
+ * for kinds that have no factory yet or that are non-gameplay (collision,
+ * spawn, decor). W3.1 adds the `board` kind -> OrderBoardFactory.
  */
 function buildEvent(
   properties: Record<string, unknown>,
@@ -132,6 +133,10 @@ function buildEvent(
   }
   if (kind === "mine") {
     return MineFactory({ id, rewardItem });
+  }
+  if (kind === "board") {
+    const orderId = (properties.orderId as string | undefined) ?? "order_01";
+    return OrderBoardFactory({ id, orderId });
   }
   return null;
 }
@@ -152,8 +157,8 @@ function eventFromObject(
 /**
  * Static events array for the village MapOptions. Coordinates and properties
  * mirror apps/game/src/tiled/village.tmx (W2.1 frozen): three farm plots on
- * the farm_plots layer, three trees and two mines on the resource_nodes layer.
- * The board_orders workstation is intentionally absent (W3.1 OrderBoardFactory).
+ * the farm_plots layer, three trees and two mines on the resource_nodes layer,
+ * and the order board on the workstations layer (W3.1).
  *
  * RPG-JS v5 creates each entry through `map.createDynamicEvent` during updateMap.
  */
@@ -217,6 +222,12 @@ export const VILLAGE_EVENTS: EventPosOption[] = [
     x: 992,
     y: 896,
     event: MineFactory({ id: "mine_02", rewardItem: "ochrux_matrix" }),
+  },
+  {
+    id: "board_orders",
+    x: 448,
+    y: 576,
+    event: OrderBoardFactory({ id: "board_orders", orderId: "order_01" }),
   },
 ];
 

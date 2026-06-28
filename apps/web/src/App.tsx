@@ -251,6 +251,11 @@ function ClaimSection({
       <article className="panel claim-panel">
         <p className="eyebrow">Guest claim</p>
         <h2>Claim the demo badge.</h2>
+        <p className="claim-note">
+          Complete village orders in the game to earn resources and off-chain
+          points, then claim your badge here. Your run syncs through Supabase;
+          no wallet is required.
+        </p>
         <label>
           Display name
           <input
