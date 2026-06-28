@@ -1,0 +1,40 @@
+apps/game/src/modules/village/events/order-board.ts
+  s_7e2f0e54dc9b01::t_465f8400a0bf33 1-102
+apps/game/src/modules/village/events/index.ts
+  s_7e2f0e54dc9b01::t_f26ccb4a0cda27 1,3-4,14-16
+apps/game/src/modules/village/orders.ts
+  s_7e2f0e54dc9b01::t_e8aa475f9fa0dc 1-22,37-60,62-66,68,71-109,112-130
+  s_7e2f0e54dc9b01::t_1b5f3d4df93eb0 132-134
+apps/game/src/modules/village/hud-adapter.ts
+  s_7e2f0e54dc9b01::t_c4cc3a26115400 1-12,14-15,21,24-37,39-48
+apps/web/src/App.tsx
+  s_7e2f0e54dc9b01::t_1d9938c3c1dcdf 254-258
+apps/game/src/modules/village/proof-bridge.ts
+  s_7e2f0e54dc9b01::t_decec10efca613 1-24,26-27,35-52
+apps/game/test/orders.test.mjs
+  s_7e2f0e54dc9b01::t_9e07e5685544af 1-208
+apps/game/src/modules/village/map-adapter.ts
+  s_7e2f0e54dc9b01::t_12926557f54e87 41
+  s_7e2f0e54dc9b01::t_9421239c9b597d 116-117,137-139
+  s_7e2f0e54dc9b01::t_1ff567628deed0 160-161,226-230
+  s_7e2f0e54dc9b01::t_0ca512c8019e2e 140
+  s_7e2f0e54dc9b01::t_77827766ed1d29 231
+apps/game/src/modules/village/inventory.ts
+  s_7e2f0e54dc9b01::t_33b19d85422252 1-22,43-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "70ac04e92848fbf898c80fc2996a7bb1c0f80a33",
+  "prompts": {},
+  "sessions": {
+    "s_7e2f0e54dc9b01": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f06f0099ffeBSUsdyDHoif3Md",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
