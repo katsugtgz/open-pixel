@@ -1,0 +1,43 @@
+apps/game/src/modules/village/index.ts
+  s_92bb7adb368057::t_310e9694bdfc1b 1-15
+apps/game/src/modules/village/proof-bridge.ts
+  s_92bb7adb368057::t_4779e03fcf6f63 1-13
+apps/game/src/modules/village/map-adapter.ts
+  s_92bb7adb368057::t_8cd1775bf555e5 1-22
+  s_0cd54753dab07a::t_b76c0dd4fa0f81 23-24
+apps/game/src/modules/village/hud-adapter.ts
+  s_92bb7adb368057::t_5c5f82dc70fbae 1-14
+apps/game/src/modules/village/orders.ts
+  s_92bb7adb368057::t_a681fb38f90abc 1-25
+  s_0cd54753dab07a::t_1ffda5e34141fd 26-28
+apps/game/src/modules/village/state.ts
+  s_92bb7adb368057::t_fb30525fd3994f 1-23
+  s_0cd54753dab07a::t_e4049d481acddb 24-31
+apps/game/src/modules/village/inventory.ts
+  s_92bb7adb368057::t_f39baa2046b75a 1-20
+  s_0cd54753dab07a::t_fdf93959500c9e 21-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "f33354b38fb2b2694dc0ebb0a63d49b1f9938ab0",
+  "prompts": {},
+  "sessions": {
+    "s_0cd54753dab07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f148fcb0ffeukSQDjBRWNHq11",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_92bb7adb368057": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f122fdeaffePjEUJAn82DvBAW",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
