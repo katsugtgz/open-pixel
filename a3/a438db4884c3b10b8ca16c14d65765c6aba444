@@ -1,0 +1,25 @@
+apps/game/src/modules/village/items.ts
+  s_ef1c1fa1aee8dc::t_5fd999fdfd1eef 1-55
+apps/game/test/items.test.mjs
+  s_ef1c1fa1aee8dc::t_8115f7860314ab 1-20,25-52,56-60,62-131
+  s_ef1c1fa1aee8dc::t_320fe8d1fbc5ca 21-24,53-55,61
+apps/game/src/server.ts
+  s_ef1c1fa1aee8dc::t_eefba67d03bdd5 20-22
+  s_ef1c1fa1aee8dc::t_592729ed6f18f2 9-14,23-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "a3a438db4884c3b10b8ca16c14d65765c6aba444",
+  "prompts": {},
+  "sessions": {
+    "s_ef1c1fa1aee8dc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f10d402dffe41YyCzfEwBXZgI",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
