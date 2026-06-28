@@ -1,0 +1,67 @@
+docs/ROADMAP.md
+  s_72e9f81574389f::t_c5ffceb9652227 5-7
+AGENTS.md
+  s_72e9f81574389f::t_c56f7bf0b68341 83
+  s_72e9f81574389f::t_318c8f83da5537 32-33
+  s_72e9f81574389f::t_0d0fd2762fec07 89
+  s_72e9f81574389f::t_ea083b27c40676 55-58
+  s_72e9f81574389f::t_65eedb66639c62 18
+  s_72e9f81574389f::t_815df32c8f7f9a 108
+  s_0cd54753dab07a::t_d87b922d6d4e86 28-31,34-39,45-54,59-60
+docs/SUBMISSION.md
+  s_72e9f81574389f::t_f55be8a75f9c81 13
+CONTRIBUTING.md
+  s_72e9f81574389f::t_4e0fa2c89b8dfb 27
+docs/DESIGN.md
+  s_72e9f81574389f::t_57e923c086d32b 18
+  s_72e9f81574389f::t_c19a4751bc14b2 39-41
+  s_72e9f81574389f::t_5271d706daa208 24-27
+assets/demo-placeholder.svg
+  s_72e9f81574389f::t_0aac9333f24e06 13
+apps/video/src/OpenPixelPromo.tsx
+  s_72e9f81574389f::t_0f6028dd23d65e 39
+  s_72e9f81574389f::t_28154dc2caf641 78
+  s_72e9f81574389f::t_be1859e9c65e79 54-55
+  s_72e9f81574389f::t_0751737753075b 26-27
+  s_72e9f81574389f::t_9a79793c705893 47
+  s_72e9f81574389f::t_60de59adabf451 217-218
+README.md
+  s_72e9f81574389f::t_ad460a10996485 80
+  s_72e9f81574389f::t_d5055cbe3a1ff7 40,42
+  s_72e9f81574389f::t_923af8fd3d136c 24
+  s_72e9f81574389f::t_c36460b28f4e39 51-54
+  s_72e9f81574389f::t_7c5de22340dc58 135
+apps/game/AGENTS.md
+  s_72e9f81574389f::t_1606189255f16a 5
+  s_72e9f81574389f::t_752ee76e167026 45-47
+  s_72e9f81574389f::t_b018ec3a2f0ebd 21-28
+  s_72e9f81574389f::t_dd68130eec7e5d 54,56
+  s_72e9f81574389f::t_7e68f611a2b8e6 32-41
+  s_72e9f81574389f::t_fb8ba5cceacf1b 11-12,15
+apps/video/scripts/generate-assets.mjs
+  s_72e9f81574389f::t_2350ee86b81a76 12-14,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ffb5783d14480b39b14d5843eea21a8e585ab6cb",
+  "prompts": {},
+  "sessions": {
+    "s_0cd54753dab07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f148fcb0ffeukSQDjBRWNHq11",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_72e9f81574389f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f05ea45cffezEcNkvej21l0Og",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
