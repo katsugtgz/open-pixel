@@ -1,0 +1,23 @@
+apps/game/index.html
+  s_0cd54753dab07a::t_6c5ae30496f5a7 230-285
+  s_0cd54753dab07a::t_bc4b92e6c93409 301-319
+apps/game/src/modules/main/player.ts
+  s_0cd54753dab07a::t_a479ac4926d94b 5-6,11,13-23,30-32
+  s_0cd54753dab07a::t_dd397450ac61c5 33-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "92d91e58032094acba9e7053a3e08d9f505979b8",
+  "prompts": {},
+  "sessions": {
+    "s_0cd54753dab07a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f148fcb0ffeukSQDjBRWNHq11",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
