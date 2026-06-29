@@ -111,3 +111,34 @@ export function pointsFromCompletion(action: CompletionAction): number {
       return 0;
   }
 }
+
+/**
+ * Player-variable key holding the off-chain `village_points` accumulator.
+ *
+ * Single source of truth: crop-plot/tree/mine/orders consumers read and write
+ * through this key so save-state stays stable across modules. Existing local
+ * saves already use this exact string, so it is load-bearing - do not change.
+ */
+export const VILLAGE_POINTS_KEY = "village_points";
+
+/**
+ * Structural interface for anything that quacks like an RPG-JS player variable
+ * store. Kept here (not imported from @rpgjs/server) so state.ts stays pure
+ * and unit-testable without the RPG-JS runtime.
+ */
+export interface PointKeeper {
+  getVariable<T>(key: string): T | undefined;
+  setVariable(key: string, value: unknown): void;
+}
+
+/**
+ * Add `pts` to the shared `village_points` accumulator on `keeper`.
+ *
+ * Treats missing/undefined as 0 so callers can call on a fresh player without
+ * seeding. Negative `pts` are allowed for future deduct paths but every current
+ * caller passes a non-negative value from `pointsFromCompletion`.
+ */
+export function addPoints(keeper: PointKeeper, pts: number): void {
+  const current = keeper.getVariable<number>(VILLAGE_POINTS_KEY) ?? 0;
+  keeper.setVariable(VILLAGE_POINTS_KEY, current + pts);
+}

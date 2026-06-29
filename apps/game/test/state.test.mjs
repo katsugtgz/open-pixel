@@ -44,6 +44,8 @@ const {
   advancePlotState,
   transitionNodeState,
   pointsFromCompletion,
+  addPoints,
+  VILLAGE_POINTS_KEY,
 } = await import(pathToFileURL(modulePath).href);
 
 describe("W2.2 advancePlotState (empty -> planted -> watered -> ready -> empty)", () => {
@@ -128,5 +130,46 @@ describe("W2.2 pointsFromCompletion (W0.1 §5 economy table)", () => {
 
   it("fulfill awards +25 points (default order value, exercised in W3.1)", () => {
     assert.equal(pointsFromCompletion("fulfill"), 25);
+  });
+});
+
+describe("addPoints (shared accumulator)", () => {
+  // W2.2 refactor - single source of truth for village_points. Wave 2 migrates
+  // crop-plot/tree/mine/orders consumers to this helper; the structurally-typed
+  // PointKeeper interface keeps state.ts pure (no @rpgjs imports).
+  function makeKeeper() {
+    return {
+      _v: {},
+      getVariable(k) {
+        return this._v[k];
+      },
+      setVariable(k, v) {
+        this._v[k] = v;
+      },
+    };
+  }
+
+  it("writes pts into VILLAGE_POINTS_KEY starting from 0 (undefined)", () => {
+    const keeper = makeKeeper();
+    addPoints(keeper, 5);
+    assert.equal(keeper.getVariable(VILLAGE_POINTS_KEY), 5);
+  });
+
+  it("accumulates onto a previous addPoints result", () => {
+    const keeper = makeKeeper();
+    addPoints(keeper, 5);
+    addPoints(keeper, 3);
+    assert.equal(keeper.getVariable(VILLAGE_POINTS_KEY), 8);
+  });
+
+  it("accumulates onto a pre-existing village_points value", () => {
+    const keeper = makeKeeper();
+    keeper.setVariable(VILLAGE_POINTS_KEY, 10);
+    addPoints(keeper, 5);
+    assert.equal(keeper.getVariable(VILLAGE_POINTS_KEY), 15);
+  });
+
+  it("VILLAGE_POINTS_KEY is the canonical 'village_points' string", () => {
+    assert.equal(VILLAGE_POINTS_KEY, "village_points");
   });
 });
