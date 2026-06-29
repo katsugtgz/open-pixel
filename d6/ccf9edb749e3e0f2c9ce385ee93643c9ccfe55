@@ -1,0 +1,41 @@
+apps/game/tsconfig.typecheck.json
+  s_32e8fdd616407e::t_6671faed240352 1-5
+apps/game/src/server.ts
+  s_32e8fdd616407e::t_9c802d5718aff2 37
+apps/game/src/modules/village/events/mine.ts
+  s_32e8fdd616407e::t_8f4b6b17377e13 31,33-34
+apps/game/test/hotbar-click.test.mjs
+  s_32e8fdd616407e::t_a4dd2c19e21935 2-4,6,8-9,11-28,31-32,36-40,43-45,48-54,57-61,64-68
+apps/game/src/modules/village/hotbar-selection.js
+  s_32e8fdd616407e::t_07c13a45628fa5 1-13
+apps/game/index.html
+  s_32e8fdd616407e::t_cabbeda469de12 309,312,317,322,327,330,334-335,487,492-506
+apps/game/package.json
+  s_32e8fdd616407e::t_4b0ee25026feab 9
+apps/game/src/modules/village/events/crop-plot.ts
+  s_32e8fdd616407e::t_d58d9d7c7271a2 67
+apps/web/src/App.tsx
+  s_32e8fdd616407e::t_01ebb1d551ba83 139,151-191,193,195-196,198-201,205-215
+package-lock.json
+  s_32e8fdd616407e::t_256cf8a1fe555d 10,32,1776,2034,4617
+package.json
+  s_32e8fdd616407e::t_cfcaa5a9930def 28-29
+supabase/migrations/20260628_resources_column.sql
+  s_32e8fdd616407e::t_6b973536f6d31f 15-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "d6ccf9edb749e3e0f2c9ce385ee93643c9ccfe55",
+  "prompts": {},
+  "sessions": {
+    "s_32e8fdd616407e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f15b2-cde2-7822-b3b9-65e5e9d24fe9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
