@@ -3,11 +3,26 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
+
+describe("random id generation", () => {
+  it("returns a UUID v4 string", () => {
+    assert.match(
+      createRandomId(),
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  it("produces unique values across rapid calls", () => {
+    const ids = new Set(Array.from({ length: 100 }, () => createRandomId()));
+    assert.equal(ids.size, 100);
+  });
+});
 
 describe("guest id generation", () => {
   it("uses the guest UUID format", () => {
@@ -82,6 +97,19 @@ describe("Supabase schema diagnostics", () => {
     );
   });
 
+  it("returns false for null/undefined errors", () => {
+    assert.equal(isSupabaseMissingTableError(null), false);
+    assert.equal(isSupabaseMissingTableError(undefined), false);
+    assert.equal(isSupabaseMissingTableError({}), false);
+  });
+
+  it("returns false for empty-string error fields", () => {
+    assert.equal(
+      isSupabaseMissingTableError({ code: "", message: "", details: "" }),
+      false,
+    );
+  });
+
   it("formats missing schema with the exact operator action", () => {
     assert.equal(
       formatSupabaseError("Supabase player save failed", {
@@ -89,6 +117,27 @@ describe("Supabase schema diagnostics", () => {
           "Could not find the table 'public.players' in the schema cache",
       }),
       `Supabase player save failed: ${SUPABASE_SCHEMA_MISSING_TEXT}`,
+    );
+  });
+
+  it("formats generic errors with the error message", () => {
+    assert.equal(
+      formatSupabaseError("Save failed", { message: "network timeout" }),
+      "Save failed: network timeout",
+    );
+  });
+
+  it("falls back to unknown error when message is missing", () => {
+    assert.equal(
+      formatSupabaseError("Save failed", {}),
+      "Save failed: Unknown Supabase error",
+    );
+  });
+
+  it("handles null error without throwing", () => {
+    assert.equal(
+      formatSupabaseError("Save failed", null),
+      "Save failed: Unknown Supabase error",
     );
   });
 });
