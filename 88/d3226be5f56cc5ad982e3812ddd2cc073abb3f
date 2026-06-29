@@ -1,0 +1,19 @@
+apps/game/test/hotbar-click.test.mjs
+  s_69c5281a3a58c4::t_e77737b145979d 1-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "88d3226be5f56cc5ad982e3812ddd2cc073abb3f",
+  "prompts": {},
+  "sessions": {
+    "s_69c5281a3a58c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7c7b43ffeeQpkND0vapUFNc",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
