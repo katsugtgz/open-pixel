@@ -263,3 +263,51 @@ describe("W3.2 VILLAGE_HITBOXES: surfaces collisions objectgroup to MapOptions",
     }
   });
 });
+
+describe("W4.1 expansion: 7 new tree hitboxes in the 80x80 expansion zone", () => {
+  it("VILLAGE_HITBOXES has 14 entries (7 original + 7 expansion trees)", async () => {
+    const { VILLAGE_HITBOXES } = await import(mapAdapterUrl);
+    assert.equal(
+      VILLAGE_HITBOXES.length,
+      14,
+      `expected 14 hitboxes after 80x80 expansion, got ${VILLAGE_HITBOXES.length}`,
+    );
+  });
+
+  it("each expansion tree hitbox has correct coords + 64x96 box", async () => {
+    const { VILLAGE_HITBOXES } = await import(mapAdapterUrl);
+    const expected = [
+      { id: "collision_tree_04", x: 1504, y: 1504 },
+      { id: "collision_tree_05", x: 1600, y: 1504 },
+      { id: "collision_tree_06", x: 1696, y: 1504 },
+      { id: "collision_tree_07", x: 1184, y: 1696 },
+      { id: "collision_tree_08", x: 1280, y: 1696 },
+      { id: "collision_tree_09", x: 1696, y: 832 },
+      { id: "collision_tree_10", x: 1696, y: 928 },
+    ];
+    for (const e of expected) {
+      const hb = VILLAGE_HITBOXES.find((h) => h.id === e.id);
+      assert.ok(hb, `missing expansion hitbox ${e.id}`);
+      assert.deepEqual(
+        { x: hb.x, y: hb.y, width: hb.width, height: hb.height },
+        { x: e.x, y: e.y, width: 64, height: 96 },
+        `${e.id} bbox must mirror village.tmx expansion object`,
+      );
+    }
+  });
+
+  it("all 14 hitbox ids are unique across original + expansion", async () => {
+    const { VILLAGE_HITBOXES } = await import(mapAdapterUrl);
+    const ids = VILLAGE_HITBOXES.map((h) => h.id);
+    assert.equal(
+      new Set(ids).size,
+      ids.length,
+      "expansion + original hitbox ids must all be unique",
+    );
+    assert.equal(
+      VILLAGE_HITBOXES.length,
+      14,
+      "id uniqueness check assumes the full 14-entry set",
+    );
+  });
+});

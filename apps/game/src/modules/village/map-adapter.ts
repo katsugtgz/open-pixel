@@ -273,6 +273,52 @@ export const VILLAGE_EVENTS: EventPosOption[] = [
     y: 416,
     event: TreeFactory({ id: "tree_03", rewardItem: "whittlewood_log" }),
   },
+  // W4.1 expansion: 7 new trees in the 80x80 expansion zone (east + south + SE
+  // quadrant). Mirror 1:1 the new tree_04..10 objects in village.tmx so the
+  // player can chop them in dev mode (where VILLAGE_EVENTS is the primary
+  // binding per W0.1 §3.1; registerMapObjects covers production).
+  {
+    id: "tree_04",
+    x: 1504,
+    y: 1504,
+    event: TreeFactory({ id: "tree_04", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_05",
+    x: 1600,
+    y: 1504,
+    event: TreeFactory({ id: "tree_05", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_06",
+    x: 1696,
+    y: 1504,
+    event: TreeFactory({ id: "tree_06", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_07",
+    x: 1184,
+    y: 1696,
+    event: TreeFactory({ id: "tree_07", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_08",
+    x: 1280,
+    y: 1696,
+    event: TreeFactory({ id: "tree_08", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_09",
+    x: 1696,
+    y: 832,
+    event: TreeFactory({ id: "tree_09", rewardItem: "whittlewood_log" }),
+  },
+  {
+    id: "tree_10",
+    x: 1696,
+    y: 928,
+    event: TreeFactory({ id: "tree_10", rewardItem: "whittlewood_log" }),
+  },
   {
     id: "mine_01",
     x: 896,
@@ -375,6 +421,16 @@ export const VILLAGE_HITBOXES: readonly VillageHitbox[] = [
   { id: "collision_tree_03", x: 992, y: 416, width: 64, height: 96 },
   { id: "collision_mine_01", x: 896, y: 832, width: 32, height: 32 },
   { id: "collision_mine_02", x: 992, y: 896, width: 32, height: 32 },
+  // W4.1 expansion: 7 new tree hitboxes in the 80x80 expansion zone (east +
+  // south + SE quadrant). Mirror 1:1 the new collision_tree_04..10 objects in
+  // village.tmx so the player cannot walk through the new tree clusters.
+  { id: "collision_tree_04", x: 1504, y: 1504, width: 64, height: 96 },
+  { id: "collision_tree_05", x: 1600, y: 1504, width: 64, height: 96 },
+  { id: "collision_tree_06", x: 1696, y: 1504, width: 64, height: 96 },
+  { id: "collision_tree_07", x: 1184, y: 1696, width: 64, height: 96 },
+  { id: "collision_tree_08", x: 1280, y: 1696, width: 64, height: 96 },
+  { id: "collision_tree_09", x: 1696, y: 832, width: 64, height: 96 },
+  { id: "collision_tree_10", x: 1696, y: 928, width: 64, height: 96 },
 ];
 
 /**
