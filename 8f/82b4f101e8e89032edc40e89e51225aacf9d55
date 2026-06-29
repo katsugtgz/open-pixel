@@ -1,0 +1,41 @@
+supabase/migrations/20260628_resources_column.sql
+  s_d167846f539c2e::t_fcd664fe22653a 6-9,12-24
+packages/shared/test/index.test.mjs
+  s_d167846f539c2e::t_b55211b8a02598 158-174,182-195,199
+  s_d167846f539c2e::t_364511d42edb01 2-3
+  s_d167846f539c2e::t_494fdf72d065cd 196-198
+  s_34eeda95b57e91::t_d8d4cce052e4d6 175-181
+  s_a566fd9ca537fb::t_c7bb5a3513b5e5 200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "8f82b4f101e8e89032edc40e89e51225aacf9d55",
+  "prompts": {},
+  "sessions": {
+    "s_34eeda95b57e91": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef3cc203ffe0RHlFom0X45EYL",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_a566fd9ca537fb": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ed03424bffeZ7XjJnc6d97NF5",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_d167846f539c2e": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef73f30effei7WiCe0vk1wgpg",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
