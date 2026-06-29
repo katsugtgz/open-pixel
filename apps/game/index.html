@@ -256,6 +256,9 @@
         border-radius: 6px;
         background: rgba(255, 244, 209, 0.08);
         position: relative;
+        pointer-events: auto;
+        cursor: pointer;
+        user-select: none;
       }
 
       .village-hud .slot.active {
@@ -288,34 +291,236 @@
   <body>
     <div id="rpg"></div>
     <aside class="control-help" aria-label="Game controls">
-      <span class="quest-hint">Move: WASD or Arrow Keys | Interact: Space | Actions: Plant/Water/Harvest crops, Chop trees, Mine rocks</span>
+      <span class="quest-hint"
+        >Move: WASD or Arrow Keys | Interact: Space | Actions:
+        Plant/Water/Harvest crops, Chop trees, Mine rocks · Fulfill orders at
+        Task Board</span
+      >
       <span class="desktop-controls"
-        ><strong>Controls:</strong> WASD or Arrow keys move · Space
-        plants / waters / harvests / chops / mines</span
+        ><strong>Controls:</strong> WASD or Arrow keys move · Space plants /
+        waters / harvests / chops / mines · Fulfill orders at Task Board</span
       >
       <span class="mobile-controls"
-        ><strong>Controls:</strong> joystick moves · A button interacts with
-        the nearest plot, tree, or mine</span
+        ><strong>Controls:</strong> joystick moves · A button interacts with the
+        nearest plot, tree, or mine · Fulfill orders at Task Board</span
       >
     </aside>
-    <div id="village-hud" class="village-hud" style="display:none">
-      <div class="slot" data-item="popberry_seeds"><span class="icon">🌱</span><span class="label">Seeds</span></div>
-      <div class="slot" data-item="popberry"><span class="icon">🫐</span><span class="count" data-count="popberry">0</span><span class="label">Berry</span></div>
-      <div class="slot" data-item="whittlewood_log"><span class="icon">🪵</span><span class="count" data-count="whittlewood_log">0</span><span class="label">Wood</span></div>
-      <div class="slot" data-item="ochrux_matrix"><span class="icon">💎</span><span class="count" data-count="ochrux_matrix">0</span><span class="label">Stone</span></div>
-      <div class="slot"><span class="icon">🪓</span><span class="label">Axe</span></div>
-      <div class="slot"><span class="icon">⛏️</span><span class="label">Pick</span></div>
+    <div id="village-hud" class="village-hud" style="display: none">
+      <div class="slot" data-item="popberry_seeds">
+        <span class="icon">🌱</span><span class="label">Seeds</span>
+      </div>
+      <div class="slot" data-item="popberry">
+        <span class="icon">🫐</span
+        ><span class="count" data-count="popberry">0</span
+        ><span class="label">Berry</span>
+      </div>
+      <div class="slot" data-item="whittlewood_log">
+        <span class="icon">🪵</span
+        ><span class="count" data-count="whittlewood_log">0</span
+        ><span class="label">Wood</span>
+      </div>
+      <div class="slot" data-item="ochrux_matrix">
+        <span class="icon">💎</span
+        ><span class="count" data-count="ochrux_matrix">0</span
+        ><span class="label">Stone</span>
+      </div>
+      <div class="slot">
+        <span class="icon">🪓</span><span class="label">Axe</span>
+      </div>
+      <div class="slot">
+        <span class="icon">⛏️</span><span class="label">Pick</span>
+      </div>
     </div>
     <script>
-      // Hotbar count updater — listens for RPG-JS socket events to update item counts
-      // Polls every 2s as a simple fallback bridge from server state to DOM HUD
-      function updateHotbar() {
-        const stage = window.__PIXI_STAGE__;
-        if (!stage) return;
-        document.getElementById('village-hud').style.display = 'flex';
+      // Village HUD hotbar.
+      //
+      // Two concerns:
+      //   1. Readiness probe (5s interval): waits for the RPG-JS canvas to come
+      //      up by polling window.__PIXI_STAGE__ (set globally by canvasengine
+      //      Canvas component init — see
+      //      node_modules/@rpgjs/testing/node_modules/canvasengine/src/components/Canvas.ts:89).
+      //      Once the stage exists, unhide the HUD bar. Counts are NOT read
+      //      here — they come from the live socket listener below.
+      //   2. Live count listener: wraps window.WebSocket BEFORE the RPG-JS
+      //      client bundle constructs its PartySocket so we capture the game's
+      //      own socket. RPG-JS v5 (@rpgjs/client 5.0.0-beta.1) does NOT expose
+      //      the engine or socket on a global; the BridgeWebsocket lives in
+      //      the DI context (RpgClientEngine.socket getter, see
+      //      node_modules/@rpgjs/client/src/RpgClientEngine.ts:1218). The
+      //      transport is PartySocket which falls back to the global
+      //      WebSocket (node_modules/partysocket/dist/ws.js:386:
+      //        `const WS = this._options.WebSocket || WebSocket;`).
+      //      Server-side emitCompletion (apps/game/src/modules/village/
+      //      proof-bridge.ts) calls player.emit('village:complete', payload),
+      //      which signe/sync serializes as JSON `{type, value}` over the
+      //      wire (node_modules/@signe/sync/src/client/index.ts:46-53,
+      //      56-63). We parse those frames and route village:complete to the
+      //      [data-count] spans, plus forward to the parent window so the
+      //      embedded web claim app (App.tsx) can react without touching
+      //      client.ts.
+      function updateHotbarCounts(counts) {
+        if (!counts || typeof counts !== "object") return;
+        for (const [item, n] of Object.entries(counts)) {
+          const el = document.querySelector('[data-count="' + item + '"]');
+          if (el) el.textContent = String(n);
+        }
       }
-      setTimeout(updateHotbar, 3000);
-      setInterval(updateHotbar, 5000);
+
+      function showHudIfReady() {
+        if (window.__PIXI_STAGE__) {
+          const hud = document.getElementById("village-hud");
+          if (hud) hud.style.display = "flex";
+          return true;
+        }
+        return false;
+      }
+
+      function applyVillagePayload(payload) {
+        if (!payload) return;
+        updateHotbarCounts(payload.resources);
+        // Bridge to the parent web claim app (iframe embedding).
+        // Target the actual parent origin (derived from document.referrer,
+        // falling back to same-origin) so game state is never disclosed to
+        // an arbitrary embedding parent via wildcard targetOrigin.
+        if (window.parent && window.parent !== window) {
+          let parentOrigin;
+          try {
+            parentOrigin = document.referrer
+              ? new URL(document.referrer).origin
+              : window.location.origin;
+          } catch (_) {
+            parentOrigin = window.location.origin;
+          }
+          window.parent.postMessage(
+            { type: "village:complete", payload: payload },
+            parentOrigin,
+          );
+        }
+        // Same-page dispatch for embedded web listeners.
+        window.dispatchEvent(
+          new CustomEvent("village:complete", { detail: payload }),
+        );
+      }
+
+      // Capture the game's WebSocket so we can listen without touching
+      // client.ts or the engine DI context. Installed before the deferred
+      // RPG-JS bundle runs (module scripts always defer past inline scripts).
+      //
+      // RPG-JS v5 uses PartySocket (host=window.location.host, prefix
+      // "parties", party "main", room "lobby-1"); the live socket URL looks
+      // like ws://<host>/parties/main/lobby-1?_pk=<uuid>. We only intercept
+      // sockets whose URL matches that pattern, so Vite HMR sockets
+      // (ws://<host> or /__vite) are never wrapped, never captured, and
+      // never count against the QA cap.
+      var GAME_SOCKET_PATTERNS = [/\/parties\//i];
+      var CAPTURED_SOCKET_CAP = 10;
+      function isGameSocket(url) {
+        if (!url) return false;
+        try {
+          return GAME_SOCKET_PATTERNS.some(function (p) {
+            return p.test(String(url));
+          });
+        } catch (_) {
+          return false;
+        }
+      }
+      function installVillageSocketCapture() {
+        if (window.__VILLAGE_WS_INSTALLED__) return;
+        window.__VILLAGE_WS_INSTALLED__ = true;
+        const NativeWebSocket = window.WebSocket;
+        function WrappedWebSocket(url, protocols) {
+          const sock = protocols
+            ? new NativeWebSocket(url, protocols)
+            : new NativeWebSocket(url);
+          // Only attach village state listener + QA capture to the RPG-JS
+          // game socket. Skip Vite HMR and any unrelated sockets.
+          if (isGameSocket(url)) {
+            try {
+              sock.addEventListener("message", (event) => {
+                let frame;
+                try {
+                  frame = JSON.parse(event.data);
+                } catch (_) {
+                  return;
+                }
+                if (frame && frame.type === "village:complete") {
+                  applyVillagePayload(frame.value);
+                }
+              });
+              // Debug-only capture for QA. Production never reads this; the
+              // synthetic-injection path lets automated tests verify the
+              // listener wiring without driving the RPG-JS canvas keyboard.
+              // Capped at CAPTURED_SOCKET_CAP entries; oldest dropped first.
+              window.__VILLAGE_CAPTURED_SOCKETS__ =
+                window.__VILLAGE_CAPTURED_SOCKETS__ || [];
+              window.__VILLAGE_CAPTURED_SOCKETS__.push(sock);
+              if (
+                window.__VILLAGE_CAPTURED_SOCKETS__.length > CAPTURED_SOCKET_CAP
+              ) {
+                window.__VILLAGE_CAPTURED_SOCKETS__.shift();
+              }
+            } catch (_) {
+              // Defensive: never let wrapping break socket creation.
+            }
+          }
+          return sock;
+        }
+        WrappedWebSocket.prototype = NativeWebSocket.prototype;
+        WrappedWebSocket.CONNECTING = NativeWebSocket.CONNECTING;
+        WrappedWebSocket.OPEN = NativeWebSocket.OPEN;
+        WrappedWebSocket.CLOSING = NativeWebSocket.CLOSING;
+        WrappedWebSocket.CLOSED = NativeWebSocket.CLOSED;
+        window.WebSocket = WrappedWebSocket;
+      }
+
+      installVillageSocketCapture();
+
+      // Hotbar click → select slot. Click semantics (per m0248 item #4):
+      //   - click a .slot → marks it .active (lime border + glow from CSS)
+      //   - clears .active on all siblings
+      //   - dispatches village:select-item CustomEvent with {item} detail
+      //     so downstream code (game server, parent web app) can react.
+      //   - click on already-active slot → deselect (toggle off)
+      // Item id comes from the slot's [data-item] attribute. Slots without
+      // data-item (e.g. Axe/Pick tools) dispatch with item: null.
+      function selectHotbarSlot(slotEl) {
+        var hud = document.getElementById("village-hud");
+        if (!hud || !slotEl || !slotEl.classList.contains("slot")) return null;
+        var wasActive = slotEl.classList.contains("active");
+        var slots = hud.querySelectorAll(".slot");
+        slots.forEach(function (s) { s.classList.remove("active"); });
+        var item = slotEl.getAttribute("data-item") || null;
+        if (!wasActive) {
+          slotEl.classList.add("active");
+          window.dispatchEvent(
+            new CustomEvent("village:select-item", { detail: { item: item } }),
+          );
+          return item;
+        }
+        window.dispatchEvent(
+          new CustomEvent("village:select-item", { detail: { item: null } }),
+        );
+        return null;
+      }
+      function wireHotbarClicks() {
+        var hud = document.getElementById("village-hud");
+        if (!hud || hud.dataset.wired === "1") return;
+        hud.dataset.wired = "1";
+        hud.addEventListener("click", function (ev) {
+          var slotEl = ev.target.closest(".slot");
+          if (slotEl && hud.contains(slotEl)) {
+            selectHotbarSlot(slotEl);
+          }
+        });
+      }
+      wireHotbarClicks();
+      // Re-wire if HUD is shown late (readiness probe unhides it after Vite boot).
+      document.addEventListener("DOMContentLoaded", wireHotbarClicks);
+      setInterval(wireHotbarClicks, 5000);
+
+      // Polls every 5s — readiness probe only (canvas stage up).
+      setInterval(showHudIfReady, 5000);
+      setTimeout(showHudIfReady, 3000);
     </script>
   </body>
 </html>
