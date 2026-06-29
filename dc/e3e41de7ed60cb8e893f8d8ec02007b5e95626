@@ -1,0 +1,22 @@
+apps/game/test/state.test.mjs
+  s_3f5f5dee32946c::t_ee65a286cb5bd4 135-175
+  s_3f5f5dee32946c::t_787e4bf4edce51 47-48
+apps/game/src/modules/village/state.ts
+  s_3f5f5dee32946c::t_e77c1b21baf4ec 114-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "dce3e41de7ed60cb8e893f8d8ec02007b5e95626",
+  "prompts": {},
+  "sessions": {
+    "s_3f5f5dee32946c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7464c2ffeTkXrQfJtSTnd2m",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
