@@ -69,9 +69,16 @@ export function PixelShard(): EventDefinition {
           type: "info",
         },
       );
-      await player.showText(
-        `Pixel Shard collected. Progress: ${Math.min(next, 3)}/3. +10 points.`,
-      );
+      const collected = Math.min(next, 3);
+      if (collected >= 3) {
+        await player.showText(
+          `Pixel Shard collected. Progress: 3/3. +10 points. All shards gathered — return to the AI Guide to complete the quest!`,
+        );
+      } else {
+        await player.showText(
+          `Pixel Shard collected. Progress: ${collected}/3. +10 points.`,
+        );
+      }
     },
   };
 }

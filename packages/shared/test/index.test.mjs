@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
@@ -15,6 +16,14 @@ describe("guest id generation", () => {
       createGuestId(),
       /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
+  });
+
+  it("createRandomId returns a non-empty unique string", () => {
+    const a = createRandomId();
+    const b = createRandomId();
+    assert.equal(typeof a, "string");
+    assert.ok(a.length > 0, "createRandomId should return non-empty string");
+    assert.notEqual(a, b, "two calls should produce different values");
   });
 });
 
