@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="40" height="40" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="21">
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="40" height="40" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="22">
  <tileset firstgid="1" source="lpc-grass.tsx"/>
  <tileset firstgid="19" source="lpc-dirt.tsx"/>
  <tileset firstgid="37" source="lpc-water.tsx"/>
@@ -162,20 +162,32 @@
    </properties>
    </object>
  </objectgroup>
- <objectgroup id="7" name="workstations">
-   <object id="17" name="board_orders" class="board" x="448" y="576" width="64" height="32">
-   <properties>
-    <property name="kind" value="board"/>
-    <property name="id" value="board_orders"/>
-    <property name="resource" value="none"/>
-    <property name="action" value="fulfill"/>
-    <property name="requiresTool" value="none"/>
-    <property name="initialState" value="active"/>
-    <property name="rewardItem" value="none"/>
-    <property name="orderId" value="order_01"/>
-   </properties>
-   </object>
- </objectgroup>
+  <objectgroup id="7" name="workstations">
+    <object id="17" name="board_orders" class="board" x="448" y="576" width="64" height="32">
+    <properties>
+     <property name="kind" value="board"/>
+     <property name="id" value="board_orders"/>
+     <property name="resource" value="none"/>
+     <property name="action" value="fulfill"/>
+     <property name="requiresTool" value="none"/>
+     <property name="initialState" value="active"/>
+     <property name="rewardItem" value="none"/>
+     <property name="orderId" value="order_01"/>
+    </properties>
+    </object>
+    <object id="21" name="board_orders_02" class="board" x="512" y="576" width="64" height="32">
+    <properties>
+     <property name="kind" value="board"/>
+     <property name="id" value="board_orders_02"/>
+     <property name="resource" value="none"/>
+     <property name="action" value="fulfill"/>
+     <property name="requiresTool" value="none"/>
+     <property name="initialState" value="active"/>
+     <property name="rewardItem" value="none"/>
+     <property name="orderId" value="order_02"/>
+    </properties>
+    </object>
+  </objectgroup>
  <objectgroup id="8" name="decor">
    <object id="18" name="decor_flower_01" class="" x="6" y="22" width="32" height="32">
    <properties>

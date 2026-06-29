@@ -32,7 +32,13 @@
 //
 // parseTiledProperties tolerates both the raw Tiled `[{name, value}]` array and
 // the @canvasengine/tiled parsed `{key: value}` map so it stays unit-testable.
-import type { EventDefinition, EventPosOption, RpgMap } from "@rpgjs/server";
+import type {
+  EventDefinition,
+  EventPosOption,
+  MapOptions,
+  RpgMap,
+  RpgPlayer,
+} from "@rpgjs/server";
 import type { TiledLayer, TiledObject } from "@canvasengine/tiled";
 import type { PlotState } from "./state";
 import { CropPlotFactory } from "./events/crop-plot";
@@ -142,23 +148,79 @@ function buildEvent(
 }
 
 /**
- * Build the EventPosOption list for one parsed Tiled object layer, used by both
- * VILLAGE_EVENTS (via buildVillageEvents) and registerMapObjects.
+ * An EventPosOption extended with the Tiled object's dimensions. RPG-JS v5's
+ * EventPosOption carries only `{id, x, y, event}` and reads the hitbox from
+ * the event instance post-creation (defaulting to one tile). We carry the
+ * Tiled `width`/`height` through as `hitbox.{w,h}` so registerMapObjects can
+ * size the freshly created event via RpgPlayer.setHitbox.
  */
-function eventFromObject(
+export interface VillageEventPlacement extends EventPosOption {
+  hitbox?: { w: number; h: number };
+}
+
+/**
+ * Build the EventPosOption list for one parsed Tiled object layer, used by both
+ * VILLAGE_EVENTS (via buildVillageEvents) and registerMapObjects. Preserves
+ * the object's width/height as `hitbox.{w,h}` so multi-tile objects (trees
+ * 64x96, boards 64x32) get a correctly sized interaction hitbox instead of
+ * the default 1-tile hitbox.
+ */
+export function eventFromObject(
   obj: TiledObject,
   properties: Record<string, unknown>,
-): EventPosOption | null {
+): VillageEventPlacement | null {
   const event = buildEvent(properties, obj.name);
   if (!event) return null;
-  return { id: obj.name, x: obj.x, y: obj.y, event };
+  const placement: VillageEventPlacement = {
+    id: obj.name,
+    x: obj.x,
+    y: obj.y,
+    event,
+  };
+  if (
+    typeof obj.width === "number" &&
+    typeof obj.height === "number" &&
+    obj.width > 0 &&
+    obj.height > 0
+  ) {
+    placement.hitbox = { w: obj.width, h: obj.height };
+  }
+  return placement;
+}
+
+/**
+ * Source-of-truth board placements on the workstations layer. Each entry maps
+ * 1:1 to an `<object name=...>` in village.tmx and to one VILLAGE_ORDER id in
+ * orders.ts. VILLAGE_EVENTS's board section is derived from this array so the
+ * two never drift; `boardPlacements()` is the testable projection used to
+ * verify every order has a board.
+ */
+export interface BoardPlacement {
+  id: string;
+  orderId: string;
+  x: number;
+  y: number;
+}
+
+const BOARD_PLACEMENTS: BoardPlacement[] = [
+  { id: "board_orders", orderId: "order_01", x: 448, y: 576 },
+  { id: "board_orders_02", orderId: "order_02", x: 512, y: 576 },
+];
+
+/**
+ * Project the board placements as `{id, orderId}` pairs. Exported so tests can
+ * verify every VILLAGE_ORDER has at least one board binding without reaching
+ * into the OrderBoardFactory closure.
+ */
+export function boardPlacements(): Pick<BoardPlacement, "id" | "orderId">[] {
+  return BOARD_PLACEMENTS.map(({ id, orderId }) => ({ id, orderId }));
 }
 
 /**
  * Static events array for the village MapOptions. Coordinates and properties
  * mirror apps/game/src/tiled/village.tmx (W2.1 frozen): three farm plots on
  * the farm_plots layer, three trees and two mines on the resource_nodes layer,
- * and the order board on the workstations layer (W3.1).
+ * and one order board per VILLAGE_ORDER on the workstations layer (W3.1).
  *
  * RPG-JS v5 creates each entry through `map.createDynamicEvent` during updateMap.
  */
@@ -223,12 +285,12 @@ export const VILLAGE_EVENTS: EventPosOption[] = [
     y: 896,
     event: MineFactory({ id: "mine_02", rewardItem: "ochrux_matrix" }),
   },
-  {
-    id: "board_orders",
-    x: 448,
-    y: 576,
-    event: OrderBoardFactory({ id: "board_orders", orderId: "order_01" }),
-  },
+  ...BOARD_PLACEMENTS.map(({ id, orderId, x, y }) => ({
+    id,
+    x,
+    y,
+    event: OrderBoardFactory({ id, orderId }),
+  })),
 ];
 
 /**
@@ -249,7 +311,81 @@ export async function registerMapObjects(map: RpgMap): Promise<void> {
     if (map.getEvent(obj.name)) return;
     const placement = eventFromObject(obj, properties);
     if (!placement) return;
-    creations.push(map.createDynamicEvent(placement));
+    const { hitbox, ...eventPos } = placement;
+    creations.push(
+      map.createDynamicEvent(eventPos).then((id) => {
+        if (hitbox && typeof id === "string") {
+          // EventPosOption has no dim fields; apply via RpgPlayer.setHitbox
+          // (RpgEvent extends RpgPlayer) so a 64x96 tree / 64x32 board gets a
+          // correctly sized interaction hitbox instead of the default 1 tile.
+          const ev = map.getEvent<RpgPlayer>(id);
+          ev?.setHitbox(hitbox.w, hitbox.h);
+        }
+        return id;
+      }),
+    );
   });
-  await Promise.allSettled(creations);
+  const results = await Promise.allSettled(creations);
+  const failed = results.filter(
+    (r): r is PromiseRejectedResult => r.status === "rejected",
+  );
+  if (failed.length > 0) {
+    const reasons = failed
+      .map(
+        (f, i) =>
+          `[${i}] ${
+            f.reason instanceof Error ? f.reason.message : String(f.reason)
+          }`,
+      )
+      .join("; ");
+    throw new Error(
+      `registerMapObjects: ${failed.length}/${results.length} createDynamicEvent calls rejected: ${reasons}`,
+    );
+  }
+}
+
+/**
+ * Static hitbox placement for `MapOptions.hitboxes`. Runtime consumer is
+ * @rpgjs/common's RpgMap.loadPhysic, which calls addStaticHitbox(id,x,y,w,h)
+ * for each entry.
+ */
+export interface VillageHitbox {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Static hitboxes projected 1:1 from the `collisions` objectgroup in
+ * apps/game/src/tiled/village.tmx. RPG-JS v5's @rpgjs/tiledmap reads only
+ * per-tile `collision` properties and ignores Tiled objectgroup rectangles,
+ * so we surface them here. The `collision_house` entry is the bug fix: the
+ * house is a plain Structures-layer tile with no per-tile collision, so
+ * without this entry the player can walk onto it. Trees/mines already
+ * collide via event setHitbox and are duplicated here for documentation
+ * parity with the TMX author intent.
+ */
+export const VILLAGE_HITBOXES: readonly VillageHitbox[] = [
+  { id: "collision_water", x: 0, y: 0, width: 64, height: 1280 },
+  { id: "collision_house", x: 256, y: 448, width: 160, height: 160 },
+  { id: "collision_tree_01", x: 800, y: 416, width: 64, height: 96 },
+  { id: "collision_tree_02", x: 896, y: 416, width: 64, height: 96 },
+  { id: "collision_tree_03", x: 992, y: 416, width: 64, height: 96 },
+  { id: "collision_mine_01", x: 896, y: 832, width: 32, height: 32 },
+  { id: "collision_mine_02", x: 992, y: 896, width: 32, height: 32 },
+];
+
+/**
+ * Augment upstream MapOptions: runtime zod schema declares
+ * `hitboxes: array(any()).optional()` and RpgMap.loadPhysic reads it via
+ * `mapData?.hitboxes` (common/src/rooms/Map.ts:380), but the shipped TS
+ * interface omits the field. This augmentation lets the village module
+ * pass VILLAGE_HITBOXES without `as any` / `@ts-ignore`.
+ */
+declare module "@rpgjs/server" {
+  interface MapOptions {
+    hitboxes?: readonly VillageHitbox[];
+  }
 }

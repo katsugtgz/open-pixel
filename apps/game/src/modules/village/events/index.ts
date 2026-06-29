@@ -4,7 +4,7 @@
 // OrderBoardFactory used by the workstations layer (kind=board).
 export { CropPlotFactory } from "./crop-plot";
 export type { CropPlotProps } from "./crop-plot";
-export { VILLAGE_POINTS_KEY } from "./crop-plot";
+export { VILLAGE_POINTS_KEY } from "../state";
 
 export { TreeFactory, TREE_HITS_TO_FELL } from "./tree";
 export type { TreeNodeProps } from "./tree";
