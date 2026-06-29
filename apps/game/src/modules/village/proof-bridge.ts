@@ -24,7 +24,7 @@
 // as extra context and is ignored by the proof message.
 import type { RpgPlayer } from "@rpgjs/server";
 import { createInventory, type InventoryShape } from "./inventory";
-import { VILLAGE_POINTS_KEY } from "./orders";
+import { VILLAGE_POINTS_KEY } from "./state";
 
 export interface VillageCompletionPayload {
   resources: InventoryShape;

@@ -9,16 +9,11 @@
 // As with the crop plot, this is an invisible hitbox: the tree visuals are tile
 // art placed in W2.1, and `setGraphic` is intentionally not called.
 import { type EventDefinition, RpgPlayer } from "@rpgjs/server";
-import { pointsFromCompletion } from "../state";
-import { VILLAGE_POINTS_KEY } from "./crop-plot";
+import { addPoints, pointsFromCompletion } from "../state";
+import { emitCompletion } from "../proof-bridge";
 
 /** Number of chop swings required to fell a tree (hackathon tuning). */
 export const TREE_HITS_TO_FELL = 3;
-
-function addPoints(player: RpgPlayer, pts: number): void {
-  const current = player.getVariable<number>(VILLAGE_POINTS_KEY) ?? 0;
-  player.setVariable(VILLAGE_POINTS_KEY, current + pts);
-}
 
 export interface TreeNodeProps {
   id: string;
@@ -47,8 +42,9 @@ export function TreeFactory(props: TreeNodeProps): EventDefinition {
       if (hits >= hitsToFell) {
         player.setVariable(depletedKey, true);
         player.addItem(rewardItem, 1);
+        emitCompletion(player);
         await player.showNotification(
-          `Tree felled · +1 Whittlewood Log · +${pts} pts`,
+          `Tree felled · +1 ${rewardItem} · +${pts} pts`,
           { sound: "collect", type: "info" },
         );
         return;

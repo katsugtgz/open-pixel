@@ -7,13 +7,8 @@
 //
 // Invisible hitbox: the rock visuals are tile art placed in W2.1.
 import { type EventDefinition, RpgPlayer } from "@rpgjs/server";
-import { pointsFromCompletion } from "../state";
-import { VILLAGE_POINTS_KEY } from "./crop-plot";
-
-function addPoints(player: RpgPlayer, pts: number): void {
-  const current = player.getVariable<number>(VILLAGE_POINTS_KEY) ?? 0;
-  player.setVariable(VILLAGE_POINTS_KEY, current + pts);
-}
+import { addPoints, pointsFromCompletion } from "../state";
+import { emitCompletion } from "../proof-bridge";
 
 export interface MineNodeProps {
   id: string;
@@ -33,6 +28,7 @@ export function MineFactory(props: MineNodeProps): EventDefinition {
       }
       player.setVariable(depletedKey, true);
       player.addItem(rewardItem, 1);
+      emitCompletion(player);
       const pts = pointsFromCompletion("mine");
       addPoints(player, pts);
       await player.showNotification(`Mined Ochrux Matrix · +1 · +${pts} pts`, {

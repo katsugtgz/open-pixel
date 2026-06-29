@@ -18,12 +18,11 @@ import { type EventDefinition, RpgPlayer } from "@rpgjs/server";
 import {
   type PlotAction,
   type PlotState,
+  addPoints,
   advancePlotState,
   pointsFromCompletion,
 } from "../state";
-
-/** Player variable holding the total off-chain village points. */
-export const VILLAGE_POINTS_KEY = "village_points";
+import { emitCompletion } from "../proof-bridge";
 
 /**
  * Derive the action verb the player is performing from the current plot state.
@@ -34,11 +33,6 @@ function actionForPlotState(state: PlotState): PlotAction {
   if (state === "empty") return "plant";
   if (state === "planted") return "water";
   return "harvest";
-}
-
-function addPoints(player: RpgPlayer, pts: number): void {
-  const current = player.getVariable<number>(VILLAGE_POINTS_KEY) ?? 0;
-  player.setVariable(VILLAGE_POINTS_KEY, current + pts);
 }
 
 export interface CropPlotProps {
@@ -65,9 +59,10 @@ export function CropPlotFactory(props: CropPlotProps): EventDefinition {
       const next = advancePlotState(current, action);
       player.setVariable(stateKey, next);
 
-      if (next === "empty" && current === "ready") {
+      if (next === "empty" && (current === "ready" || current === "grown")) {
         // Harvest complete: award one reward item and off-chain points.
         player.addItem(rewardItem, 1);
+        emitCompletion(player);
         const pts = pointsFromCompletion("harvest");
         addPoints(player, pts);
         await player.showNotification(`Harvested Popberry · +1 · +${pts} pts`, {

@@ -9,17 +9,14 @@
 //   - state.ts::pointsFromCompletion("fulfill") === 25 is the DEFAULT order
 //     value. order_01 keeps that default; order_02 overrides to 40 to show
 //     per-order tuning (packet §5 "+order_value (default 25)").
-//   - VILLAGE_POINTS_KEY mirrors the "village_points" variable used by the
-//     crop/tree/mine event factories so payout lands in the same counter.
+//   - VILLAGE_POINTS_KEY canonical home is ./state.ts; shared with crop/tree/mine.
 //
 // canFulfill is pure (takes a snapshot) so it is unit-testable without a player;
 // fulfillOrder mutates the player through the inventory adapter and the points
 // variable, then returns a FulfillmentResult the caller can show in a dialog.
 import type { RpgPlayer } from "@rpgjs/server";
 import { createInventory, type InventoryShape, type ItemId } from "./inventory";
-
-/** Player variable holding the total off-chain village points. */
-export const VILLAGE_POINTS_KEY = "village_points";
+import { addPoints } from "./state";
 
 export interface Order {
   id: string;
@@ -103,8 +100,7 @@ export function fulfillOrder(
     inv.consume(item as ItemId, qty as number);
   }
 
-  const current = player.getVariable<number>(VILLAGE_POINTS_KEY) ?? 0;
-  player.setVariable(VILLAGE_POINTS_KEY, current + order.rewardPoints);
+  addPoints(player, order.rewardPoints);
 
   return { ok: true, pointsEarned: order.rewardPoints };
 }
