@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import {
   buildProofMessage,
@@ -151,5 +153,48 @@ describe("Supabase schema diagnostics", () => {
       }),
       `Supabase player save failed: ${SUPABASE_SCHEMA_MISSING_TEXT}`,
     );
+  });
+});
+
+describe("migration 20260628 enforces canonical constraints", () => {
+  const migrationPath = fileURLToPath(
+    new URL(
+      "../../../supabase/migrations/20260628_resources_column.sql",
+      import.meta.url,
+    ),
+  );
+  const migration = readFileSync(migrationPath, "utf8");
+
+  it("declares points with NOT NULL, DEFAULT 0, and CHECK (points >= 0)", () => {
+    assert.match(
+      migration,
+      /points\s+integer\s+NOT\s+NULL\s+DEFAULT\s+0\s+CHECK\s*\(\s*points\s*>=\s*0\s*\)/i,
+    );
+  });
+
+  it("makes the points column additive/idempotent via ADD COLUMN IF NOT EXISTS", () => {
+    assert.match(
+      migration,
+      /ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+points\s+integer/i,
+    );
+  });
+
+  it("declares resources as NOT NULL jsonb with the 3-key zero default", () => {
+    assert.ok(
+      migration.includes(
+        `resources jsonb NOT NULL DEFAULT '{"popberry":0,"whittlewood_log":0,"ochrux_matrix":0}'::jsonb`,
+      ),
+      "resources column must be NOT NULL with the 3-key zero default",
+    );
+  });
+
+  it("adds a CHECK constraint requiring all 3 keys + non-negative values", () => {
+    assert.match(migration, /quest_runs_resources_shape/);
+    assert.match(migration, /resources\s*\?\s*'popberry'/);
+    assert.match(migration, /resources\s*\?\s*'whittlewood_log'/);
+    assert.match(migration, /resources\s*\?\s*'ochrux_matrix'/);
+    assert.match(migration, /\(resources->>'popberry'\)::int\s*>=\s*0/i);
+    assert.match(migration, /\(resources->>'whittlewood_log'\)::int\s*>=\s*0/i);
+    assert.match(migration, /\(resources->>'ochrux_matrix'\)::int\s*>=\s*0/i);
   });
 });
