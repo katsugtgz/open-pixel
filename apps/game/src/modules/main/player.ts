@@ -1,26 +1,17 @@
-import { RpgPlayer, type RpgPlayerHooks, Components } from "@rpgjs/server";
+import { RpgPlayer, type RpgPlayerHooks } from "@rpgjs/server";
 
 export const player: RpgPlayerHooks = {
   onConnected(player: RpgPlayer) {
     // Default RPG-JS speed is 4 (too fast/slippy for cozy farming). Reduce to 2.
-    player.speed.set(2);
+    // RPG-JS v5.0.0-beta.2+ replaced `player.speed.set(v)` (signal) with the
+    // plain setter `player.speed = v`. The signal is still `_speed` internally.
+    player.speed = 2;
     player.changeMap("village", {
       x: 640,
       y: 640,
     });
     player.name = "";
     player.setGraphic("hero");
-    player.setComponentsTop([
-      Components.text(
-        "Popberry: {popberry}  Wood: {whittlewood_log}  Stone: {ochrux_matrix}  Pts: {village_points}",
-        {
-          fill: "#ffffff",
-          fontSize: 12,
-          stroke: "#000000",
-          fontFamily: "monospace",
-        },
-      ),
-    ]);
   },
   onInput(player: RpgPlayer, { action }) {
     if (action == "escape") {
@@ -28,7 +19,11 @@ export const player: RpgPlayerHooks = {
     }
   },
   onJoinMap(player: RpgPlayer) {
-    // Initialize resource variables for component template rendering
+    // Initialize resource variables. Read via player.getVariable('popberry')
+    // and surfaced to the DOM HUD through the village:complete socket bridge
+    // installed in apps/game/index.html (no in-canvas HUD overlay to avoid
+    // the Components.text template + signe signal stringification bug
+    // present in @rpgjs/client 5.0.0-beta.1's CanvasEngine `<Text>` render).
     if (!player.hasVariable("popberry")) player.setVariable("popberry", 0);
     if (!player.hasVariable("whittlewood_log"))
       player.setVariable("whittlewood_log", 0);
