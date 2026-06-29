@@ -1,0 +1,32 @@
+apps/game/src/modules/village/map-adapter.ts
+  s_e74ce9b82443b0::t_2fe256245bec85 424-433
+  s_69c5281a3a58c4::t_74c92b2e2f8aed 276-321
+apps/game/test/map-adapter.test.mjs
+  s_e74ce9b82443b0::t_3d3a852953d288 266-313
+apps/game/src/tiled/village.tmx
+  s_e74ce9b82443b0::t_b17bdc396d437c 2,10,12,15,17,72-113,206-282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "570793f1ad043475d9563504408c65b0411d5321",
+  "prompts": {},
+  "sessions": {
+    "s_69c5281a3a58c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7c7b43ffeeQpkND0vapUFNc",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_e74ce9b82443b0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ec2fa04bffeyTfKZO05IU2Y7e",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
