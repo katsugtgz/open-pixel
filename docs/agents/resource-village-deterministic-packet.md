@@ -64,12 +64,12 @@ normalization rule. The table below is the authoritative manifest for the
 village loop. Any bundle not listed here is out of scope for the hackathon
 slice.
 
-| id | source_url | license | tile_size | usage_role | preview_path | normalization_notes |
-|----|------------|---------|-----------|------------|--------------|---------------------|
-| `lpc-base` | https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles | CC-BY-SA 3.0 / GPL3 | 32x32 | terrain, structures, and characters with the full LPC attribution chain | `assets/preview/lpc-base.png` | Primary 32px base for the village. Carry the full attribution chain into `CREDITS.txt`. |
-| `lpc-farm` | https://opengameart.org/content/lpc-farm + https://opengameart.org/content/lpc-farming | CC-BY 4.0 (bluecarrot16) | 32x32 | farm plots, crops, trees, and fences | `assets/preview/lpc-farm.png` | Same 32px scale and compatible palette as `lpc-base`, so the two may share a layer. |
-| `dungeon-mine-0x72` | https://0x72.itch.io/dungeontileset-ii | CC0 1.0 | 16x16 | mine sub-area only: rocks, ore, crystals | `assets/preview/dungeon-mine.png` | Scope to a dedicated mine zone. Either 2x upscale to 32px or keep on a separate 16px Tiled layer. Never mix with 32px LPC on the same Tiled layer. |
-| `pipo-legacy` | in-repo `[Base]BaseChip_pipo.png` and related chips | custom (frozen) | 32x32 | backdrop tiles only, preserving the existing daytime village look | `assets/preview/pipo-legacy.png` | Frozen. Do not extend. Backdrop-only role, see Appendix A. |
+| id                  | source_url                                                                             | license                  | tile_size | usage_role                                                              | preview_path                      | normalization_notes                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- | ------------------------ | --------- | ----------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lpc-base`          | https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles  | CC-BY-SA 3.0 / GPL3      | 32x32     | terrain, structures, and characters with the full LPC attribution chain | `assets/preview/lpc-base.png`     | Primary 32px base for the village. Carry the full attribution chain into `CREDITS.txt`.                                                            |
+| `lpc-farm`          | https://opengameart.org/content/lpc-farm + https://opengameart.org/content/lpc-farming | CC-BY 4.0 (bluecarrot16) | 32x32     | farm plots, crops, trees, and fences                                    | `assets/preview/lpc-farm.png`     | Same 32px scale and compatible palette as `lpc-base`, so the two may share a layer.                                                                |
+| `dungeon-mine-0x72` | https://0x72.itch.io/dungeontileset-ii                                                 | CC0 1.0                  | 16x16     | mine sub-area only: rocks, ore, crystals                                | `assets/preview/dungeon-mine.png` | Scope to a dedicated mine zone. Either 2x upscale to 32px or keep on a separate 16px Tiled layer. Never mix with 32px LPC on the same Tiled layer. |
+| `pipo-legacy`       | in-repo `[Base]BaseChip_pipo.png` and related chips                                    | custom (frozen)          | 32x32     | backdrop tiles only, preserving the existing daytime village look       | `assets/preview/pipo-legacy.png`  | Frozen. Do not extend. Backdrop-only role, see Appendix A.                                                                                         |
 
 Pin every URL in `CREDITS.txt` at the repo root and keep the per-file author
 chain next to it. The standard per-file license split (assets CC-BY-SA, CC-BY,
@@ -135,17 +135,17 @@ mandatory shape:
 ```ts
 // apps/game/src/modules/village/map-adapter.ts (W1.3 stub, W2.2 implements)
 map.onLoad((m) => {
-  const layer = m.getLayerByName('farm_plots');
+  const layer = m.getLayerByName("farm_plots");
   if (!layer) return;
   for (const obj of layer.objects) {
     const props = Object.fromEntries(
-      (obj.properties ?? []).map(p => [p.name, p.value])
+      (obj.properties ?? []).map((p) => [p.name, p.value]),
     );
     m.createDynamicEvent({
-      id: obj.name,        // MUST equal obj.name; stable id like 'plot_01'
+      id: obj.name, // MUST equal obj.name; stable id like 'plot_01'
       x: obj.x,
       y: obj.y,
-      event: CropPlotFactory(props),  // factory attaches props via [key:string]: unknown
+      event: CropPlotFactory(props), // factory attaches props via [key:string]: unknown
     });
   }
 });
@@ -165,21 +165,21 @@ The village loop lives under `apps/game/src/modules/village/`. Each file has one
 job and a small public interface. Stubs created in W1.3 throw
 `Error('W1.3 stub: <fn>')`; real implementations land in W2.2 and W3.1.
 
-| path | primary export | purpose |
-|------|----------------|---------|
-| `apps/game/src/modules/village/index.ts` | `provideVillage` | Provider that registers village events, items, and the map adapter into the RpgServer. |
-| `apps/game/src/modules/village/state.ts` | `ResourceState`, `ResourceKind`, `PlotState` types plus pure fns | Owns resource and plot state types and the pure state-machine transitions. No side effects. |
-| `apps/game/src/modules/village/inventory.ts` | `class Inventory` | Owns item counts and item mutations. Single source of truth for "how many the player has". |
-| `apps/game/src/modules/village/orders.ts` | `Order`, `OrderBoard`, `fulfillOrder` | Owns order definitions, fulfillment checks, and reward payout. |
-| `apps/game/src/modules/village/map-adapter.ts` | `registerMapObjects` | The `map.onLoad` workaround described above. Reads Tiled object layers and creates dynamic events. |
-| `apps/game/src/modules/village/hud-adapter.ts` | `renderHud` | Read-only projection of player variables into a HUD shape. Does not own game truth. |
-| `apps/game/src/modules/village/proof-bridge.ts` | `emitCompletion` | Calls `player.emit('village:complete', payload)` where payload matches the W1.2 `QuestRun.resources` shape. |
-| `apps/game/src/modules/village/items.ts` | `@Item` classes | Item definitions registered through `provideServerModules([{ database: { ... } }])` in `apps/game/src/server.ts`. |
-| `apps/game/src/modules/village/events/crop-plot.ts` | `CropPlotFactory` | Event factory for farm plots. Owns plant, water, and harvest transitions. |
-| `apps/game/src/modules/village/events/tree.ts` | `TreeFactory` | Event factory for trees. Owns the chop loop and wood rewards. |
-| `apps/game/src/modules/village/events/mine.ts` | `MineFactory` | Event factory for mine nodes. Owns the mine loop and stone or crystal rewards. |
-| `apps/game/src/modules/village/events/order-board.ts` | `OrderBoardFactory` | Event factory for the order board and workstations. Owns inspect and fulfill. |
-| `apps/game/src/modules/village/events/index.ts` | barrel re-exports | Re-exports all factories so the map adapter imports them from one path. |
+| path                                                  | primary export                                                                                                                                                            | purpose                                                                                                                                            |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/game/src/modules/village/index.ts`              | `provideVillage`                                                                                                                                                          | Provider that registers village events, items, and the map adapter into the RpgServer.                                                             |
+| `apps/game/src/modules/village/state.ts`              | `ResourceState`, `ResourceKind`, `PlotState`, `NodeState`, `PlotAction`, `NodeAction`, `CompletionAction`, `VILLAGE_POINTS_KEY`, `PointKeeper`, `addPoints` plus pure fns | Owns resource and plot state types and the pure state-machine transitions; canonical `village_points` key and points accumulator. No side effects. |
+| `apps/game/src/modules/village/inventory.ts`          | `ItemId`, `InventoryShape`, `interface Inventory`, `class VillageInventory`, `createInventory`                                                                            | Owns item counts and item mutations. Single source of truth for "how many the player has".                                                         |
+| `apps/game/src/modules/village/orders.ts`             | `Order`, `FulfillmentResult`, `VILLAGE_ORDERS`, `findOrder`, `canFulfill`, `fulfillOrder`, `describeOrder`                                                                | Owns order definitions, fulfillment checks, and reward payout.                                                                                     |
+| `apps/game/src/modules/village/map-adapter.ts`        | `registerMapObjects`                                                                                                                                                      | The `map.onLoad` workaround described above. Reads Tiled object layers and creates dynamic events.                                                 |
+| `apps/game/src/modules/village/hud-adapter.ts`        | `renderHud`                                                                                                                                                               | Read-only projection of player variables into a HUD shape. Does not own game truth.                                                                |
+| `apps/game/src/modules/village/proof-bridge.ts`       | `emitCompletion`                                                                                                                                                          | Calls `player.emit('village:complete', payload)` where payload matches the W1.2 `QuestRun.resources` shape.                                        |
+| `apps/game/src/modules/village/items.ts`              | `Popberry`, `PopberrySeeds`, `WhittlewoodLog`, `OchruxMatrix` classes (registered imperatively via `Item(options)(Cls)`)                                                  | Item definitions registered through `provideServerModules([{ database: { ... } }])` in `apps/game/src/server.ts`.                                  |
+| `apps/game/src/modules/village/events/crop-plot.ts`   | `CropPlotFactory`                                                                                                                                                         | Event factory for farm plots. Owns plant, water, and harvest transitions.                                                                          |
+| `apps/game/src/modules/village/events/tree.ts`        | `TreeFactory`                                                                                                                                                             | Event factory for trees. Owns the chop loop and wood rewards.                                                                                      |
+| `apps/game/src/modules/village/events/mine.ts`        | `MineFactory`                                                                                                                                                             | Event factory for mine nodes. Owns the mine loop and stone or crystal rewards.                                                                     |
+| `apps/game/src/modules/village/events/order-board.ts` | `OrderBoardFactory`                                                                                                                                                       | Event factory for the order board and workstations. Owns inspect and fulfill.                                                                      |
+| `apps/game/src/modules/village/events/index.ts`       | barrel re-exports                                                                                                                                                         | Re-exports all factories so the map adapter imports them from one path.                                                                            |
 
 Public interface signatures (TypeScript). Implementations match these signatures
 exactly; the union string sets are the single source of truth for `kind`,
@@ -190,43 +190,127 @@ exactly; the union string sets are the single source of truth for `kind`,
 export function provideVillage(): RpgServerModule;
 
 // apps/game/src/modules/village/state.ts
-export type ResourceKind = 'crop' | 'wood' | 'stone' | 'crystal' | 'none';
-export type PlotState = 'empty' | 'planted' | 'watered' | 'grown' | 'ready';
-export type NodeState = 'ready' | 'depleted' | 'active';
-export function advancePlotState(s: PlotState): PlotState;
-export function transitionNodeState(s: NodeState, action: string): NodeState;
-export function pointsFromCompletion(s: PlotState): number;
+export type ResourceKind = "crop" | "wood" | "stone" | "crystal" | "none";
+export type PlotState =
+  | "empty"
+  | "planted"
+  | "watered"
+  | "grown"
+  | "ready"
+  | "depleted";
+export type NodeState = "ready" | "depleted" | "active";
+export type PlotAction = "plant" | "water" | "harvest";
+export type NodeAction = "chop" | "mine";
+export type CompletionAction =
+  | "plant"
+  | "water"
+  | "harvest"
+  | "chop"
+  | "mine"
+  | "fulfill";
+export function advancePlotState(
+  current: PlotState,
+  action: PlotAction,
+): PlotState;
+export function transitionNodeState(
+  current: NodeState,
+  action: NodeAction,
+): NodeState;
+export function pointsFromCompletion(action: CompletionAction): number;
+export const VILLAGE_POINTS_KEY = "village_points";
+export interface PointKeeper {
+  getVariable<T>(key: string): T | undefined;
+  setVariable(key: string, value: unknown): void;
+}
+export function addPoints(keeper: PointKeeper, pts: number): void;
 
 // apps/game/src/modules/village/inventory.ts
-export type InventoryShape = Record<string, number>;
-export class Inventory {
-  add(item: string, qty: number): void;
-  count(item: string): number;
-  consume(item: string, qty: number): boolean;
+export type ItemId =
+  | "popberry"
+  | "popberry_seeds"
+  | "whittlewood_log"
+  | "ochrux_matrix";
+export interface InventoryShape {
+  popberry: number;
+  popberry_seeds: number;
+  whittlewood_log: number;
+  ochrux_matrix: number;
+}
+export interface Inventory {
+  add(item: ItemId, qty: number): void;
+  count(item: ItemId): number;
+  consume(item: ItemId, qty: number): boolean;
   snapshot(): Readonly<InventoryShape>;
 }
+export class VillageInventory implements Inventory {
+  constructor(player: RpgPlayer);
+  // add/count/consume/snapshot per Inventory
+}
+export function createInventory(player: RpgPlayer): Inventory;
 
 // apps/game/src/modules/village/orders.ts
-export interface Order { id: string; requires: Record<string, number>; rewardPoints: number; }
-export type OrderBoard = { orders: Order[] };
-export interface FulfillmentResult { ok: boolean; awardedPoints: number; remaining: InventoryShape; }
-export function fulfillOrder(player: RpgPlayer, orderId: string): FulfillmentResult;
+export interface Order {
+  id: string;
+  label: string;
+  requires: Partial<Record<ItemId, number>>;
+  rewardPoints: number;
+}
+export interface FulfillmentResult {
+  ok: boolean;
+  reason?: string;
+  pointsEarned: number;
+}
+export const VILLAGE_ORDERS: Order[];
+export function findOrder(orderId: string): Order | undefined;
+export function canFulfill(
+  snapshot: Readonly<Record<ItemId, number>>,
+  orderId: string,
+): boolean;
+export function fulfillOrder(
+  player: RpgPlayer,
+  orderId: string,
+): FulfillmentResult;
+export function describeOrder(
+  snapshot: Readonly<Record<ItemId, number>>,
+  orderId: string,
+): { label: string; rewardPoints: number; fulfillable: boolean } | null;
 
 // apps/game/src/modules/village/map-adapter.ts
-export function registerMapObjects(map: RpgMap): void;
+export function registerMapObjects(map: RpgMap): Promise<void>;
 
 // apps/game/src/modules/village/hud-adapter.ts
-export interface HudModel { points: number; inventory: InventoryShape; activeOrder: Order | null; }
+export interface HudModel {
+  resources: InventoryShape;
+  points: number;
+  currentOrderLabel: string | null;
+  controls: string[];
+}
 export function renderHud(player: RpgPlayer): HudModel;
 
 // apps/game/src/modules/village/proof-bridge.ts
-export function emitCompletion(player: RpgPlayer): void;
+export interface VillageCompletionPayload {
+  resources: InventoryShape;
+  points: number;
+  completedAt: number;
+}
+export function emitCompletion(player: RpgPlayer): VillageCompletionPayload;
 
 // apps/game/src/modules/village/items.ts
-@Item class Popberry {}
-@Item class PopberrySeeds {}
-@Item class WhittlewoodLog {}
-@Item class OchruxMatrix {}
+// Items are registered via imperative `Item(options)(Cls)` calls, not `@Item`
+// decorator syntax. Vite 8 / Node 26 loads vite.config.ts via native
+// type-stripping which does not transform experimental decorators.
+export class Popberry {}
+export class PopberrySeeds {}
+export class WhittlewoodLog {}
+export class OchruxMatrix {}
+Item({
+  id: "popberry",
+  name: "Popberry",
+  description: "A ripe berry harvested from a farm plot.",
+  price: 0,
+})(Popberry);
+// ... same imperative form for PopberrySeeds, WhittlewoodLog, OchruxMatrix.
+// Every item has price 0 (off-chain resource counter only).
 
 // apps/game/src/modules/village/events/*.ts
 export function CropPlotFactory(props: PlotProps): EventDefinition;
@@ -246,16 +330,17 @@ zero energy. The loop is free to play so a guest can finish the demo without
 grinding. Off-chain points are the only reward currency and they feed the
 optional `personal_sign` proof.
 
-Points formula (off-chain, stored in the player variable `village.points`):
+Points formula (off-chain, stored in the player variable `village_points`,
+keyed by the `VILLAGE_POINTS_KEY` constant exported from `state.ts`):
 
-| action | energy cost | points |
-|--------|-------------|--------|
-| plant | 0 | +0 |
-| water | 0 | +0 |
-| harvest | 0 | +5 per harvested crop |
-| chop (per swing) | 0 | +3 |
-| mine | 0 | +4 |
-| fulfill order | 0 | +order_value (default 25) |
+| action           | energy cost | points                    |
+| ---------------- | ----------- | ------------------------- |
+| plant            | 0           | +0                        |
+| water            | 0           | +0                        |
+| harvest          | 0           | +5 per harvested crop     |
+| chop (per swing) | 0           | +3                        |
+| mine             | 0           | +4                        |
+| fulfill order    | 0           | +order_value (default 25) |
 
 Future work (post issue #17, out of scope for the hackathon slice): introduce an
 Energy item with per-action costs of 0.5 plant, 0.5 water, 1.5 chop-swing, and
