@@ -1,0 +1,62 @@
+apps/game/tsconfig.typecheck.json
+  s_32e8fdd616407e::t_6671faed240352 1-5
+package-lock.json
+  s_32e8fdd616407e::t_256cf8a1fe555d 10,32,1776,2034,4617
+apps/game/src/modules/village/hotbar-selection.js
+  s_32e8fdd616407e::t_07c13a45628fa5 1-13
+package.json
+  s_32e8fdd616407e::t_cfcaa5a9930def 28-29
+apps/game/package.json
+  s_32e8fdd616407e::t_4b0ee25026feab 9
+apps/game/test/hotbar-click.test.mjs
+  s_32e8fdd616407e::t_a4dd2c19e21935 2-4,6,8-10,14-31,34-35,39-43,46-48,51-55,57-61,64-68,71-75
+apps/game/test/items.test.mjs
+  s_ef1c1fa1aee8dc::t_320fe8d1fbc5ca 57-58
+  s_ef1c1fa1aee8dc::t_8115f7860314ab 56
+apps/game/src/modules/village/events/mine.ts
+  s_32e8fdd616407e::t_8f4b6b17377e13 31,33-34
+apps/web/src/App.tsx
+  s_32e8fdd616407e::t_01ebb1d551ba83 139,151-191,193,195-196,198-201,205-215
+apps/game/src/modules/village/events/crop-plot.ts
+  s_32e8fdd616407e::t_d58d9d7c7271a2 67
+supabase/migrations/20260628_resources_column.sql
+  s_32e8fdd616407e::t_6b973536f6d31f 15-34
+apps/game/test/village-decoration.test.mjs
+  s_9bcfff3b300c8b::t_08034baff38927 48-50
+apps/game/src/server.ts
+  s_32e8fdd616407e::t_9c802d5718aff2 37
+apps/game/index.html
+  s_32e8fdd616407e::t_cabbeda469de12 309,312,317,322,327,330,334-335,492-506
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "cd1400b61c4c8e2aacf7f8d95ec8443339d9a80e",
+  "prompts": {},
+  "sessions": {
+    "s_32e8fdd616407e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f15b2-cde2-7822-b3b9-65e5e9d24fe9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_9bcfff3b300c8b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebf1e731ffe5IDtdtMpAQNpXk",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_ef1c1fa1aee8dc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0f10d402dffe41YyCzfEwBXZgI",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
