@@ -5,6 +5,7 @@ import {
   createGuestId,
   createRandomId,
   formatSupabaseError,
+  type QuestRun,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -45,16 +46,6 @@ const mockLeaderboard = [
   { name: "Shard Scout", score: 90, tag: "proof ready" },
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
-
-type QuestRunView = {
-  id: string;
-  guestId: string;
-  displayName: string;
-  questId: string;
-  points: number;
-  shards: number;
-  completedAt: string;
-};
 
 type AppState = {
   guestId: string;
@@ -239,7 +230,7 @@ function DesignSection() {
 
 type ClaimSectionProps = {
   state: AppState;
-  questRun: QuestRunView;
+  questRun: QuestRun;
   onDisplayNameChange(value: string): void;
   onClaim(): void;
   onConnectWallet(): void;
