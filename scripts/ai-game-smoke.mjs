@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
+import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
 const MOVEMENT_KEYS = new Set([
@@ -24,261 +25,327 @@ const config = {
   vlmBaseUrl: process.env.AI_GAME_VLM_BASE_URL || "",
   vlmModel: process.env.AI_GAME_VLM_MODEL || "",
   vlmApiKey: process.env.AI_GAME_VLM_API_KEY || "dummy",
+  // strict mode gates pass on >=2 resource-loop categories. Default derives
+  // from AI_GAME_VLM_API_KEY presence (VLM runs see real notifications);
+  // explicit AI_GAME_STRICT=true|false overrides. Non-strict preserves the
+  // historical "informational not failure" headless-WebGL fallback behavior.
+  strict:
+    process.env.AI_GAME_STRICT !== undefined
+      ? process.env.AI_GAME_STRICT !== "false"
+      : Boolean(process.env.AI_GAME_VLM_API_KEY),
 };
 
-mkdirSync(config.outputDir, { recursive: true });
-const preview = process.env.AI_GAME_URL ? null : await startPreview();
-const pageErrors = [];
-const failedRequests = [];
-const steps = [];
-let browser;
-let passed = false;
-let reason = "unknown";
+// Resource-village loop evidence regexes. Applied to observed DYNAMIC text
+// (dialog body + notification overlay — never the static .quest-hint, which
+// always lists the verbs). "order" intentionally drops the earlier
+// "could not fulfill" alternation: that phrase caused false-positives where
+// a FAILED order was counted as a fulfillment signal.
+export const RESOURCE_SIGNAL = {
+  crop: /popberry|harvested|\bplot\b|seeded|watered|ripe|\bplant\b/i,
+  tree: /whittlewood|tree fell|\bchop\b/i,
+  mine: /ochrux|\bmined\b|depleted/i,
+  order: /order fulfilled|fulfilled\b|reward:/i,
+};
 
-try {
-  browser = await chromium.launch({
-    headless: config.headless,
-    executablePath: findChromiumExecutable(),
-    timeout: 30_000,
-  });
-  const page = await browser.newPage({
-    viewport: { width: 1280, height: 800 },
-  });
-
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      pageErrors.push(`${message.type()}: ${message.text()}`);
-    }
-  });
-  page.on("response", (response) => {
-    if (response.status() >= 400 && isGameAssetUrl(response.url())) {
-      failedRequests.push(`${response.status()} ${response.url()}`);
-    }
-  });
-  page.on("requestfailed", (request) => {
-    if (isGameAssetUrl(request.url())) {
-      failedRequests.push(
-        `request failed ${request.url()}: ${request.failure()?.errorText || "unknown"}`,
+// Pure pass-criteria evaluator. Extracted from the imperative smoke loop so
+// the gate logic is unit-testable. Returns {passed, reason}.
+//
+// - strict=true (VLM mode default): require >=2 distinct resource categories;
+//   movement alone no longer passes.
+// - strict=false (scripted-agent-fallback without VLM): keep historical
+//   behavior — resource text is informational, not a hard gate, because
+//   headless Chrome cannot render the WebGL/Pixi canvas (documented limit).
+export function evaluateRun({
+  uniqueHashes,
+  uniquePositions,
+  resourceActionsDetected,
+  hitCategories,
+  observedText,
+  strict = true,
+}) {
+  let passed = false;
+  let reason = "unknown";
+  const lowerText = String(observedText || "").toLowerCase();
+  const fulfillmentDetected = RESOURCE_SIGNAL.order.test(lowerText);
+  if (uniqueHashes < 3) {
+    reason = "low visual progress: fewer than 3 unique frames";
+  } else if (uniquePositions < 3) {
+    reason = `character did not move enough: only ${uniquePositions} unique sprite positions (need >= 3); screenshots changed but player stayed put`;
+  } else if (strict && resourceActionsDetected < 2) {
+    // strict resource-loop gate (VLM mode). Scripted fallback sets
+    // strict=false so the headless-WebGL "no notifications" case stays
+    // informational rather than failing the run.
+    reason = `resource-loop not verified: ${resourceActionsDetected} category (need >=2): ${
+      (hitCategories && hitCategories.join("/")) || "none"
+    }`;
+  } else {
+    passed = true;
+    const parts = [
+      `${uniqueHashes} unique frames`,
+      `${uniquePositions} unique sprite positions`,
+    ];
+    if (resourceActionsDetected >= 2) {
+      parts.push(
+        `resource-loop verified: ${hitCategories.join("/")}${
+          fulfillmentDetected ? " (+order fulfillment signal)" : ""
+        }`,
+      );
+    } else if (resourceActionsDetected === 1) {
+      parts.push(
+        `partial resource-loop evidence: ${hitCategories[0]} only (need >=2 distinct actions for full verification)`,
+      );
+    } else {
+      // Informational, not a failure (strict=false / fallback mode only):
+      // headless Chrome cannot render the WebGL/Pixi canvas (documented
+      // limitation), so notifications may not fire even though the player
+      // moved. Visual + positional progress still prove the RPG-JS scene
+      // booted and accepted input.
+      parts.push(
+        "no resource-action text captured this run (player did not land on a plot/tree/mine; see docs/AI_GAME_E2E.md for the headless WebGL limit)",
       );
     }
+    reason = `Cozy resource-village smoke passed: ${parts.join(", ")}`;
+  }
+  return { passed, reason };
+}
+
+// CLI entry — guarded so unit tests can import this module without launching
+// Chromium or spawning vite preview.
+if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
+  runSmoke().catch((error) => {
+    console.error(error?.stack || error?.message || String(error));
+    process.exitCode = 1;
   });
+}
 
-  await page.goto(config.url, { waitUntil: "networkidle", timeout: 60_000 });
-  await page.waitForSelector("#rpg canvas", { timeout: 25_000 });
-  await page.waitForTimeout(2_000);
-  await page.keyboard.press("Tab").catch(() => {});
+async function runSmoke() {
+  mkdirSync(config.outputDir, { recursive: true });
+  const preview = process.env.AI_GAME_URL ? null : await startPreview();
+  const pageErrors = [];
+  const failedRequests = [];
+  const steps = [];
+  let browser;
+  let passed = false;
+  let reason = "unknown";
 
-  let lastHash = "";
-  let changedFrames = 0;
-  let stableFrames = 0;
-  let froze = false;
-  const actions = initialActions();
-
-  for (let index = 0; index < config.maxSteps; index += 1) {
-    const screenshot = await page.screenshot({ fullPage: false });
-    const hash = createHash("sha256").update(screenshot).digest("hex");
-    const screenshotPath = join(
-      config.outputDir,
-      `step-${String(index).padStart(2, "0")}.png`,
-    );
-    writeFileSync(screenshotPath, screenshot);
-
-    if (lastHash && hash !== lastHash) {
-      changedFrames += 1;
-      stableFrames = 0;
-    }
-    if (lastHash && hash === lastHash) stableFrames += 1;
-    lastHash = hash;
-
-    const canvas = await page.locator("#rpg canvas").boundingBox();
-    // Capture ground-truth gameplay state (sprite position + dialog text) so
-    // the pass criteria can verify real movement/quest progress instead of
-    // relying on screenshot-hash diversity alone.
-    const gameState = await captureGameState(page);
-    const action = config.useVlm
-      ? await askVlmForAction({
-          screenshot,
-          index,
-          steps,
-          fallback: actions[index % actions.length],
-        })
-      : actions[index % actions.length];
-
-    await executeAction(page, action);
-    await sleep(config.stepDelayMs);
-
-    steps.push({
-      index,
-      action,
-      hash,
-      screenshot: screenshotPath,
-      canvas,
-      gameState: gameState.allPositions,
-      dialogText: gameState.dialog,
-      hint: gameState.hint,
-      domOverride: gameState.domOverride,
+  try {
+    browser = await chromium.launch({
+      headless: config.headless,
+      executablePath: findChromiumExecutable(),
+      timeout: 30_000,
+    });
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 800 },
     });
 
-    if (stableFrames >= 8) {
-      froze = true;
-      reason =
-        "visual freeze/softlock: screenshot unchanged for 8 consecutive observed frames";
-      break;
-    }
-  }
-
-  if (froze) reason = reason;
-  else if (pageErrors.length) reason = "page/console errors detected";
-  else if (failedRequests.length) reason = "game asset requests failed";
-  else if (steps.length < Math.min(4, config.maxSteps))
-    reason = "agent loop stopped too early";
-  else if (
-    !steps.some((step) => step.canvas?.width > 200 && step.canvas?.height > 200)
-  )
-    reason = "RPG-JS canvas missing or too small";
-  else if (steps.some((step) => step.domOverride)) {
-    const overrideStep = steps.find((step) => step.domOverride);
-    reason = `DOM overlay replaces RPG-JS canvas: ${overrideStep.domOverride} (canvas integrity violation — do not hide the real WebGL/Pixi scene behind a DOM mock)`;
-  } else if (steps.length >= Math.min(8, config.maxSteps)) {
-    const uniqueHashes = new Set(steps.map((step) => step.hash)).size;
-    // Stronger pass criteria: verify ACTUAL gameplay progress, not just visual
-    // changes. Screenshot hashes can diverge from HUD/animation jitter even
-    // when the player never moves, producing false positives.
-    //
-    // Player position identification: collect the set of all sprite positions
-    // observed at step 0 (the static map baseline), then for each subsequent
-    // step find the sprite whose position is NOT in that baseline. That moving
-    // sprite is the player; the count of distinct player positions across the
-    // run is the real "did the character move" signal.
-    const baseline = new Set(steps[0]?.gameState || []);
-    // Track a stable sprite identity across steps. The previous approach
-    // (all.find((p) => !baseline.has(p)) on every step) could pick a DIFFERENT
-    // non-baseline sprite each step — e.g. transient sprites appearing at
-    // different positions — and falsely satisfy uniquePositions >= 3 without
-    // the player actually moving. We now lock onto the player once and follow
-    // it by nearest-neighbor distance so the same character is tracked across
-    // the whole run.
-    const parsePos = (p) => {
-      if (!p) return null;
-      const [xs, ys] = p.split(",");
-      const x = Number(xs);
-      const y = Number(ys);
-      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-      return { x, y };
-    };
-    let lastPlayer = null; // stable identity: previous-step player position
-    const playerPositions = steps.map((s) => {
-      const all = (s.gameState || []).filter((p) => parsePos(p));
-      if (all.length === 0)
-        return lastPlayer ? `${lastPlayer.x},${lastPlayer.y}` : null;
-      // Lock-on phase: no player identified yet. Look for a sprite position
-      // that is new relative to the step-0 baseline (= the player moved).
-      if (lastPlayer === null) {
-        const moved = all.find((p) => !baseline.has(p));
-        if (moved) {
-          lastPlayer = parsePos(moved);
-        }
-        // Return the (possibly baseline) chosen position so step 0 and the
-        // first move both contribute real values.
-        return moved || all[0];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") {
+        pageErrors.push(`${message.type()}: ${message.text()}`);
       }
-      // Tracking phase: choose the sprite nearest to last known player
-      // position. This keeps us following the same character even if other
-      // transient sprites enter/leave the viewport.
-      let best = all[0];
-      let bestDist = Infinity;
-      for (const p of all) {
-        const pos = parsePos(p);
-        const dist = Math.hypot(pos.x - lastPlayer.x, pos.y - lastPlayer.y);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = p;
-        }
-      }
-      lastPlayer = parsePos(best);
-      return best;
     });
-    const uniquePositions = new Set(playerPositions.filter(Boolean)).size;
-    // Resource-village loop evidence. The game emits showNotification /
-    // showText for each resource action ("Harvested Popberry", "Tree felled",
-    // "Mined Ochrux Matrix", "Order fulfilled"). We group the observed DYNAMIC
-    // text (dialog body + notification overlay — never the static .quest-hint,
-    // which always lists the verbs) into distinct action categories so the
-    // smoke can verify >=2 distinct resource actions and flag an order
-    // fulfillment signal when the player reaches the Task Board.
-    const observedText = steps
-      .map((s) => s.dialogText)
-      .filter(Boolean)
-      .join(" | ")
-      .toLowerCase();
-    const RESOURCE_SIGNAL = {
-      crop: /popberry|harvested|\bplot\b|seeded|watered|ripe|\bplant\b/i,
-      tree: /whittlewood|tree fell|\bchop\b/i,
-      mine: /ochrux|\bmined\b|depleted/i,
-      order: /order fulfill|fulfilled|could not fulfill|reward:/i,
-    };
-    const hitCategories = Object.keys(RESOURCE_SIGNAL).filter((key) =>
-      RESOURCE_SIGNAL[key].test(observedText),
-    );
-    const resourceActionsDetected = hitCategories.length;
-    const fulfillmentDetected = RESOURCE_SIGNAL.order.test(observedText);
-
-    if (uniqueHashes < 3)
-      reason = "low visual progress: fewer than 3 unique frames";
-    else if (uniquePositions < 3)
-      reason = `character did not move enough: only ${uniquePositions} unique sprite positions (need >= 3); screenshots changed but player stayed put`;
-    else {
-      passed = true;
-      const parts = [
-        `${uniqueHashes} unique frames`,
-        `${uniquePositions} unique sprite positions`,
-      ];
-      if (resourceActionsDetected >= 2) {
-        parts.push(
-          `resource-loop verified: ${hitCategories.join("/")}${
-            fulfillmentDetected ? " (+order fulfillment signal)" : ""
-          }`,
-        );
-      } else if (resourceActionsDetected === 1) {
-        parts.push(
-          `partial resource-loop evidence: ${hitCategories[0]} only (need >=2 distinct actions for full verification)`,
-        );
-      } else {
-        // Informational, not a failure: headless Chrome cannot render the
-        // WebGL/Pixi canvas (documented limitation), so notifications may not
-        // fire even though the player moved. Visual + positional progress still
-        // prove the RPG-JS scene booted and accepted input.
-        parts.push(
-          "no resource-action text captured this run (player did not land on a plot/tree/mine; see docs/AI_GAME_E2E.md for the headless WebGL limit)",
+    page.on("response", (response) => {
+      if (response.status() >= 400 && isGameAssetUrl(response.url())) {
+        failedRequests.push(`${response.status()} ${response.url()}`);
+      }
+    });
+    page.on("requestfailed", (request) => {
+      if (isGameAssetUrl(request.url())) {
+        failedRequests.push(
+          `request failed ${request.url()}: ${request.failure()?.errorText || "unknown"}`,
         );
       }
-      reason = `Cozy resource-village smoke passed: ${parts.join(", ")}`;
+    });
+
+    await page.goto(config.url, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.waitForSelector("#rpg canvas", { timeout: 25_000 });
+    await page.waitForTimeout(2_000);
+    await page.keyboard.press("Tab").catch(() => {});
+
+    let lastHash = "";
+    let changedFrames = 0;
+    let stableFrames = 0;
+    let froze = false;
+    const actions = initialActions();
+
+    for (let index = 0; index < config.maxSteps; index += 1) {
+      const screenshot = await page.screenshot({ fullPage: false });
+      const hash = createHash("sha256").update(screenshot).digest("hex");
+      const screenshotPath = join(
+        config.outputDir,
+        `step-${String(index).padStart(2, "0")}.png`,
+      );
+      writeFileSync(screenshotPath, screenshot);
+
+      if (lastHash && hash !== lastHash) {
+        changedFrames += 1;
+        stableFrames = 0;
+      }
+      if (lastHash && hash === lastHash) stableFrames += 1;
+      lastHash = hash;
+
+      const canvas = await page.locator("#rpg canvas").boundingBox();
+      // Capture ground-truth gameplay state (sprite position + dialog text) so
+      // the pass criteria can verify real movement/quest progress instead of
+      // relying on screenshot-hash diversity alone.
+      const gameState = await captureGameState(page);
+      const action = config.useVlm
+        ? await askVlmForAction({
+            screenshot,
+            index,
+            steps,
+            fallback: actions[index % actions.length],
+          })
+        : actions[index % actions.length];
+
+      await executeAction(page, action);
+      await sleep(config.stepDelayMs);
+
+      steps.push({
+        index,
+        action,
+        hash,
+        screenshot: screenshotPath,
+        canvas,
+        gameState: gameState.allPositions,
+        dialogText: gameState.dialog,
+        hint: gameState.hint,
+        domOverride: gameState.domOverride,
+      });
+
+      if (stableFrames >= 8) {
+        froze = true;
+        reason =
+          "visual freeze/softlock: screenshot unchanged for 8 consecutive observed frames";
+        break;
+      }
     }
+
+    if (froze) reason = reason;
+    else if (pageErrors.length) reason = "page/console errors detected";
+    else if (failedRequests.length) reason = "game asset requests failed";
+    else if (steps.length < Math.min(4, config.maxSteps))
+      reason = "agent loop stopped too early";
+    else if (
+      !steps.some(
+        (step) => step.canvas?.width > 200 && step.canvas?.height > 200,
+      )
+    )
+      reason = "RPG-JS canvas missing or too small";
+    else if (steps.some((step) => step.domOverride)) {
+      const overrideStep = steps.find((step) => step.domOverride);
+      reason = `DOM overlay replaces RPG-JS canvas: ${overrideStep.domOverride} (canvas integrity violation — do not hide the real WebGL/Pixi scene behind a DOM mock)`;
+    } else if (steps.length >= Math.min(8, config.maxSteps)) {
+      const uniqueHashes = new Set(steps.map((step) => step.hash)).size;
+      // Stronger pass criteria: verify ACTUAL gameplay progress, not just visual
+      // changes. Screenshot hashes can diverge from HUD/animation jitter even
+      // when the player never moves, producing false positives.
+      //
+      // Player position identification: collect the set of all sprite positions
+      // observed at step 0 (the static map baseline), then for each subsequent
+      // step find the sprite whose position is NOT in that baseline. That moving
+      // sprite is the player; the count of distinct player positions across the
+      // run is the real "did the character move" signal.
+      const baseline = new Set(steps[0]?.gameState || []);
+      // Track a stable sprite identity across steps. The previous approach
+      // (all.find((p) => !baseline.has(p)) on every step) could pick a DIFFERENT
+      // non-baseline sprite each step — e.g. transient sprites appearing at
+      // different positions — and falsely satisfy uniquePositions >= 3 without
+      // the player actually moving. We now lock onto the player once and follow
+      // it by nearest-neighbor distance so the same character is tracked across
+      // the whole run.
+      const parsePos = (p) => {
+        if (!p) return null;
+        const [xs, ys] = p.split(",");
+        const x = Number(xs);
+        const y = Number(ys);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+        return { x, y };
+      };
+      let lastPlayer = null; // stable identity: previous-step player position
+      const playerPositions = steps.map((s) => {
+        const all = (s.gameState || []).filter((p) => parsePos(p));
+        if (all.length === 0)
+          return lastPlayer ? `${lastPlayer.x},${lastPlayer.y}` : null;
+        // Lock-on phase: no player identified yet. Look for a sprite position
+        // that is new relative to the step-0 baseline (= the player moved).
+        if (lastPlayer === null) {
+          const moved = all.find((p) => !baseline.has(p));
+          if (moved) {
+            lastPlayer = parsePos(moved);
+          }
+          // Return the (possibly baseline) chosen position so step 0 and the
+          // first move both contribute real values.
+          return moved || all[0];
+        }
+        // Tracking phase: choose the sprite nearest to last known player
+        // position. This keeps us following the same character even if other
+        // transient sprites enter/leave the viewport.
+        let best = all[0];
+        let bestDist = Infinity;
+        for (const p of all) {
+          const pos = parsePos(p);
+          const dist = Math.hypot(pos.x - lastPlayer.x, pos.y - lastPlayer.y);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = p;
+          }
+        }
+        lastPlayer = parsePos(best);
+        return best;
+      });
+      const uniquePositions = new Set(playerPositions.filter(Boolean)).size;
+      // Resource-village loop evidence. Group observed DYNAMIC text (dialog
+      // body + notification overlay — never the static .quest-hint, which
+      // always lists the verbs) into distinct action categories so the smoke
+      // can verify >=2 distinct resource actions and flag an order fulfillment
+      // signal when the player reaches the Task Board.
+      const observedText = steps
+        .map((s) => s.dialogText)
+        .filter(Boolean)
+        .join(" | ")
+        .toLowerCase();
+      const hitCategories = Object.keys(RESOURCE_SIGNAL).filter((key) =>
+        RESOURCE_SIGNAL[key].test(observedText),
+      );
+      const resourceActionsDetected = hitCategories.length;
+
+      const verdict = evaluateRun({
+        uniqueHashes,
+        uniquePositions,
+        resourceActionsDetected,
+        hitCategories,
+        observedText,
+        strict: config.strict,
+      });
+      passed = verdict.passed;
+      reason = verdict.reason;
+    }
+  } catch (error) {
+    reason = error?.stack || error?.message || String(error);
+  } finally {
+    await browser?.close();
+    stopPreview(preview);
+    const report = {
+      passed,
+      reason,
+      url: config.url,
+      mode: config.useVlm ? "vlm-agent" : "scripted-agent-fallback",
+      strict: config.strict,
+      pageErrors,
+      failedRequests,
+      steps,
+      artifacts: config.outputDir,
+      timestamp: new Date().toISOString(),
+    };
+    writeFileSync(
+      join(config.outputDir, "report.json"),
+      JSON.stringify(report, null, 2),
+    );
+    writeFileSync(join(config.outputDir, "summary.md"), toMarkdown(report));
+    console.log(JSON.stringify(report, null, 2));
+    process.exitCode = passed ? 0 : 1;
   }
-} catch (error) {
-  reason = error?.stack || error?.message || String(error);
-} finally {
-  await browser?.close();
-  stopPreview(preview);
-  const report = {
-    passed,
-    reason,
-    url: config.url,
-    mode: config.useVlm ? "vlm-agent" : "scripted-agent-fallback",
-    pageErrors,
-    failedRequests,
-    steps,
-    artifacts: config.outputDir,
-    timestamp: new Date().toISOString(),
-  };
-  writeFileSync(
-    join(config.outputDir, "report.json"),
-    JSON.stringify(report, null, 2),
-  );
-  writeFileSync(join(config.outputDir, "summary.md"), toMarkdown(report));
-  console.log(JSON.stringify(report, null, 2));
-  process.exitCode = passed ? 0 : 1;
 }
 
 function initialActions() {
@@ -296,7 +363,11 @@ function initialActions() {
     { type: "key", key: "ArrowLeft", note: "explore west" },
     { type: "key", key: "Space", note: "interact with plot/tree/mine" },
     { type: "key", key: "ArrowRight", note: "explore toward Task Board" },
-    { type: "key", key: "Space", note: "interact: open Task Board / fulfill order" },
+    {
+      type: "key",
+      key: "Space",
+      note: "interact: open Task Board / fulfill order",
+    },
     { type: "key", key: "Enter", note: "advance dialog or confirm order" },
     { type: "key", key: "Space", note: "interact again before run ends" },
   ];
@@ -345,10 +416,20 @@ async function executeAction(page, action) {
 // All reads are best-effort; failures return null/empty fields instead of
 // throwing so a missing PIXI node or closed dialog never aborts the smoke loop.
 async function captureGameState(page) {
-  const fallback = { allPositions: [], dialog: null, hint: null, domOverride: null };
+  const fallback = {
+    allPositions: [],
+    dialog: null,
+    hint: null,
+    domOverride: null,
+  };
   try {
     return await page.evaluate(() => {
-      const result = { allPositions: [], dialog: null, hint: null, domOverride: null };
+      const result = {
+        allPositions: [],
+        dialog: null,
+        hint: null,
+        domOverride: null,
+      };
       try {
         const stage = window.__PIXI_STAGE__;
         if (stage) {
@@ -556,7 +637,7 @@ function validateAction(action) {
 }
 
 function toMarkdown(report) {
-  return `# AI Game Smoke Report\n\n- passed: ${report.passed}\n- reason: ${report.reason}\n- mode: ${report.mode}\n- url: ${report.url}\n- steps: ${report.steps.length}\n- pageErrors: ${report.pageErrors.length}\n- failedRequests: ${report.failedRequests.length}\n- artifacts: ${report.artifacts}\n`;
+  return `# AI Game Smoke Report\n\n- passed: ${report.passed}\n- reason: ${report.reason}\n- mode: ${report.mode}\n- strict: ${report.strict}\n- url: ${report.url}\n- steps: ${report.steps.length}\n- pageErrors: ${report.pageErrors.length}\n- failedRequests: ${report.failedRequests.length}\n- artifacts: ${report.artifacts}\n`;
 }
 
 function isGameAssetUrl(value) {

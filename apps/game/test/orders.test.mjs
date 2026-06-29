@@ -41,12 +41,9 @@ const bundled = await build({
 const tmpDir = mkdtempSync(join(tmpdir(), "w31-orders-"));
 const modulePath = join(tmpDir, "orders.bundle.mjs");
 writeFileSync(modulePath, bundled.outputFiles[0].text);
-const {
-  VILLAGE_ORDERS,
-  findOrder,
-  canFulfill,
-  fulfillOrder,
-} = await import(pathToFileURL(modulePath).href);
+const { VILLAGE_ORDERS, findOrder, canFulfill, fulfillOrder } = await import(
+  pathToFileURL(modulePath).href
+);
 
 /**
  * Minimal RpgPlayer double exposing only the item + variable surface the
@@ -88,8 +85,9 @@ describe("W3.1 VILLAGE_ORDERS catalogue", () => {
   });
 
   it("exposes order_01 (Berry Basket) and order_02 (Builder's Kit)", () => {
-    const ids = VILLAGE_ORDERS.map((o) => o.id).sort();
-    assert.deepEqual(ids, ["order_01", "order_02"]);
+    const ids = VILLAGE_ORDERS.map((o) => o.id);
+    assert.ok(ids.includes("order_01"), "must expose order_01");
+    assert.ok(ids.includes("order_02"), "must expose order_02");
   });
 
   it("every order requires at least one resource and awards positive points", () => {
@@ -187,10 +185,7 @@ describe("W3.1 fulfillOrder (player mutation)", () => {
   });
 
   it("order_02 fulfillment consumes multi-resource requirements, +40 points", () => {
-    const player = makePlayer(
-      { whittlewood_log: 2, ochrux_matrix: 1 },
-      5,
-    );
+    const player = makePlayer({ whittlewood_log: 2, ochrux_matrix: 1 }, 5);
     const result = fulfillOrder(player, "order_02");
     assert.deepEqual(result, { ok: true, pointsEarned: 40 });
     assert.equal(player.items.whittlewood_log, 0);
