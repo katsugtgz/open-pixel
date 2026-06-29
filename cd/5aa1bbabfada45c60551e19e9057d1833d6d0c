@@ -1,0 +1,23 @@
+apps/game/test/village-decoration.test.mjs
+  s_9bcfff3b300c8b::t_08034baff38927 1-91
+apps/game/src/tiled/village.tmx
+  s_9bcfff3b300c8b::t_037c86332475fb 3-5
+  s_9bcfff3b300c8b::t_7a61cf322474e6 1-2
+  s_9bcfff3b300c8b::t_92aeb33bf68d7c 6-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "cd5aa1bbabfada45c60551e19e9057d1833d6d0c",
+  "prompts": {},
+  "sessions": {
+    "s_9bcfff3b300c8b": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebf1e731ffe5IDtdtMpAQNpXk",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
