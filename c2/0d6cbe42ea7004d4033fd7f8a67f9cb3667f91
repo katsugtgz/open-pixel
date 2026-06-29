@@ -1,0 +1,53 @@
+apps/web/src/App.test.tsx
+  s_96a298c0b238e4::t_24f127c87fd818 230-273
+  s_9691fe06f6d8dd::t_aaf1be87e6c140 1,3-13,54-229,274-318,322-330
+  s_9691fe06f6d8dd::t_edebd301801a00 319-321
+  s_9691fe06f6d8dd::t_b2e7bfb798cb56 18-19
+  s_9691fe06f6d8dd::t_68a8a90153c5ec 2,14-17,20-53
+  s_69c5281a3a58c4::t_55229d45f06ec7 331-336
+apps/web/src/App.tsx
+  s_96a298c0b238e4::t_76fbe856bcf542 135-147,156-159
+  s_9691fe06f6d8dd::t_da1b21c1fc41f4 1,9
+  s_9691fe06f6d8dd::t_6780a2924d09ab 113,148-151
+  s_9691fe06f6d8dd::t_30729d74859427 427-437,444-450
+  s_9691fe06f6d8dd::t_6ac700bbfac53e 51-57,63,66,70-71,73,81,91,101-102,106-112,114-134,152-155,160-173
+  s_69c5281a3a58c4::t_1ab9dd3cb56584 174-175,426
+apps/web/package.json
+  s_9691fe06f6d8dd::t_5460c5e58e1605 36
+  s_9691fe06f6d8dd::t_e9d610a1ae8b0c 35
+  s_9691fe06f6d8dd::t_aeaf5300c1a528 11
+  s_9691fe06f6d8dd::t_c537d562204c55 34
+  s_9691fe06f6d8dd::t_b4826f7a615e6d 33,39-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "c20d6cbe42ea7004d4033fd7f8a67f9cb3667f91",
+  "prompts": {},
+  "sessions": {
+    "s_69c5281a3a58c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7c7b43ffeeQpkND0vapUFNc",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_9691fe06f6d8dd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef6da51cffe4hqr6DB7yXdkdS",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_96a298c0b238e4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef3cc1f1fferJ2D2GxaepX1da",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
