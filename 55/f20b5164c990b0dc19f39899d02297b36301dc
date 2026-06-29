@@ -1,0 +1,45 @@
+docs/agents/resource-village-deterministic-packet.md
+  s_c4cae5415d0e1a::t_63e43f219f2d38 67-72,138,142,145,148,193,195-203,205-218,252-253,256-259,262,269-272,282,284,287,336-343
+  s_fc9996201501f5::t_3bcac77e02be4e 333-334
+  s_c4cae5415d0e1a::t_e375877a28b7e6 194,204,219
+  s_fc9996201501f5::t_e7492790f269ce 279
+  s_fc9996201501f5::t_50e13ac408d82b 283,285-286
+  s_fc9996201501f5::t_9cf88e0c8245da 168-182
+  s_fc9996201501f5::t_48c407d8ebd1ae 299-313
+  s_fc9996201501f5::t_f668d31dbf3dfb 220-225,228-242,245-249
+  s_fc9996201501f5::t_4b679e06801e9f 291-296
+  s_fc9996201501f5::t_ddbaeaf40c4936 254-255,260-261,263-268,273-276
+  s_a566fd9ca537fb::t_9ce9fd0f649df5 335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "55f20b5164c990b0dc19f39899d02297b36301dc",
+  "prompts": {},
+  "sessions": {
+    "s_a566fd9ca537fb": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ed03424bffeZ7XjJnc6d97NF5",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c4cae5415d0e1a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef73f2f5ffeNM6VjE9WU7BDDV",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_fc9996201501f5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef3cae21ffeqpU86VysNHgiH1",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}

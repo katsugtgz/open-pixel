@@ -1,0 +1,33 @@
+apps/game/patches/@rpgjs+client+5.0.0-beta.22.patch
+  s_b00c835da2477d::t_1cc2fc93dbef67 1-13
+apps/game/test/animation-gate.test.mjs
+  s_b00c835da2477d::t_39015857020f85 1-22,25,31,34-36,39-50,52-60,62-70,72-78,80-92,94-97,99-100
+  s_69c5281a3a58c4::t_bff95b46792713 33,38,51,61,71,79,93,98
+  s_69c5281a3a58c4::t_ff8b72bb347d4a 23-24,26-30,32,37
+apps/game/test/hotbar-click.test.mjs
+  s_69c5281a3a58c4::t_e77737b145979d 1-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ddffdfe5a1e45d347ecc7f048928ff07bf6c3724",
+  "prompts": {},
+  "sessions": {
+    "s_69c5281a3a58c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7c7b43ffeeQpkND0vapUFNc",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_b00c835da2477d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ed00f962ffenlltnhw1bW7twq",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
