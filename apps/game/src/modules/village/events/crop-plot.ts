@@ -62,9 +62,9 @@ export function CropPlotFactory(props: CropPlotProps): EventDefinition {
       if (next === "empty" && (current === "ready" || current === "grown")) {
         // Harvest complete: award one reward item and off-chain points.
         player.addItem(rewardItem, 1);
-        emitCompletion(player);
         const pts = pointsFromCompletion("harvest");
         addPoints(player, pts);
+        emitCompletion(player);
         await player.showNotification(`Harvested Popberry · +1 · +${pts} pts`, {
           sound: "collect",
           type: "info",

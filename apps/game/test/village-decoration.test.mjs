@@ -45,7 +45,9 @@ describe("village.tmx decoration", () => {
 
   it("village.tmx references [A]Flower_pipo tileset at firstgid 5240", () => {
     // 4216 (lpc-crops firstgid) + 1024 (lpc-crops tilecount) = 5240.
-    const ts = /<tileset firstgid="5240" source="\[A\]Flower_pipo\.tsx"/.test(tmx);
+    const ts = /<tileset firstgid="5240" source="\[A\]Flower_pipo\.tsx"/.test(
+      tmx,
+    );
     assert.ok(ts, "Flower_pipo tileset missing or firstgid wrong");
   });
 

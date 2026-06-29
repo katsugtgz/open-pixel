@@ -25,7 +25,8 @@
     "doctor:react": "npx react-doctor@latest ./apps/web/src --no-score --blocking none --yes",
     "db:check": "node scripts/check-supabase-schema.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "npm --workspace apps/game run postinstall"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,css,yml,yaml}": "prettier --write"

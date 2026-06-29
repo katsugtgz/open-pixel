@@ -136,7 +136,7 @@ export function canClaimGuestBadge(state: AppState): boolean {
 // persists fake points. Relative or unset VITE_GAME_URL falls back to same-origin.
 const EXPECTED_GAME_ORIGIN = (() => {
   const configured = import.meta.env.VITE_GAME_URL as string | undefined;
-  if (!configured) return window.location.origin;
+  if (!configured) return new URL(gameUrl, window.location.href).origin;
   try {
     return new URL(configured, window.location.href).origin;
   } catch {
@@ -148,28 +148,71 @@ const EXPECTED_GAME_ORIGIN = (() => {
 // the in-game socket (see apps/game/src/modules/village/proof-bridge.ts). This
 // handler accepts the same payload via window.postMessage (cross-origin iframe)
 // or a CustomEvent-shaped event (same-page embedding) until a real socket lands.
+export function isNonNegativeInteger(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 0;
+}
+
+function normalizeCompletedAt(value: unknown): string | undefined {
+  if (typeof value === "string" && !Number.isNaN(Date.parse(value)))
+    return value;
+  if (typeof value === "number" && Number.isFinite(value))
+    return new Date(value).toISOString();
+  return undefined;
+}
+
+function normalizeVillageProgress(value: unknown): VillageProgress | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const resources = record.resources as Record<string, unknown> | undefined;
+  if (!resources || typeof resources !== "object") return null;
+
+  const progressResources = {
+    popberry: resources.popberry,
+    whittlewood_log: resources.whittlewood_log,
+    ochrux_matrix: resources.ochrux_matrix,
+  };
+  if (
+    !isNonNegativeInteger(progressResources.popberry) ||
+    !isNonNegativeInteger(progressResources.whittlewood_log) ||
+    !isNonNegativeInteger(progressResources.ochrux_matrix)
+  ) {
+    return null;
+  }
+  const points = record.points ?? 0;
+  if (!isNonNegativeInteger(points)) return null;
+
+  return {
+    ...record,
+    resources: progressResources,
+    points,
+    completedAt: normalizeCompletedAt(record.completedAt),
+  } as VillageProgress;
+}
+
 export function makeVillageBridgeHandler(
-  dispatch: (action: AppAction) => void,
+  dispatch: React.Dispatch<AppAction>,
 ): (event: MessageEvent | CustomEvent) => void {
-  return (event) => {
-    // Reject forged cross-origin postMessage; CustomEvent is same-page, no origin.
+  return (event: MessageEvent | CustomEvent) => {
+    const isCustomEvent = "detail" in event;
     if (
-      event instanceof MessageEvent &&
-      event.origin !== EXPECTED_GAME_ORIGIN
+      !isCustomEvent &&
+      event.origin &&
+      event.origin !== EXPECTED_GAME_ORIGIN &&
+      event.origin !== window.location.origin
     ) {
       return;
     }
-    const messageEvent = event as Partial<MessageEvent>;
-    const customEvent = event as Partial<CustomEvent>;
-    const data = (messageEvent.data ?? customEvent.detail) as
-      | {
-          type?: unknown;
-          payload?: VillageProgress;
-        }
-      | undefined;
-    if (!data || data.type !== "village:complete") return;
-    if (!data.payload) return;
-    dispatch({ type: "villageProgress", value: data.payload });
+
+    const data = isCustomEvent ? event.detail : event.data;
+    if (!data || typeof data !== "object") return;
+    if ((data as { type?: unknown }).type !== "village:complete") return;
+
+    const payload = normalizeVillageProgress(
+      (data as { payload?: unknown }).payload,
+    );
+    if (!payload) return;
+
+    dispatch({ type: "villageProgress", value: payload });
   };
 }
 

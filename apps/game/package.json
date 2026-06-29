@@ -6,7 +6,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "echo no lint configured",
-    "typecheck": "echo typecheck via vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "postinstall": "patch-package"
   },
   "keywords": [],

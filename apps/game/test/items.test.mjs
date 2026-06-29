@@ -53,12 +53,9 @@ const code = bundled.outputFiles[0].text;
 const tmpDir = mkdtempSync(join(tmpdir(), "w14-items-"));
 const modulePath = join(tmpDir, "items.bundle.mjs");
 writeFileSync(modulePath, code);
-const {
-  Popberry,
-  PopberrySeeds,
-  WhittlewoodLog,
-  OchruxMatrix,
-} = await import(pathToFileURL(modulePath).href);
+const { Popberry, PopberrySeeds, WhittlewoodLog, OchruxMatrix } = await import(
+  pathToFileURL(modulePath).href
+);
 
 function assertItemMetadata(Klass, expected) {
   assert.equal(

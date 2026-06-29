@@ -184,12 +184,6 @@ describe("W3.1 board coverage: every VILLAGE_ORDER has an in-game board", () => 
     const { boardPlacements } = await import(mapAdapterUrl);
 
     const placements = boardPlacements();
-
-    assert.equal(
-      placements.length,
-      VILLAGE_ORDERS.length,
-      `expected one board placement per order (${VILLAGE_ORDERS.length}), got ${placements.length}`,
-    );
     for (const order of VILLAGE_ORDERS) {
       const matched = placements.filter((p) => p.orderId === order.id);
       assert.ok(

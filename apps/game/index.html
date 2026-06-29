@@ -306,32 +306,74 @@
       >
     </aside>
     <div id="village-hud" class="village-hud" style="display: none">
-      <div class="slot" data-item="popberry_seeds">
+      <div
+        class="slot"
+        role="button"
+        tabindex="0"
+        aria-pressed="false"
+        data-item="popberry_seeds"
+      >
         <span class="icon">🌱</span><span class="label">Seeds</span>
       </div>
-      <div class="slot" data-item="popberry">
+      <div
+        class="slot"
+        role="button"
+        tabindex="0"
+        aria-pressed="false"
+        data-item="popberry"
+      >
         <span class="icon">🫐</span
         ><span class="count" data-count="popberry">0</span
         ><span class="label">Berry</span>
       </div>
-      <div class="slot" data-item="whittlewood_log">
+      <div
+        class="slot"
+        role="button"
+        tabindex="0"
+        aria-pressed="false"
+        data-item="whittlewood_log"
+      >
         <span class="icon">🪵</span
         ><span class="count" data-count="whittlewood_log">0</span
         ><span class="label">Wood</span>
       </div>
-      <div class="slot" data-item="ochrux_matrix">
+      <div
+        class="slot"
+        role="button"
+        tabindex="0"
+        aria-pressed="false"
+        data-item="ochrux_matrix"
+      >
         <span class="icon">💎</span
         ><span class="count" data-count="ochrux_matrix">0</span
         ><span class="label">Stone</span>
       </div>
-      <div class="slot">
+      <div class="slot" role="button" tabindex="0">
         <span class="icon">🪓</span><span class="label">Axe</span>
       </div>
-      <div class="slot">
+      <div class="slot" role="button" tabindex="0">
         <span class="icon">⛏️</span><span class="label">Pick</span>
       </div>
     </div>
     <script>
+      let selectedTool = null;
+
+      function selectHotbarSlot(slots, clickedSlot, selectedItem) {
+        const item = clickedSlot.getAttribute("data-item");
+        if (!item) return selectedItem;
+
+        for (const slot of slots) {
+          slot.classList.remove("active");
+          slot.setAttribute("aria-pressed", "false");
+        }
+
+        if (selectedItem === item) return null;
+
+        clickedSlot.classList.add("active");
+        clickedSlot.setAttribute("aria-pressed", "true");
+        return item;
+      }
+
       // Village HUD hotbar.
       //
       // Two concerns:
@@ -483,34 +525,26 @@
       //   - click on already-active slot → deselect (toggle off)
       // Item id comes from the slot's [data-item] attribute. Slots without
       // data-item (e.g. Axe/Pick tools) dispatch with item: null.
-      function selectHotbarSlot(slotEl) {
-        var hud = document.getElementById("village-hud");
-        if (!hud || !slotEl || !slotEl.classList.contains("slot")) return null;
-        var wasActive = slotEl.classList.contains("active");
-        var slots = hud.querySelectorAll(".slot");
-        slots.forEach(function (s) { s.classList.remove("active"); });
-        var item = slotEl.getAttribute("data-item") || null;
-        if (!wasActive) {
-          slotEl.classList.add("active");
-          window.dispatchEvent(
-            new CustomEvent("village:select-item", { detail: { item: item } }),
-          );
-          return item;
-        }
-        window.dispatchEvent(
-          new CustomEvent("village:select-item", { detail: { item: null } }),
-        );
-        return null;
-      }
       function wireHotbarClicks() {
         var hud = document.getElementById("village-hud");
         if (!hud || hud.dataset.wired === "1") return;
         hud.dataset.wired = "1";
         hud.addEventListener("click", function (ev) {
-          var slotEl = ev.target.closest(".slot");
-          if (slotEl && hud.contains(slotEl)) {
-            selectHotbarSlot(slotEl);
-          }
+          const slot = ev.target.closest(".slot");
+          if (!slot) return;
+          selectedTool = selectHotbarSlot(
+            Array.from(hud.querySelectorAll(".slot")),
+            slot,
+            selectedTool,
+          );
+        });
+
+        hud.addEventListener("keydown", function (ev) {
+          if (ev.key !== "Enter" && ev.key !== " ") return;
+          const slot = ev.target.closest(".slot");
+          if (!slot) return;
+          ev.preventDefault();
+          slot.click();
         });
       }
       wireHotbarClicks();

@@ -27,11 +27,11 @@ export function MineFactory(props: MineNodeProps): EventDefinition {
         return;
       }
       player.setVariable(depletedKey, true);
-      player.addItem(rewardItem, 1);
-      emitCompletion(player);
       const pts = pointsFromCompletion("mine");
+      player.addItem(rewardItem, 1);
       addPoints(player, pts);
-      await player.showNotification(`Mined Ochrux Matrix · +1 · +${pts} pts`, {
+      emitCompletion(player);
+      await player.showNotification(`Mined ${rewardItem} · +1 · +${pts} pts`, {
         sound: "collect",
         type: "info",
       });

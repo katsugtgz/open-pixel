@@ -34,6 +34,6 @@ export default createServer({
       },
     ]),
     provideSaveStorage(new LocalStorageSaveStorageStrategy({ key: "save" })),
-    provideTiledMap(),
+    provideTiledMap({ basePath: "map" }),
   ],
 });
