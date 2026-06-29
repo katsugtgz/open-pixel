@@ -1,0 +1,29 @@
+apps/game/src/tiled/forest.tmx
+  s_666f3c2f2ac1a0::t_670136c9e646b7 1-121
+apps/game/src/tiled/mine.tmx
+  s_cd6260da3ceaae::t_d1b4ddc8152483 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "d8ddee2a0c37f3ddd565c79ad5fcda71caa34796",
+  "prompts": {},
+  "sessions": {
+    "s_666f3c2f2ac1a0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebc3e3fbffelwdvfw4zdtSCCx",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_cd6260da3ceaae": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebc3e312ffexJIHFlYFA0jZdg",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
