@@ -1,12 +1,12 @@
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
   createGuestId,
-  createQuestRun,
   createRandomId,
   formatSupabaseError,
   type QuestRun,
+  type QuestRunResources,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -48,21 +48,29 @@ const mockLeaderboard = [
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
 
-type AppState = {
+export type VillageProgress = {
+  points: number;
+  resources: QuestRunResources;
+  completedAt?: string;
+};
+
+export type AppState = {
   guestId: string;
   displayName: string;
   walletAddress: string;
   signature: string;
   status: string;
+  villageProgress?: VillageProgress;
 };
 
-type AppAction =
+export type AppAction =
   | { type: "displayName"; value: string }
   | { type: "walletAddress"; value: string }
   | { type: "signature"; value: string }
-  | { type: "status"; value: string };
+  | { type: "status"; value: string }
+  | { type: "villageProgress"; value: VillageProgress };
 
-function getGuestId() {
+export function getGuestId() {
   const existing = localStorage.getItem("open_pixel_guest_id");
   if (existing) return existing;
   const next = createGuestId();
@@ -70,7 +78,7 @@ function getGuestId() {
   return next;
 }
 
-function initialState(): AppState {
+export function initialState(): AppState {
   return {
     guestId: getGuestId(),
     displayName: "Pixel Runner",
@@ -80,7 +88,7 @@ function initialState(): AppState {
   };
 }
 
-function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "displayName":
       return { ...state, displayName: action.value };
@@ -90,7 +98,79 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, signature: action.value };
     case "status":
       return { ...state, status: action.value };
+    case "villageProgress":
+      return { ...state, villageProgress: action.value };
   }
+}
+
+const DEFAULT_RESOURCES: QuestRunResources = {
+  popberry: 0,
+  whittlewood_log: 0,
+  ochrux_matrix: 0,
+};
+
+/**
+ * Build the QuestRun from live village state, not literals.
+ */
+export function buildQuestRunFromState(state: AppState): QuestRun {
+  const progress = state.villageProgress;
+  const completedAt = progress?.completedAt ?? new Date(0).toISOString();
+  return {
+    id: `run_${state.guestId.slice(-8)}`,
+    guestId: state.guestId,
+    displayName: state.displayName.trim() || "Pixel Runner",
+    questId: "Quest #1 — Village Resource Loop",
+    points: progress?.points ?? 0,
+    resources: progress?.resources ?? DEFAULT_RESOURCES,
+    shards: progress?.completedAt ? 3 : 0,
+    completedAt,
+  };
+}
+
+export function canClaimGuestBadge(state: AppState): boolean {
+  return state.villageProgress?.completedAt != null;
+}
+
+// Security: postMessage is broadcast to any listener. Pin the expected game
+// origin so a malicious iframe cannot forge a village:complete payload that
+// persists fake points. Relative or unset VITE_GAME_URL falls back to same-origin.
+const EXPECTED_GAME_ORIGIN = (() => {
+  const configured = import.meta.env.VITE_GAME_URL as string | undefined;
+  if (!configured) return window.location.origin;
+  try {
+    return new URL(configured, window.location.href).origin;
+  } catch {
+    return window.location.origin;
+  }
+})();
+
+// Hackathon bridge: game runs on a separate origin and player.emit only reaches
+// the in-game socket (see apps/game/src/modules/village/proof-bridge.ts). This
+// handler accepts the same payload via window.postMessage (cross-origin iframe)
+// or a CustomEvent-shaped event (same-page embedding) until a real socket lands.
+export function makeVillageBridgeHandler(
+  dispatch: (action: AppAction) => void,
+): (event: MessageEvent | CustomEvent) => void {
+  return (event) => {
+    // Reject forged cross-origin postMessage; CustomEvent is same-page, no origin.
+    if (
+      event instanceof MessageEvent &&
+      event.origin !== EXPECTED_GAME_ORIGIN
+    ) {
+      return;
+    }
+    const messageEvent = event as Partial<MessageEvent>;
+    const customEvent = event as Partial<CustomEvent>;
+    const data = (messageEvent.data ?? customEvent.detail) as
+      | {
+          type?: unknown;
+          payload?: VillageProgress;
+        }
+      | undefined;
+    if (!data || data.type !== "village:complete") return;
+    if (!data.payload) return;
+    dispatch({ type: "villageProgress", value: data.payload });
+  };
 }
 
 function shortAddress(address: string) {
@@ -343,30 +423,31 @@ function StatusBar({ status }: { status: string }) {
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
 
-  const questRun = useMemo(
-    () =>
-      createQuestRun({
-        id: `run_${state.guestId.slice(-8)}`,
-        guestId: state.guestId,
-        displayName: state.displayName.trim() || "Pixel Runner",
-        questId: "Quest #1 — Village Resource Loop",
-        points: 130,
-        resources: {
-          popberry: 4,
-          whittlewood_log: 3,
-          ochrux_matrix: 2,
-        },
-        completedAt: new Date().toISOString(),
-        shards: 3,
-      }),
-    [state.displayName, state.guestId],
-  );
+  const questRun = useMemo(() => buildQuestRunFromState(state), [state]);
+
+  // FIX 2 — register hackathon bridge listeners (postMessage + custom event).
+  useEffect(() => {
+    const handler = makeVillageBridgeHandler(dispatch);
+    window.addEventListener("message", handler);
+    window.addEventListener("village:complete", handler as EventListener);
+    return () => {
+      window.removeEventListener("message", handler);
+      window.removeEventListener("village:complete", handler as EventListener);
+    };
+  }, []);
 
   function setStatus(value: string) {
     dispatch({ type: "status", value });
   }
 
   async function saveGuestClaim(showSuccess = true) {
+    if (!canClaimGuestBadge(state)) {
+      setStatus(
+        "Complete the village quest first, then claim your guest badge.",
+      );
+      return false;
+    }
+
     if (!supabase) {
       setStatus("Guest badge ready locally. Add Supabase env to sync online.");
       return true;
