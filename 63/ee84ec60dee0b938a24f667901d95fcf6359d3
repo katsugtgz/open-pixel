@@ -1,0 +1,36 @@
+scripts/ai-game-smoke.mjs
+  s_73453a7d19feba::t_599552deabbb82 448-487
+  s_73453a7d19feba::t_37ed40ccd26aba 401-404
+  s_73453a7d19feba::t_86e41ac7b40b51 382-393,398-400,416-417,420,422
+  s_73453a7d19feba::t_448bb55e4b7814 355-359
+  s_73453a7d19feba::t_ec5e2e8aef4376 209-211,213,224
+  s_73453a7d19feba::t_7a7e5451537c4d 298-301,303
+  s_73453a7d19feba::t_7ae9e748af3c1d 17-23,28-32,47-55
+  s_73453a7d19feba::t_efd853a5847e12 163-170,182-184,186-191,197,201-208
+  s_73453a7d19feba::t_00fbace74ab474 132-162,171-181,185,192-196,198-200,212,214-223,225-282,343
+  s_73453a7d19feba::t_38f28c89b760b5 583-587,589-593
+  s_73453a7d19feba::t_067b09fb28f016 336-342
+  s_73453a7d19feba::t_dcc735a7bff279 427-434
+  s_73453a7d19feba::t_4104df2baf8025 283
+  s_73453a7d19feba::t_e14f2cff720806 344
+  s_73453a7d19feba::t_ea06f048afab63 405
+scripts/ai-game-smoke.test.mjs
+  s_73453a7d19feba::t_22f7b8c4af38ee 74-76,79-83,93
+  s_73453a7d19feba::t_a25197f55a626f 3-10,45-73,77-78,84-92,94-203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "63ee84ec60dee0b938a24f667901d95fcf6359d3",
+  "prompts": {},
+  "sessions": {
+    "s_73453a7d19feba": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ea6abdd0ffet7agVbCwBk3DCC",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}

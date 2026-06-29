@@ -1,0 +1,56 @@
+apps/game/src/modules/village/world-config.ts
+  s_879d425954d9ce::t_9f5e66497582de 1-68
+apps/game/test/map-adapter.test.mjs
+  s_2d66c842e4568d::t_d1c879681e528f 308-383
+apps/game/test/world-config.test.mjs
+  s_879d425954d9ce::t_021a4c9602f922 121-150
+  s_a1614c95ab2f7f::t_4380ef7de116a1 1-4,11-12,36-120
+  s_879d425954d9ce::t_3ad8dbbe6746a1 5-10,13-35
+apps/game/src/modules/village/index.ts
+  s_879d425954d9ce::t_2709db71104537 40-46,55-64,66
+  s_879d425954d9ce::t_7b5661fbd9cfc2 83
+  s_879d425954d9ce::t_b8bbc9d4a8f93b 21-29
+apps/game/src/modules/village/map-adapter.ts
+  s_2d66c842e4568d::t_282875794008b7 436-477
+  s_69c5281a3a58c4::t_50e513aacca8dc 478-547
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "925c1f1c8bb91aebb138b64e918ff63285e6f133",
+  "prompts": {},
+  "sessions": {
+    "s_2d66c842e4568d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebbc2e8fffeA31AeXthBb7Xdn",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_69c5281a3a58c4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ef7c7b43ffeeQpkND0vapUFNc",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_879d425954d9ce": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebb83d81ffe19nv0uj47gJe9s",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_a1614c95ab2f7f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ebc3e401ffekt6gZnBrt1YkS8",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
