@@ -1,0 +1,21 @@
+apps/web/src/lib/claimProof.ts
+  s_019c85bfb06839::t_c908bacbb71449 17,25-30
+apps/web/src/lib/leaderboard.ts
+  s_019c85bfb06839::t_6c82c633102f9f 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "2cb759044c7019020e1c30c537c57638dc770c6b",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
