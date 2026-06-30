@@ -1,0 +1,36 @@
+scripts/ai-game-agent-runner.py
+  s_c9ad5b95723903::t_ba31b3312a5bd1 41,43
+  s_918f3f628a3c2d::t_a6c17124b5b9cb 455-463
+  s_918f3f628a3c2d::t_152984cee329d1 136-137,360-361
+  s_918f3f628a3c2d::t_71f42b5ab8c4af 15,37-38,269-271,304-312,319-343,436
+  s_918f3f628a3c2d::t_28ce425c182097 430,442-447
+  s_c9ad5b95723903::t_01b092f8e818bc 344-345
+scripts/ai-game-smoke.mjs
+  s_c9ad5b95723903::t_ba31b3312a5bd1 360
+scripts/playwright-cdp-game-agent.mjs
+  s_918f3f628a3c2d::t_c6f89b78dce3a0 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "165223bffa8ff51a29b5f11cb07052dea0498b48",
+  "prompts": {},
+  "sessions": {
+    "s_918f3f628a3c2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef7a7-be7c-79b3-b3d4-1f02f23aada5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c9ad5b95723903": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0d11-be5b-7ad0-8493-cad7a19f3a02",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
