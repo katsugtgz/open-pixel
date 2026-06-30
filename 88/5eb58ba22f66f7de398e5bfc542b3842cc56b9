@@ -1,0 +1,47 @@
+docs/agents/resource-village-deterministic-packet.md
+  s_c9ad5b95723903::t_b5e3fc4f738fde 1-142
+apps/game/AGENTS.md
+  s_c9ad5b95723903::t_8ac1a73bb348cf 5,33,44
+AGENTS.md
+  s_989d977283412c::t_bc11b013e48e76 95-195
+CONTEXT.md
+  s_918f3f628a3c2d::t_486acc665666ca 1-22
+docs/agents/domain.md
+  s_918f3f628a3c2d::t_2771b14fd99c8a 1-12
+docs/agents/issue-tracker.md
+  s_918f3f628a3c2d::t_919699eb2fa485 1-8
+docs/agents/triage-labels.md
+  s_918f3f628a3c2d::t_4442a5a906befb 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "885eb58ba22f66f7de398e5bfc542b3842cc56b9",
+  "prompts": {},
+  "sessions": {
+    "s_918f3f628a3c2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef7a7-be7c-79b3-b3d4-1f02f23aada5",
+        "model": "unknown"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_989d977283412c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ed3580ffffezUQaQfI9VO3cjL",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c9ad5b95723903": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0d11-be5b-7ad0-8493-cad7a19f3a02",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
