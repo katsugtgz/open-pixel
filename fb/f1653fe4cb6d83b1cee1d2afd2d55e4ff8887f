@@ -1,0 +1,23 @@
+scripts/playwright-cdp-game-agent.mjs
+  s_873d3f157ed1cf::t_4a18b1a3b2def2 2,4-7,9,11-12,15,17-19,21-25,27-37,39,42
+apps/game/index.html
+  s_873d3f157ed1cf::t_4a18b1a3b2def2 235-237
+.prettierignore
+  s_873d3f157ed1cf::t_1d2e8af9cff778 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "fbf1653fe4cb6d83b1cee1d2afd2d55e4ff8887f",
+  "prompts": {},
+  "sessions": {
+    "s_873d3f157ed1cf": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0e89e52e3ffeJ3cHNdXuU0vg4H",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
