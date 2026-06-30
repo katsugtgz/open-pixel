@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
@@ -40,11 +40,16 @@ const pillars = [
   },
 ];
 
-const mockLeaderboard = [
+const mockLeaderboard: LeaderboardEntry[] = [
   { name: "Pixel Runner", score: 130, tag: "guest" },
   { name: "Shard Scout", score: 90, tag: "proof ready" },
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
+
+const initialLeaderboard: LeaderboardState = {
+  rows: mockLeaderboard,
+  loading: false,
+};
 
 type QuestRunView = {
   id: string;
@@ -203,7 +208,18 @@ function LoopSection() {
   );
 }
 
-function DesignSection() {
+type LeaderboardEntry = {
+  name: string;
+  score: number;
+  tag: string;
+};
+
+type LeaderboardState = {
+  rows: LeaderboardEntry[];
+  loading: boolean;
+};
+
+function DesignSection({ leaderboard }: { leaderboard: LeaderboardState }) {
   return (
     <section className="split-section">
       <article className="panel economy-panel">
@@ -224,14 +240,21 @@ function DesignSection() {
       <article className="panel leaderboard-panel">
         <p className="eyebrow">Leaderboard shell</p>
         <h2>Proof-ready scores</h2>
-        {mockLeaderboard.map((row, index) => (
-          <div className="leaderboard-row" key={row.name}>
-            <strong>#{index + 1}</strong>
-            <span>{row.name}</span>
-            <em>{row.score} pts</em>
-            <small>{row.tag}</small>
+        {leaderboard.loading ? (
+          <div className="leaderboard-row">
+            <strong>…</strong>
+            <span>Loading live scores…</span>
           </div>
-        ))}
+        ) : (
+          leaderboard.rows.map((row, index) => (
+            <div className="leaderboard-row" key={`${row.name}-${index}`}>
+              <strong>#{index + 1}</strong>
+              <span>{row.name}</span>
+              <em>{row.score} pts</em>
+              <small>{row.tag}</small>
+            </div>
+          ))
+        )}
       </article>
     </section>
   );
@@ -342,6 +365,8 @@ function StatusBar({ status }: { status: string }) {
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
+  const [leaderboard, setLeaderboard] =
+    useState<LeaderboardState>(initialLeaderboard);
 
   const questRun = useMemo(
     () => ({
@@ -473,12 +498,48 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchLeaderboard() {
+      if (!supabase) return;
+
+      setLeaderboard((prev) => ({ ...prev, loading: true }));
+
+      const { data, error } = await supabase
+        .from("leaderboard")
+        .select("display_name, total_points, completed_runs, last_completed_at")
+        .order("total_points", { ascending: false })
+        .limit(5);
+
+      if (cancelled) return;
+
+      if (error || !data || data.length === 0) {
+        setLeaderboard({ rows: mockLeaderboard, loading: false });
+        return;
+      }
+
+      const rows: LeaderboardEntry[] = data.map((row) => ({
+        name: row.display_name || "Anonymous",
+        score: row.total_points ?? 0,
+        tag: row.completed_runs > 1 ? `${row.completed_runs} runs` : "guest",
+      }));
+
+      setLeaderboard({ rows, loading: false });
+    }
+
+    void fetchLeaderboard();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <main className="site-shell">
       <Topbar />
       <HeroSection />
       <LoopSection />
-      <DesignSection />
+      <DesignSection leaderboard={leaderboard} />
       <ClaimSection
         state={state}
         questRun={questRun}
