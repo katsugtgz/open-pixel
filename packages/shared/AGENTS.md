@@ -18,7 +18,7 @@ Tiny TypeScript package for cross-app proof types, readable signing message, sec
 | ----------------------------- | ---------------------------------------------------- |
 | `QuestRun`                    | Shared shape for local/Supabase quest result.        |
 | `WalletProof`                 | Shared shape for signed proof records.               |
-| `createGuestId`               | Generates `guest_${crypto.randomUUID()}` IDs.        |
+| `createGuestId`               | Generates `guest_${createRandomId()}` IDs (crypto fallback). |
 | `buildProofMessage`           | Produces the exact readable `personal_sign` payload. |
 | `SECURITY_RECEIPT`            | Canonical no-tx/no-approval receipt values.          |
 | `isSupabaseMissingTableError` | Detects schema-cache/missing-table failures.         |
