@@ -1,11 +1,13 @@
+export const SIMPLEMAP_ID = "simplemap";
+
+export type SimpleMapId = typeof SIMPLEMAP_ID;
+
 export type MapRole = {
   id: string;
-  map: "simplemap";
+  map: SimpleMapId;
   x: number;
   y: number;
 };
-
-export const SIMPLEMAP_ID = "simplemap";
 
 export const MAP_ROLES = {
   playerSpawn: {

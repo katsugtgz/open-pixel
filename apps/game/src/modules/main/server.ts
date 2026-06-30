@@ -1,6 +1,5 @@
 import { defineModule } from "@rpgjs/common";
 import { RpgServer } from "@rpgjs/server";
-import { player } from "./player";
 import { QuestGiver, PixelShard } from "./event";
 import {
   type MapRole,
@@ -8,13 +7,10 @@ import {
   SIMPLEMAP_ID,
   VILLAGE_NODE_ROLES,
 } from "./layoutRoles";
+import { player } from "./player";
 
 function eventPosition(role: MapRole) {
-  return {
-    id: role.id,
-    x: role.x,
-    y: role.y,
-  };
+  return { id: role.id, x: role.x, y: role.y };
 }
 
 export default defineModule<RpgServer>({

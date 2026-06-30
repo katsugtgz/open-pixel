@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { MAP_ROLES, SIMPLEMAP_ID, VILLAGE_NODE_ROLES } from "./layoutRoles";
 
-describe("Layout Grammar map roles", () => {
-  it("names the player spawn and AI Guide on simplemap", () => {
+describe("Layout Grammar roles", () => {
+  it("publishes named roles for player spawn and AI Guide", () => {
     expect(MAP_ROLES.playerSpawn).toMatchObject({
       id: "player-spawn",
       map: SIMPLEMAP_ID,
       x: 376,
       y: 217,
     });
+
     expect(MAP_ROLES.aiGuide).toMatchObject({
       id: "ai-guide",
       map: SIMPLEMAP_ID,
@@ -17,7 +18,7 @@ describe("Layout Grammar map roles", () => {
     });
   });
 
-  it("publishes exactly three village node roles", () => {
+  it("publishes exactly three village node roles on the simple map", () => {
     expect(VILLAGE_NODE_ROLES.map((role) => role.id)).toEqual([
       "shard-1",
       "shard-2",
