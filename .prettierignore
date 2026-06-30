@@ -1,4 +1,5 @@
 .worktrees/
+.tokensave/
 test-results/
 apps/video/dist/
 apps/video/public/generated/
