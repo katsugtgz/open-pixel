@@ -1,0 +1,21 @@
+apps/game/src/modules/main/questLoop.ts
+  s_019c85bfb06839::t_2c4e86978da937 18,24,30,44,48,52,62,66,73,83,90,97,112,116
+apps/game/src/modules/main/questLoop.test.ts
+  s_019c85bfb06839::t_54fdd5e02d4c4d 21,39,47,59,63,67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "637a6f068499140c0907e48cad92352690408cba",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
