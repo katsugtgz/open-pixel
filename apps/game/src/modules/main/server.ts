@@ -2,17 +2,32 @@ import { defineModule } from "@rpgjs/common";
 import { RpgServer } from "@rpgjs/server";
 import { player } from "./player";
 import { QuestGiver, PixelShard } from "./event";
+import {
+  type MapRole,
+  MAP_ROLES,
+  SIMPLEMAP_ID,
+  VILLAGE_NODE_ROLES,
+} from "./layoutRoles";
+
+function eventPosition(role: MapRole) {
+  return {
+    id: role.id,
+    x: role.x,
+    y: role.y,
+  };
+}
 
 export default defineModule<RpgServer>({
   player,
   maps: [
     {
-      id: "simplemap",
+      id: SIMPLEMAP_ID,
       events: [
-        { id: "ai-guide", x: 290, y: 372, event: QuestGiver() },
-        { id: "shard-1", x: 500, y: 351, event: PixelShard() },
-        { id: "shard-2", x: 650, y: 350, event: PixelShard() },
-        { id: "shard-3", x: 560, y: 520, event: PixelShard() },
+        { ...eventPosition(MAP_ROLES.aiGuide), event: QuestGiver() },
+        ...VILLAGE_NODE_ROLES.map((role) => ({
+          ...eventPosition(role),
+          event: PixelShard(),
+        })),
       ],
     },
   ],

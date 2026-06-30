@@ -1,10 +1,11 @@
-import { RpgPlayer, type RpgPlayerHooks, Components } from "@rpgjs/server";
+import { RpgPlayer, type RpgPlayerHooks } from "@rpgjs/server";
+import { MAP_ROLES } from "./layoutRoles";
 
 export const player: RpgPlayerHooks = {
   onConnected(player: RpgPlayer) {
-    player.changeMap("simplemap", {
-      x: 376,
-      y: 217,
+    player.changeMap(MAP_ROLES.playerSpawn.map, {
+      x: MAP_ROLES.playerSpawn.x,
+      y: MAP_ROLES.playerSpawn.y,
     });
     player.name = "YourName";
     player.setGraphic("hero");
