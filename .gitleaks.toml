@@ -1,0 +1,15 @@
+# Open Pixel gitleaks configuration
+#
+# Local pre-commit secret scanning. Used by `.husky/pre-commit` when the
+# `gitleaks` binary is present. The guard is optional and does not fail
+# commits if gitleaks is not installed.
+#
+# This config deliberately extends the gitleaks built-in default ruleset
+# without weakening it. There are no allowlists here that could hide real
+# secrets. Add allowlists only with explicit justification and never to
+# silence a real finding.
+
+title = "open-pixel"
+
+[extend]
+useDefault = true

@@ -9,3 +9,21 @@ build/
 .vite/
 coverage/
 .vercel
+
+# Local agent / tool artifacts (not part of the app)
+.agents/
+.firecrawl/
+.omo/
+.playwright-mcp/
+.serena/
+.worktrees/
+.venv-ai-game-e2e/
+
+# QA / debug artifacts
+$FIXTURES/
+artifacts/
+skills-lock.json
+
+# Root-level QA screenshots (debug captures, diag dumps, etc.)
+# Scoped to repo root so legitimate PNGs under apps/, assets/, docs/ are unaffected.
+/*.png
