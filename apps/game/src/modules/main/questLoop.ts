@@ -15,19 +15,19 @@ export type QuestSnapshot = {
   nodeCollected?: boolean;
 };
 
-export type NotificationDecision = {
+export type QuestNotification = {
   message: string;
   sound: "collect" | "quest-complete";
   type: "info";
 };
 
-export type QuestDecision =
+export type GuideDecision =
   | { kind: "already-complete"; text: string }
   | {
       kind: "complete";
       setDone: true;
       rewardPoints: number;
-      notification: NotificationDecision;
+      notification: QuestNotification;
       text: string;
     }
   | { kind: "start-or-progress"; setStarted: true; text: string };
@@ -41,15 +41,15 @@ export type VillageNodeDecision =
       nodesRestored: number;
       markCollected: true;
       rewardPoints: number;
-      notification: NotificationDecision;
+      notification: QuestNotification;
       text: string;
     };
 
-export function decideGuideAction(snapshot: QuestSnapshot): QuestDecision {
+export function decideGuideAction(snapshot: QuestSnapshot): GuideDecision {
   if (snapshot.done) {
     return {
       kind: "already-complete",
-      text: "Village restoration complete. Return web page claim your guest badge or wallet proof.",
+      text: "Village restoration complete. Return to the web page to claim your guest badge or add an optional wallet proof.",
     };
   }
 
@@ -59,18 +59,18 @@ export function decideGuideAction(snapshot: QuestSnapshot): QuestDecision {
       setDone: true,
       rewardPoints: VILLAGE_COMPLETION_REWARD,
       notification: {
-        message: "Village restored · +100 points",
+        message: "Village restored! +100 off-chain points.",
         sound: "quest-complete",
         type: "info",
       },
-      text: "Village restoration complete! +100 off-chain progress points. Go back web page claim badge.",
+      text: "Cozy Resource-Village Loop complete. You restored all 3 village nodes and earned +100 off-chain points.",
     };
   }
 
   return {
     kind: "start-or-progress",
     setStarted: true,
-    text: `Village restoration: activate 3 village nodes. Press Space near each glowing node. Off-chain progress: ${snapshot.nodesRestored}/3`,
+    text: `Village restoration: activate 3 village nodes. Press Space near a glowing node. Off-chain progress: ${snapshot.nodesRestored}/${VILLAGE_NODE_TOTAL}`,
   };
 }
 
@@ -80,21 +80,21 @@ export function decideVillageNodeAction(
   if (!snapshot.started) {
     return {
       kind: "needs-guide",
-      text: "A restoration shard village. Talk AI Guide first, then return here.",
+      text: "Talk to the AI Guide first. The village loop starts there.",
     };
   }
 
   if (snapshot.done) {
     return {
       kind: "already-complete",
-      text: "You already restored village route.",
+      text: "This village node is already restored.",
     };
   }
 
   if (snapshot.nodeCollected) {
     return {
       kind: "already-restored",
-      text: "This restoration shard already collected.",
+      text: "This village node is already glowing. Find another node.",
     };
   }
 
@@ -109,10 +109,10 @@ export function decideVillageNodeAction(
     markCollected: true,
     rewardPoints: VILLAGE_NODE_REWARD,
     notification: {
-      message: `Village node restored · ${nodesRestored}/3`,
+      message: `Village node restored ${nodesRestored}/${VILLAGE_NODE_TOTAL}.`,
       sound: "collect",
       type: "info",
     },
-    text: `Village node restored. Off-chain progress: ${nodesRestored}/3. +10 points.`,
+    text: `Village node restored. Off-chain progress: ${nodesRestored}/${VILLAGE_NODE_TOTAL}. +10 points.`,
   };
 }

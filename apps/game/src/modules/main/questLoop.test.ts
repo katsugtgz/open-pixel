@@ -18,7 +18,7 @@ describe("Cozy Resource-Village Loop", () => {
     ).toEqual({
       kind: "start-or-progress",
       setStarted: true,
-      text: "Village restoration: activate 3 village nodes. Press Space near each glowing node. Off-chain progress: 0/3",
+      text: "Village restoration: activate 3 village nodes. Press Space near a glowing node. Off-chain progress: 0/3",
     });
   });
 
@@ -36,7 +36,7 @@ describe("Cozy Resource-Village Loop", () => {
       markCollected: true,
       rewardPoints: VILLAGE_NODE_REWARD,
       notification: {
-        message: "Village node restored · 2/3",
+        message: "Village node restored 2/3.",
         sound: "collect",
         type: "info",
       },
@@ -44,7 +44,7 @@ describe("Cozy Resource-Village Loop", () => {
     });
   });
 
-  it("completes village restoration after three nodes", () => {
+  it("completes the loop after three village nodes", () => {
     expect(
       decideGuideAction({
         started: true,
@@ -56,15 +56,15 @@ describe("Cozy Resource-Village Loop", () => {
       setDone: true,
       rewardPoints: VILLAGE_COMPLETION_REWARD,
       notification: {
-        message: "Village restored · +100 points",
+        message: "Village restored! +100 off-chain points.",
         sound: "quest-complete",
         type: "info",
       },
-      text: "Village restoration complete! +100 off-chain progress points. Go back web page claim badge.",
+      text: "Cozy Resource-Village Loop complete. You restored all 3 village nodes and earned +100 off-chain points.",
     });
   });
 
-  it("keeps quest variables behind the public module constants", () => {
+  it("keeps RPG-JS variable keys behind the module interface", () => {
     expect(QUEST_VARIABLES).toEqual({
       nodesRestored: "open_pixel_shards",
       started: "open_pixel_quest_started",
