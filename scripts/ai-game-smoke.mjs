@@ -357,7 +357,7 @@ async function captureGameState(page) {
 
 async function askVlmForAction({ screenshot, index, steps, fallback }) {
   if (!config.vlmBaseUrl || !config.vlmModel) return fallback;
-  const prompt = `You are testing Open Pixel, an RPG-JS pixel quest game. Goal: verify real game flow, not DOM. Use one action only. Find menu/start/dialogue/player movement/quest/shards. Return strict JSON: {"type":"key","key":"ArrowDown|ArrowUp|ArrowLeft|ArrowRight|Space|Enter|Escape","note":"short reason"} or {"type":"click","x":640,"y":400,"note":"short reason"}. Step ${index}. Recent actions: ${JSON.stringify(steps.slice(-5).map((s) => s.action))}`;
+  const prompt = `You are testing Open Pixel, an RPG-JS pixel quest game. Goal: verify real game flow, not DOM. Use one action only. Find menu/start/dialogue/player movement/quest/nodes. Return strict JSON: {"type":"key","key":"ArrowDown|ArrowUp|ArrowLeft|ArrowRight|Space|Enter|Escape","note":"short reason"} or {"type":"click","x":640,"y":400,"note":"short reason"}. Step ${index}. Recent actions: ${JSON.stringify(steps.slice(-5).map((s) => s.action))}`;
   const body = {
     model: config.vlmModel,
     messages: [

@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -33,11 +34,13 @@ MAX_STEPS = int(os.getenv("AI_GAME_AGENT_MAX_STEPS", "40"))
 STEP_DELAY = float(os.getenv("AI_GAME_AGENT_STEP_DELAY", "0.7"))
 BROWSER = os.getenv("AI_GAME_BROWSER", "chromium")
 HEADLESS = os.getenv("AI_GAME_AGENT_HEADLESS", "0") == "1"
+CDP_PORT = int(os.getenv("AI_GAME_CDP_PORT", "9223"))
+SCREENSHOT_SOURCE = os.getenv("AI_GAME_SCREENSHOT_SOURCE", "desktop")
 
 SYSTEM_PROMPT = """You are an autonomous QA tester playing Open Pixel, a real RPG-JS pixel quest game.
-Goal: test actual gameplay flow, not DOM. Try to complete: boot game, move player, find AI Guide NPC, interact, collect 3 Pixel Shards, complete quest.
+Goal: test actual gameplay flow, not DOM. Try to complete: boot game, move player, find AI Guide NPC, interact, restore 3 village nodes, complete quest.
 Use only human-like controls: arrow keys, Space, Enter, Escape, mouse click.
-Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, NPC dialogue failing, shards unreachable, quest not progressing.
+Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, NPC dialogue failing, nodes unreachable, quest not progressing.
 Return ONLY strict JSON. No markdown.
 Schema:
 {
@@ -130,6 +133,8 @@ def main() -> int:
                 diff_score=diff_score,
             )
             steps.append(step)
+            if step.progress.lower() in {"move", "npc", "dialogue", "shard", "quest", "done"}:
+                stuck_count = 0
             write_live_report(steps, bugs, passed=False, reason="running")
 
             if step.progress == "done":
@@ -261,6 +266,9 @@ def normalize_action(action: Any) -> dict[str, Any]:
 
 
 def execute(action: dict[str, Any]) -> None:
+    if SCREENSHOT_SOURCE == "cdp":
+        cdp_action(action)
+        return
     if action["type"] == "click":
         pyautogui.click(action["x"], action["y"])
     elif action["type"] == "key":
@@ -293,10 +301,46 @@ def fallback_action(index: int) -> dict[str, str]:
 
 
 def screenshot_desktop() -> Image.Image:
+    if SCREENSHOT_SOURCE == "cdp":
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+        try:
+            cdp_screenshot(tmp_path)
+            with Image.open(tmp_path) as img:
+                return img.convert("RGB")
+        finally:
+            tmp_path.unlink(missing_ok=True)
     with mss.mss() as sct:
         monitor = sct.monitors[1]
         raw = sct.grab(monitor)
         return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
+
+
+def cdp_screenshot(path: Path) -> None:
+    run_cdp_helper(["screenshot", str(path)])
+
+
+def cdp_action(action: dict[str, Any]) -> None:
+    if action["type"] == "click":
+        run_cdp_helper(["click", str(action["x"]), str(action["y"])])
+    elif action["type"] == "key":
+        run_cdp_helper(["press", action["key"]])
+
+
+def run_cdp_helper(args: list[str]) -> None:
+    subprocess.run(
+        [
+            "node",
+            str(ROOT / "scripts" / "playwright-cdp-game-agent.mjs"),
+            "--port",
+            str(CDP_PORT),
+            *args,
+        ],
+        cwd=ROOT,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 def image_data_url(img: Image.Image) -> str:
@@ -313,7 +357,8 @@ def image_changed(prev: Image.Image | None, cur: Image.Image) -> tuple[bool, flo
     diff = ImageChops.difference(prev.convert("RGB"), cur.convert("RGB"))
     stat = ImageStat.Stat(diff)
     score = sum(stat.mean) / 3.0
-    return score > 0.7, score
+    threshold = 0.15 if SCREENSHOT_SOURCE == "cdp" else 0.7
+    return score > threshold, score
 
 
 def likely_false_visual_bug(img: Image.Image, bug: dict[str, Any]) -> bool:
@@ -382,20 +427,24 @@ def start_browser() -> subprocess.Popen[Any]:
         if not cmd:
             continue
         try:
-            args = [
-                cmd,
+            browser_args = [
                 "--new-window",
                 "--no-first-run",
                 "--disable-infobars",
-                "--disable-gpu",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
+                f"--remote-debugging-port={CDP_PORT}",
                 "--window-position=0,0",
                 "--window-size=1280,800",
                 URL,
             ]
             if HEADLESS:
-                args.insert(1, "--headless=new")
+                browser_args.insert(0, "--headless=new")
+            if sys.platform == "darwin" and ".app/Contents/MacOS/" in cmd:
+                app_bundle = cmd.split(".app/Contents/MacOS/", 1)[0] + ".app"
+                args = ["open", "-na", app_bundle, "--args", *browser_args]
+            else:
+                args = [cmd, *browser_args]
             return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         except FileNotFoundError:
             continue
@@ -403,6 +452,15 @@ def start_browser() -> subprocess.Popen[Any]:
 
 
 def focus_game_window() -> None:
+    if sys.platform == "darwin":
+        for app_name in ("Google Chrome for Testing", "Chromium", "Google Chrome"):
+            subprocess.run(
+                ["osascript", "-e", f'tell application "{app_name}" to activate'],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+            time.sleep(0.2)
     pyautogui.click(640, 400)
     time.sleep(0.2)
 
