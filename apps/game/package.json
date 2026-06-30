@@ -6,7 +6,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "echo no lint configured",
-    "typecheck": "echo typecheck via vite build"
+    "typecheck": "echo typecheck via vite build",
+    "test": "vitest run src/modules/main && node --test src/config/gameSmokeContract.test.mjs"
   },
   "keywords": [],
   "author": "",
