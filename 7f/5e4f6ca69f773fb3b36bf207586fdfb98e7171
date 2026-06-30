@@ -1,0 +1,62 @@
+apps/game/index.html
+  s_c9ad5b95723903::t_ba31b3312a5bd1 235
+apps/game/src/modules/main/layoutRoles.ts
+  s_019c85bfb06839::t_81e774a397c192 1-47
+apps/game/src/modules/main/questLoop.ts
+  s_019c85bfb06839::t_81e774a397c192 1-118
+apps/game/src/modules/main/server.ts
+  s_019c85bfb06839::t_b1887cfe1c478b 5-18,26,28
+  s_019c85bfb06839::t_21dba195429b56 24,27,29-30
+apps/game/src/tiled/simplemap.tmx
+  s_918f3f628a3c2d::t_d33dbe94f5c21b 22,27
+apps/game/src/modules/main/questLoop.test.ts
+  s_019c85bfb06839::t_81e774a397c192 1-74
+apps/game/src/modules/main/player.ts
+  s_019c85bfb06839::t_b1887cfe1c478b 1
+  s_019c85bfb06839::t_21dba195429b56 2,6-8
+apps/game/src/modules/main/event.ts
+  s_019c85bfb06839::t_81e774a397c192 2-7,9-23,31-38,40,43-48,59-66,68-72,74
+  s_873d3f157ed1cf::t_9f7a2ccca509d4 75
+apps/game/src/modules/main/layoutRoles.test.ts
+  s_019c85bfb06839::t_81e774a397c192 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "7f5e4f6ca69f773fb3b36bf207586fdfb98e7171",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_873d3f157ed1cf": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0e89e52e3ffeJ3cHNdXuU0vg4H",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_918f3f628a3c2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef7a7-be7c-79b3-b3d4-1f02f23aada5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c9ad5b95723903": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0d11-be5b-7ad0-8493-cad7a19f3a02",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
