@@ -11,7 +11,7 @@ export const player: RpgPlayerHooks = {
     player.setGraphic("hero");
   },
   onInput(player: RpgPlayer, { action }) {
-    if (action == "escape") {
+    if (action === "escape") {
       player.callMainMenu();
     }
   },
