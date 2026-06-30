@@ -2,9 +2,14 @@ import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { inflateSync } from "node:zlib";
+import {
+  GAME_SMOKE_CONTRACT,
+  getGamePreviewUrl,
+  isGameAssetUrl,
+} from "../apps/game/src/config/gameSmokeContract.js";
 
 const providedUrl = process.argv[2];
-const url = providedUrl || "http://127.0.0.1:4173/game/";
+const url = providedUrl || getGamePreviewUrl();
 const preview = providedUrl ? null : await startPreview();
 
 const pageErrors = [];
@@ -42,10 +47,14 @@ try {
   });
 
   await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
-  await page.waitForSelector("#rpg canvas", { timeout: 20_000 });
+  await page.waitForSelector(GAME_SMOKE_CONTRACT.canvasSelector, {
+    timeout: 20_000,
+  });
   await page.waitForTimeout(2_000);
 
-  const canvasBox = await page.locator("#rpg canvas").boundingBox();
+  const canvasBox = await page
+    .locator(GAME_SMOKE_CONTRACT.canvasSelector)
+    .boundingBox();
   const screenshot = await page.screenshot({ fullPage: false });
   const pixels = decodePng(screenshot);
   const result = sampleNonBlackPixels(pixels, canvasBox);
@@ -60,13 +69,6 @@ try {
 } finally {
   await browser?.close();
   stopPreview(preview);
-}
-
-function isGameAssetUrl(value) {
-  return (
-    /\/(map|assets|spritesheets)\//.test(value) ||
-    /\/(default-bundle|revoltfx-spritesheet)\.json(?:\?|$)/.test(value)
-  );
 }
 
 function findChromiumExecutable() {
@@ -92,10 +94,11 @@ function stopPreview(child) {
 }
 
 async function startPreview() {
+  const { cwd, host, port } = GAME_SMOKE_CONTRACT.preview;
   const child = spawn(
     "npx",
-    ["vite", "preview", "--host", "127.0.0.1", "--port", "4173"],
-    { cwd: "apps/web", detached: true, stdio: ["ignore", "pipe", "pipe"] },
+    ["vite", "preview", "--host", host, "--port", String(port)],
+    { cwd, detached: true, stdio: ["ignore", "pipe", "pipe"] },
   );
   let output = "";
   child.stdout.on("data", (chunk) => {
@@ -110,7 +113,7 @@ async function startPreview() {
       throw new Error(`vite preview exited early:\n${output}`);
     }
     try {
-      const response = await fetch("http://127.0.0.1:4173/game/");
+      const response = await fetch(getGamePreviewUrl());
       if (response.ok) return child;
     } catch {
       // Keep polling until Vite binds the port.
@@ -199,7 +202,9 @@ function sampleNonBlackPixels(pixels, box) {
     }
   }
   return {
-    ok: nonBlackPixels > 500,
+    ok:
+      nonBlackPixels >
+      GAME_SMOKE_CONTRACT.movement.renderNonBlackPixelThreshold,
     reason: `sampled non-black pixels: ${nonBlackPixels}`,
     width: Math.round(box.width),
     height: Math.round(box.height),
