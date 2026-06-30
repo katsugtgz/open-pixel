@@ -1,0 +1,33 @@
+scripts/check-supabase-schema.mjs
+  s_019c85bfb06839::t_170a970f091619 1-2,17-19,32,35
+  s_873d3f157ed1cf::t_4a18b1a3b2def2 5-6
+packages/shared/test/index.test.mjs
+  s_019c85bfb06839::t_8650100e527be8 13
+  s_019c85bfb06839::t_9673db4425a481 82-90
+packages/shared/src/index.ts
+  s_019c85bfb06839::t_5969266115f6f1 90-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "c4909815568770b269bdadedef3c3653852288e8",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_873d3f157ed1cf": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0e89e52e3ffeJ3cHNdXuU0vg4H",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
