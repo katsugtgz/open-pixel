@@ -2,9 +2,9 @@
 
 ## v0.1 — hackathon demo
 
-- RPG-JS map.
-- AI Guide NPC.
-- Pixel Shard gather quest.
+- RPG-JS village map.
+- CropPlot, Tree, Mine, OrderBoard events.
+- Cozy Resource-Village Loop.
 - Off-chain points.
 - Guest claim.
 - Optional wallet signature proof.

@@ -4,7 +4,6 @@ import {
   Presets,
   withMobile,
 } from "@rpgjs/client";
-import { provideMain } from "../modules/main";
 import { provideTiledMap } from "@rpgjs/tiledmap/client";
 
 export default {
@@ -13,7 +12,6 @@ export default {
       basePath: "map",
     }),
     provideClientGlobalConfig(),
-    provideMain(),
     provideClientModules([
       withMobile(),
       {

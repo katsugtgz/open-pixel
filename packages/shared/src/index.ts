@@ -1,12 +1,41 @@
-export type QuestRun = {
+export interface QuestRunResources {
+  popberry: number;
+  whittlewood_log: number;
+  ochrux_matrix: number;
+}
+
+export interface QuestRun {
   id: string;
   guestId: string;
   displayName: string;
   questId: string;
   points: number;
-  shards: number;
+  resources: QuestRunResources;
+  shards?: number;
   completedAt: string;
-};
+}
+
+export function createQuestRun(input: {
+  id: string;
+  guestId: string;
+  displayName: string;
+  questId: string;
+  points: number;
+  resources: QuestRunResources;
+  completedAt: string;
+  shards?: number;
+}): QuestRun {
+  return {
+    id: input.id,
+    guestId: input.guestId,
+    displayName: input.displayName,
+    questId: input.questId,
+    points: input.points,
+    resources: input.resources,
+    shards: input.shards ?? 0,
+    completedAt: input.completedAt,
+  };
+}
 
 export type WalletProof = {
   questRunId: string;

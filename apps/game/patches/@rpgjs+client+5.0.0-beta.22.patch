@@ -1,0 +1,13 @@
+diff --git a/node_modules/@rpgjs/client/src/components/character.ce b/node_modules/@rpgjs/client/src/components/character.ce
+index c57221f..315d611 100644
+--- a/node_modules/@rpgjs/client/src/components/character.ce
++++ b/node_modules/@rpgjs/client/src/components/character.ce
+@@ -1100,7 +1100,7 @@
+       return;
+     }
+ 
+-    if (curr == 'stand' && !isMoving) {
++    if (curr == 'stand') {
+       if (!resumeHeldDirectionWalkAnimation()) {
+         realAnimationName.set(curr);
+       }

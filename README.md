@@ -21,7 +21,7 @@
 
 ## What is Open Pixel?
 
-Open Pixel is a cozy browser RPG prototype inspired by social pixel worlds like Pixels.xyz. Players enter as guests, meet an AI Guide NPC, complete a resource-gathering quest, earn off-chain points, and optionally create a safe wallet proof.
+Open Pixel is a cozy browser RPG prototype inspired by social pixel worlds like Pixels.xyz. Players enter as guests, explore a farm village, gather resources, fulfill orders, earn off-chain points, and optionally create a safe wallet proof.
 
 The project is intentionally **not** a token economy. There is no staking, no swaps, no NFT marketplace, and no play-to-earn financial loop. The Web3 layer is limited to an optional readable wallet signature that proves quest completion.
 
@@ -37,9 +37,9 @@ The project is intentionally **not** a token economy. There is no staking, no sw
 
 ## Core value
 
-- Browser-based pixel RPG quest loop.
+- Browser-based cozy resource-village loop.
 - Guest-first onboarding: no wallet required to play.
-- Simulated AI quest generator: deterministic, fast, no external API cost.
+- Deterministic resource-village loop: fast, no external API cost.
 - Optional wallet proof via readable `personal_sign` message only.
 - Supabase-backed leaderboard/proof storage using the free tier.
 - Monorepo layout for game, web claim page, and shared proof helpers.
@@ -48,9 +48,10 @@ The project is intentionally **not** a token economy. There is no staking, no sw
 
 ```text
 Guest player
-  → enters RPG-JS game
-  → talks to AI Guide
-  → gathers Pixel Shards
+  → enters RPG-JS farm village
+  → plants, waters, harvests crops
+  → chops trees, mines rocks
+  → fulfills village orders
   → earns off-chain points
   → claims guest badge
   → optionally signs readable wallet proof
@@ -76,7 +77,7 @@ Example message:
 ```text
 Open Pixel Proof
 
-I completed Quest #1 with 130 off-chain points.
+I completed the Cozy Resource-Village Loop with off-chain village points.
 
 Domain: openpixel.app
 Wallet: 0x...
@@ -131,7 +132,7 @@ VITE_GAME_URL=/game
 ```text
 open-pixel/
   apps/
-    game/       # RPG-JS game: map, NPC, quest, gather loop
+    game/       # RPG-JS game: map, village, resource loop
     web/        # React/Vite claim page, wallet proof, leaderboard shell
   packages/
     shared/     # proof message helpers + shared types

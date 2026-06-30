@@ -15,15 +15,16 @@ Build an AI-native Web3 pixel quest game for a hackathon demo. The core experien
 - Wallet proof lives outside the game on a claim page.
 - Guest ID first; optional wallet link.
 - Supabase free tier for persistence.
-- Simulated AI quest generator for MVP.
+- Deterministic Cozy Resource-Village Loop for MVP.
 
 ## MVP loop
 
 ```text
 Enter as guest
-  → talk to AI Guide
-  → receive generated quest
-  → gather 3 Pixel Shards
+  → enter farm village
+  → plant, water, harvest crops
+  → chop trees, mine rocks
+  → fulfill village orders
   → earn off-chain points
   → claim guest badge
   → optionally sign wallet proof
@@ -35,9 +36,9 @@ Enter as guest
 ```text
 apps/game
   RPG-JS map/player/events
-  AI Guide NPC
-  shard gather events
-  off-chain point state
+  village resource loop
+  CropPlot, Tree, Mine, OrderBoard events
+  off-chain village points
 
 apps/web
   landing page

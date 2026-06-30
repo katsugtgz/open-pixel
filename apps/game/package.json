@@ -6,31 +6,33 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "echo no lint configured",
-    "typecheck": "echo typecheck via vite build"
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "description": "",
   "devDependencies": {
-    "@canvasengine/compiler": "2.0.0-beta.56",
+    "@canvasengine/compiler": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "path-browserify": "^1.0.1",
     "vite": "^8.0.3"
   },
   "private": true,
   "dependencies": {
-    "@canvasengine/presets": "2.0.0-beta.56",
-    "@rpgjs/action-battle": "5.0.0-beta.1",
-    "@rpgjs/client": "5.0.0-beta.1",
-    "@rpgjs/common": "5.0.0-beta.1",
-    "@rpgjs/server": "5.0.0-beta.1",
-    "@rpgjs/tiledmap": "5.0.0-beta.1",
-    "@rpgjs/ui-css": "5.0.0-beta.1",
-    "@rpgjs/vite": "5.0.0-beta.1",
-    "@signe/di": "^2.9.0",
-    "canvasengine": "2.0.0-beta.56",
-    "pixi.js": "8.17.1"
+    "@canvasengine/presets": "^2.0.0",
+    "@rpgjs/action-battle": "5.0.0-beta.22",
+    "@rpgjs/client": "5.0.0-beta.22",
+    "@rpgjs/common": "5.0.0-beta.21",
+    "@rpgjs/server": "5.0.0-beta.22",
+    "@rpgjs/tiledmap": "5.0.0-beta.22",
+    "@rpgjs/ui-css": "5.0.0-beta.21",
+    "@rpgjs/vite": "5.0.0-beta.22",
+    "@signe/di": "^3.1.0",
+    "canvasengine": "^2.0.1",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.9.2"
   },
   "type": "module"
 }

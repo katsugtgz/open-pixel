@@ -34,17 +34,17 @@ STEP_DELAY = float(os.getenv("AI_GAME_AGENT_STEP_DELAY", "0.7"))
 BROWSER = os.getenv("AI_GAME_BROWSER", "chromium")
 HEADLESS = os.getenv("AI_GAME_AGENT_HEADLESS", "0") == "1"
 
-SYSTEM_PROMPT = """You are an autonomous QA tester playing Open Pixel, a real RPG-JS pixel quest game.
-Goal: test actual gameplay flow, not DOM. Try to complete: boot game, move player, find AI Guide NPC, interact, collect 3 Pixel Shards, complete quest.
+SYSTEM_PROMPT = """You are an autonomous QA tester playing Open Pixel, a cozy RPG-JS resource-village game.
+Goal: test actual gameplay flow, not DOM. Explore the farm village: walk to crop plots, trees, and mine rocks, then find the Task Board. Press Space near each plot/tree/mine to plant, water, or harvest crops (Popberry), chop trees (Whittlewood Log), and mine rocks (Ochrux Matrix). Open the Task Board and fulfill an order.
 Use only human-like controls: arrow keys, Space, Enter, Escape, mouse click.
-Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, NPC dialogue failing, shards unreachable, quest not progressing.
+Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, plots/trees/mines unresponsive, orders not fulfilling, inventory not updating.
 Return ONLY strict JSON. No markdown.
 Schema:
 {
   "action": {"type":"key","key":"ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Space|Enter|Escape"},
   "observation": "what you see",
   "reason": "why this action",
-  "progress": "boot|move|npc|dialogue|shard|quest|stuck|bug|done",
+  "progress": "boot|move|plot|tree|mine|order|dialogue|stuck|bug|done",
   "bug": null or {"severity":"low|medium|high","title":"short","evidence":"visual reason"}
 }
 For mouse action use: {"type":"click","x":640,"y":400}.
@@ -172,7 +172,7 @@ def ask_vlm(img: Image.Image, steps: list[Step], stuck_count: int) -> dict[str, 
         "url": URL,
         "stuck_count": stuck_count,
         "recent_steps": recent,
-        "reminder": "Return strict JSON only. Prefer movement/exploration, Space near NPC/shard, Enter to advance dialogue.",
+        "reminder": "Return strict JSON only. Prefer movement/exploration, Space near plots, trees, mines, and the Task Board, Enter to advance dialogue.",
     }
     payload = {
         "model": MODEL,
@@ -282,8 +282,27 @@ def to_pyautogui_key(key: str) -> str:
 def has_gameplay_progress(steps: list[Step]) -> bool:
     progress = {s.progress.lower() for s in steps}
     text = " ".join(f"{s.progress} {s.observation}".lower() for s in steps)
-    return bool(progress & {"move", "npc", "dialogue", "shard", "quest", "done"}) or any(
-        token in text for token in ["moved", "npc", "dialogue", "shard", "quest"]
+    return bool(
+        progress & {"move", "plot", "tree", "mine", "order", "dialogue", "done"}
+    ) or any(
+        token in text
+        for token in [
+            "moved",
+            "plot",
+            "popberry",
+            "tree",
+            "whittlewood",
+            "chop",
+            "mine",
+            "ochrux",
+            "matrix",
+            "harvest",
+            "plant",
+            "water",
+            "fulfill",
+            "order",
+            "board",
+        ]
     )
 
 

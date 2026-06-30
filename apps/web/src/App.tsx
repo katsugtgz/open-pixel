@@ -1,10 +1,12 @@
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProofMessage,
   createGuestId,
   createRandomId,
   formatSupabaseError,
+  type QuestRun,
+  type QuestRunResources,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -30,8 +32,8 @@ const pillars = [
   },
   {
     title: "Gather",
-    body: "Talk to the AI Guide, then collect 3 cyan Pixel Shards.",
-    stat: "+130 pts",
+    body: "Harvest crops, gather wood and ore, fulfill village orders.",
+    stat: "off-chain pts",
   },
   {
     title: "Prove",
@@ -46,31 +48,29 @@ const mockLeaderboard = [
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
 
-type QuestRunView = {
-  id: string;
-  guestId: string;
-  displayName: string;
-  questId: string;
+export type VillageProgress = {
   points: number;
-  shards: number;
-  completedAt: string;
+  resources: QuestRunResources;
+  completedAt?: string;
 };
 
-type AppState = {
+export type AppState = {
   guestId: string;
   displayName: string;
   walletAddress: string;
   signature: string;
   status: string;
+  villageProgress?: VillageProgress;
 };
 
-type AppAction =
+export type AppAction =
   | { type: "displayName"; value: string }
   | { type: "walletAddress"; value: string }
   | { type: "signature"; value: string }
-  | { type: "status"; value: string };
+  | { type: "status"; value: string }
+  | { type: "villageProgress"; value: VillageProgress };
 
-function getGuestId() {
+export function getGuestId() {
   const existing = localStorage.getItem("open_pixel_guest_id");
   if (existing) return existing;
   const next = createGuestId();
@@ -78,7 +78,7 @@ function getGuestId() {
   return next;
 }
 
-function initialState(): AppState {
+export function initialState(): AppState {
   return {
     guestId: getGuestId(),
     displayName: "Pixel Runner",
@@ -88,7 +88,7 @@ function initialState(): AppState {
   };
 }
 
-function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "displayName":
       return { ...state, displayName: action.value };
@@ -98,7 +98,122 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, signature: action.value };
     case "status":
       return { ...state, status: action.value };
+    case "villageProgress":
+      return { ...state, villageProgress: action.value };
   }
+}
+
+const DEFAULT_RESOURCES: QuestRunResources = {
+  popberry: 0,
+  whittlewood_log: 0,
+  ochrux_matrix: 0,
+};
+
+/**
+ * Build the QuestRun from live village state, not literals.
+ */
+export function buildQuestRunFromState(state: AppState): QuestRun {
+  const progress = state.villageProgress;
+  const completedAt = progress?.completedAt ?? new Date(0).toISOString();
+  return {
+    id: `run_${state.guestId.slice(-8)}`,
+    guestId: state.guestId,
+    displayName: state.displayName.trim() || "Pixel Runner",
+    questId: "Quest #1 — Village Resource Loop",
+    points: progress?.points ?? 0,
+    resources: progress?.resources ?? DEFAULT_RESOURCES,
+    shards: progress?.completedAt ? 3 : 0,
+    completedAt,
+  };
+}
+
+export function canClaimGuestBadge(state: AppState): boolean {
+  return state.villageProgress?.completedAt != null;
+}
+
+// Security: postMessage is broadcast to any listener. Pin the expected game
+// origin so a malicious iframe cannot forge a village:complete payload that
+// persists fake points. Relative or unset VITE_GAME_URL falls back to same-origin.
+const EXPECTED_GAME_ORIGIN = (() => {
+  const configured = import.meta.env.VITE_GAME_URL as string | undefined;
+  if (!configured) return new URL(gameUrl, window.location.href).origin;
+  try {
+    return new URL(configured, window.location.href).origin;
+  } catch {
+    return window.location.origin;
+  }
+})();
+
+// Hackathon bridge: game runs on a separate origin and player.emit only reaches
+// the in-game socket (see apps/game/src/modules/village/proof-bridge.ts). This
+// handler accepts the same payload via window.postMessage (cross-origin iframe)
+// or a CustomEvent-shaped event (same-page embedding) until a real socket lands.
+export function isNonNegativeInteger(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 0;
+}
+
+function normalizeCompletedAt(value: unknown): string | undefined {
+  if (typeof value === "string" && !Number.isNaN(Date.parse(value)))
+    return value;
+  if (typeof value === "number" && Number.isFinite(value))
+    return new Date(value).toISOString();
+  return undefined;
+}
+
+function normalizeVillageProgress(value: unknown): VillageProgress | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const resources = record.resources as Record<string, unknown> | undefined;
+  if (!resources || typeof resources !== "object") return null;
+
+  const progressResources = {
+    popberry: resources.popberry,
+    whittlewood_log: resources.whittlewood_log,
+    ochrux_matrix: resources.ochrux_matrix,
+  };
+  if (
+    !isNonNegativeInteger(progressResources.popberry) ||
+    !isNonNegativeInteger(progressResources.whittlewood_log) ||
+    !isNonNegativeInteger(progressResources.ochrux_matrix)
+  ) {
+    return null;
+  }
+  const points = record.points ?? 0;
+  if (!isNonNegativeInteger(points)) return null;
+
+  return {
+    ...record,
+    resources: progressResources,
+    points,
+    completedAt: normalizeCompletedAt(record.completedAt),
+  } as VillageProgress;
+}
+
+export function makeVillageBridgeHandler(
+  dispatch: React.Dispatch<AppAction>,
+): (event: MessageEvent | CustomEvent) => void {
+  return (event: MessageEvent | CustomEvent) => {
+    const isCustomEvent = "detail" in event;
+    if (
+      !isCustomEvent &&
+      event.origin &&
+      event.origin !== EXPECTED_GAME_ORIGIN &&
+      event.origin !== window.location.origin
+    ) {
+      return;
+    }
+
+    const data = isCustomEvent ? event.detail : event.data;
+    if (!data || typeof data !== "object") return;
+    if ((data as { type?: unknown }).type !== "village:complete") return;
+
+    const payload = normalizeVillageProgress(
+      (data as { payload?: unknown }).payload,
+    );
+    if (!payload) return;
+
+    dispatch({ type: "villageProgress", value: payload });
+  };
 }
 
 function shortAddress(address: string) {
@@ -144,8 +259,8 @@ function HeroSection() {
           </a>
         </div>
         <p className="subtitle">
-          Talk to the AI Guide, collect 3 Pixel Shards, claim an off-chain
-          badge. Wallet proof stays optional and readable.
+          Harvest crops, gather wood and ore, fulfill village orders, then claim
+          an off-chain badge. Wallet proof stays optional and readable.
         </p>
         <div className="control-guide" aria-label="Demo controls">
           <span className="desktop-control">Desktop: Arrow keys to move</span>
@@ -175,8 +290,8 @@ function HeroSection() {
           <div className="tile crystal small" />
         </div>
         <div className="dialog-card">
-          <strong>AI Guide</strong>
-          <span>Gather 3 Pixel Shards → +130 pts</span>
+          <strong>Village Loop</strong>
+          <span>Popberry · WhittlewoodLog · OchruxMatrix → off-chain pts</span>
         </div>
       </div>
     </section>
@@ -188,7 +303,7 @@ function LoopSection() {
     <section className="section" id="loop">
       <div className="section-heading">
         <p className="eyebrow">Demo loop</p>
-        <h2>Three steps: talk, gather, claim.</h2>
+        <h2>Three steps: gather, fulfill, claim.</h2>
       </div>
       <div className="pillar-grid">
         {pillars.map((pillar) => (
@@ -239,7 +354,7 @@ function DesignSection() {
 
 type ClaimSectionProps = {
   state: AppState;
-  questRun: QuestRunView;
+  questRun: QuestRun;
   onDisplayNameChange(value: string): void;
   onClaim(): void;
   onConnectWallet(): void;
@@ -259,6 +374,11 @@ function ClaimSection({
       <article className="panel claim-panel">
         <p className="eyebrow">Guest claim</p>
         <h2>Claim the demo badge.</h2>
+        <p className="claim-note">
+          Complete village orders in the game to earn resources and off-chain
+          points, then claim your badge here. Your run syncs through Supabase;
+          no wallet is required.
+        </p>
         <label>
           Display name
           <input
@@ -276,9 +396,12 @@ function ClaimSection({
             <strong>{questRun.questId}</strong>
           </p>
           <p>
-            <span>Result</span>
+            <span>Resources</span>
             <strong>
-              {questRun.shards}/3 shards · {questRun.points} pts
+              {questRun.resources.popberry} Popberry ·{" "}
+              {questRun.resources.whittlewood_log} WhittlewoodLog ·{" "}
+              {questRun.resources.ochrux_matrix} OchruxMatrix ·{" "}
+              {questRun.points} pts
             </strong>
           </p>
         </div>
@@ -343,24 +466,31 @@ function StatusBar({ status }: { status: string }) {
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
 
-  const questRun = useMemo(
-    () => ({
-      id: `run_${state.guestId.slice(-8)}`,
-      guestId: state.guestId,
-      displayName: state.displayName.trim() || "Pixel Runner",
-      questId: "Quest #1 — Gather Pixel Shards",
-      points: 130,
-      shards: 3,
-      completedAt: new Date().toISOString(),
-    }),
-    [state.displayName, state.guestId],
-  );
+  const questRun = useMemo(() => buildQuestRunFromState(state), [state]);
+
+  // FIX 2 — register hackathon bridge listeners (postMessage + custom event).
+  useEffect(() => {
+    const handler = makeVillageBridgeHandler(dispatch);
+    window.addEventListener("message", handler);
+    window.addEventListener("village:complete", handler as EventListener);
+    return () => {
+      window.removeEventListener("message", handler);
+      window.removeEventListener("village:complete", handler as EventListener);
+    };
+  }, []);
 
   function setStatus(value: string) {
     dispatch({ type: "status", value });
   }
 
   async function saveGuestClaim(showSuccess = true) {
+    if (!canClaimGuestBadge(state)) {
+      setStatus(
+        "Complete the village quest first, then claim your guest badge.",
+      );
+      return false;
+    }
+
     if (!supabase) {
       setStatus("Guest badge ready locally. Add Supabase env to sync online.");
       return true;
@@ -388,7 +518,8 @@ function App() {
       display_name: questRun.displayName,
       quest_id: questRun.questId,
       points: questRun.points,
-      shards: questRun.shards,
+      resources: questRun.resources,
+      shards: questRun.shards ?? 0,
       completed_at: questRun.completedAt,
     });
 
