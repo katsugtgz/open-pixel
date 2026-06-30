@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
@@ -15,6 +16,18 @@ describe("guest id generation", () => {
       createGuestId(),
       /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
+  });
+});
+
+describe("random id generation", () => {
+  it("returns a non-empty string", () => {
+    const id = createRandomId();
+    assert.ok(typeof id === "string" && id.length > 0);
+  });
+
+  it("produces unique values across calls", () => {
+    const ids = new Set(Array.from({ length: 50 }, () => createRandomId()));
+    assert.equal(ids.size, 50);
   });
 });
 
@@ -37,6 +50,28 @@ describe("wallet proof safety copy", () => {
       message,
       /does not approve tokens, NFTs, swaps, transfers, or transactions/i,
     );
+  });
+
+  it("includes domain, wallet, quest run, nonce, and timestamps in the message", () => {
+    const message = buildProofMessage({
+      domain: "open-pixel-livid.vercel.app",
+      walletAddress: "0xAbCd1234",
+      questRunId: "run_xyz789",
+      questId: "Quest #1",
+      points: 100,
+      nonce: "nonce-abc-123",
+      issuedAt: "2026-06-18T00:00:00.000Z",
+      expirationTime: "2026-06-18T00:10:00.000Z",
+    });
+
+    assert.match(message, /open-pixel-livid\.vercel\.app/);
+    assert.match(message, /0xAbCd1234/);
+    assert.match(message, /run_xyz789/);
+    assert.match(message, /nonce-abc-123/);
+    assert.match(message, /2026-06-18T00:00:00\.000Z/);
+    assert.match(message, /2026-06-18T00:10:00\.000Z/);
+    assert.match(message, /Quest #1/);
+    assert.match(message, /100 off-chain points/);
   });
 
   it("keeps the receipt free of transactions, approvals, spender, or contract calls", () => {
@@ -89,6 +124,22 @@ describe("Supabase schema diagnostics", () => {
           "Could not find the table 'public.players' in the schema cache",
       }),
       `Supabase player save failed: ${SUPABASE_SCHEMA_MISSING_TEXT}`,
+    );
+  });
+
+  it("passes through unknown errors without the schema hint", () => {
+    const result = formatSupabaseError("Save failed", {
+      message: "row-level security policy",
+    });
+    assert.ok(!result.includes(SUPABASE_SCHEMA_MISSING_TEXT));
+    assert.match(result, /row-level security policy/);
+  });
+
+  it("handles null or undefined error values gracefully", () => {
+    assert.match(formatSupabaseError("Failed", null), /Unknown Supabase error/);
+    assert.match(
+      formatSupabaseError("Failed", undefined),
+      /Unknown Supabase error/,
     );
   });
 });
