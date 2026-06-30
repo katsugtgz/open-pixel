@@ -1,0 +1,74 @@
+packages/shared/src/index.ts
+  s_019c85bfb06839::t_7728e81c9a7409 54,57-58,87,229,233
+  s_019c85bfb06839::t_4a7f0f31b98b76 20-53,55-56,59-86,88-99,109-125,155-228,230-232,234-243,254,263,271,277-278,282,285-286,288
+  s_873d3f157ed1cf::t_29f02e65111ffe 287,289-297
+packages/shared/test/index.test.mjs
+  s_019c85bfb06839::t_bc8e2461ba4e4b 5-6,8,12,14-18,63-85,87-100,102-111,113-131,133,135-139,141-144,148-157,159
+  s_0a470017b7daea::t_b390a174391655 86,101,112,132,134,145-147,158
+  s_019c85bfb06839::t_86cc4ad22943ee 140
+  s_019c85bfb06839::t_1520dcf0fe1de1 160
+apps/web/src/App.css
+  s_c9ad5b95723903::t_5a67ce55318710 117-187,189-192
+  s_c9ad5b95723903::t_c22d8864b591cb 1122-1145,1147-1159,1235
+  s_c9ad5b95723903::t_ebcf18c12c5c09 208,213-215,217-218,222,242,244
+  s_c9ad5b95723903::t_69eb59c2fe6482 1146
+  s_c9ad5b95723903::t_58ef65dcb3eeec 17-24,27-28,35-81,83-96,267-287
+  s_c9ad5b95723903::t_52c10b378b7e3d 31
+  s_c9ad5b95723903::t_f538bb347af0e2 25-26,29-30,32-34
+  s_c9ad5b95723903::t_4f18de4ddc1169 97-111,113-116,193-207,210-212,219-221,223-228,230-239,241,243,245-249,255-266
+  s_c9ad5b95723903::t_0a60c19f362c46 757-791
+  s_c9ad5b95723903::t_2e1ed080b680dc 209,216,229,240,250-254
+  s_c9ad5b95723903::t_b6796b670ce870 82
+  s_c9ad5b95723903::t_cc2baf60a0fb79 1160-1175,1177-1234
+  s_c9ad5b95723903::t_fab2c69d11cf6e 112,188,1176
+apps/web/src/App.tsx
+  s_019c85bfb06839::t_56469adc5f0f0c 1,4-11,13-15,41,57-58,65-70,75,88-89,103-108,113,120-125,147-151,160-162,165-167,171-172,176-178,192,219-225,232-233,244-246,248-249,261-288,291,310,330,349,395-399,403-404,406-407,409-413,415-417,420-423,425-426,429-435,438-441,443-444,446-450,452,455-456,458,466-470,477-479,488
+apps/web/src/lib/claimProof.ts
+  s_019c85bfb06839::t_283f80da7e7b4f 1-166
+  s_873d3f157ed1cf::t_ed5445eedba0c2 167-172
+apps/web/public/open-pixel-logo.svg
+  s_c9ad5b95723903::t_13f9cee7467bd5 1-13
+apps/web/src/lib/leaderboard.ts
+  s_019c85bfb06839::t_d7f025e4102eab 1-47,49-75
+  s_019c85bfb06839::t_b412a10afa4176 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "8ab74df02adee80138d32afadfb6bdd7a6184eaf",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_0a470017b7daea": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_11c9fd550ffePVnj9RHhslpL80",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_873d3f157ed1cf": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0e89e52e3ffeJ3cHNdXuU0vg4H",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c9ad5b95723903": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0d11-be5b-7ad0-8493-cad7a19f3a02",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
