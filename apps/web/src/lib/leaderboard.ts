@@ -15,7 +15,7 @@ type SupabaseAdapter = {
         column: string,
         options?: { ascending?: boolean },
       ): {
-        limit(count: number): Promise<{
+        limit(count: number): PromiseLike<{
           data: LeaderboardRow[] | null;
           error: unknown | null;
         }>;

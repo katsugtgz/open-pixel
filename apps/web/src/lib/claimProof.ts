@@ -14,7 +14,7 @@ type SupabaseAdapter = {
     upsert(
       row: Record<string, unknown>,
       options?: { onConflict?: string },
-    ): Promise<{ error: unknown | null }>;
+    ): PromiseLike<{ error: unknown | null }>;
   };
 };
 
@@ -22,9 +22,12 @@ export type WalletAdapter = {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
 };
 
-export type ClaimProofStatus =
-  | { ok: true; status: string; signature?: string; walletAddress?: string }
-  | { ok: false; status: string };
+export type ClaimProofStatus = {
+  ok: boolean;
+  status: string;
+  signature?: string;
+  walletAddress?: string;
+};
 
 export async function saveGuestClaim(input: {
   supabase: SupabaseAdapter | null;
