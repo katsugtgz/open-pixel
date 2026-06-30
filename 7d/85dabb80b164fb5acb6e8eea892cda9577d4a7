@@ -1,0 +1,23 @@
+apps/game/src/modules/main/layoutRoles.test.ts
+  s_019c85bfb06839::t_221d1a7b1e0c79 4-5,12,21
+apps/game/src/modules/main/server.ts
+  s_019c85bfb06839::t_20b2e1fa48b27c 10,13
+apps/game/src/modules/main/layoutRoles.ts
+  s_019c85bfb06839::t_7b097a43cbc2cd 1-4,7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "7d85dabb80b164fb5acb6e8eea892cda9577d4a7",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
