@@ -1,0 +1,43 @@
+package.json
+  s_c9ad5b95723903::t_ae363f4f8bbd4d 15
+.gitleaks.toml
+  s_22832fbc160b82::t_a67bc06b95ee08 1-15
+.gitignore
+  s_22832fbc160b82::t_e96f076bc6e212 12-29
+.husky/pre-commit
+  s_22832fbc160b82::t_50fbd99be52bae 2-13
+scripts/check-supabase-schema.mjs
+  s_019c85bfb06839::t_f4afea454af6f8 3,5-37,49-50,58,61-63,65,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "7ca34638d075975efbc3d5422b6f05767f0fd55d",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_22832fbc160b82": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0ed073e8bffeD1uII5xBs3D2oi",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_c9ad5b95723903": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0d11-be5b-7ad0-8493-cad7a19f3a02",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
