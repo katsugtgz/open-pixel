@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-RPG-JS/Vite game demo: simple map, AI Guide NPC, three Pixel Shards, local save, audio cues.
+RPG-JS/Vite game demo: simple map, AI Guide NPC, three village nodes, local save, audio cues.
 
 ## STRUCTURE
 
@@ -30,7 +30,7 @@ apps/game/
 
 | Symbol               | Location                     | Role                                                      |
 | -------------------- | ---------------------------- | --------------------------------------------------------- |
-| `QuestGiver`         | `src/modules/main/event.ts`  | Starts quest, checks 3 shards, grants +100.               |
+| `QuestGiver`         | `src/modules/main/event.ts`  | Starts quest, checks 3 nodes, grants +100.                |
 | `PixelShard`         | `src/modules/main/event.ts`  | Requires quest start, increments shard count, grants +10. |
 | `player.onConnected` | `src/modules/main/player.ts` | Spawns player and sets display name/graphic.              |
 | `player.onInput`     | `src/modules/main/player.ts` | Opens main menu on `"escape"`.                            |
@@ -41,7 +41,7 @@ apps/game/
 
 - Hand-edit `src/modules/main/*` for gameplay; treat `src/tiled/*_pipo.tsx` as generated/asset-adjacent.
 - Quest completion is tracked with player variables, not Supabase or wallet state.
-- Points mirror web copy: three shards at +10 each, completion at +100, total 130.
+- Points mirror web copy: three nodes at +10 each, completion at +100, total 130.
 - Audio names used in notifications must exist in `public/audio`.
 - `build` is Vite-only; package `typecheck` currently echoes through Vite build.
 

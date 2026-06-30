@@ -92,6 +92,107 @@ LSP/codegraph tools were not exposed in this Codex surface; map below is from `r
 - See `docs/AI_GAME_E2E.md` and `docs/AI_GAME_AGENT_WORKFLOW.md` before changing the harness or bypassing failures.
 - Do not fix AI smoke/agent failures by hiding/replacing the RPG-JS canvas with DOM fallback.
 
+## BROWSER QA (AGENT-DRIVEN)
+
+Ad-hoc, agent-driven browser QA in this repo must use **`agent-browser`**. This
+complements the AI game smoke harness above, it does not replace it.
+
+- Before any agent browser QA pass, run **`agent-browser skills get --all`** as
+  the first tooling check to confirm available skills and capabilities.
+- When a browser binary is required, use a **verified** exec path. On this
+  machine the normal Chrome binary is a universal/arm64 Mach-O at:
+  - `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+  - Chrome-for-Testing is also allowed if installed and the path is verified
+    before invocation.
+- A complete agent browser QA pass produces **four kinds of evidence**, not
+  screenshots alone:
+  1. **Screenshot.** Visual capture via `agent-browser screenshot`.
+  2. **Accessibility/semantic snapshot.** `agent-browser snapshot` (the a11y
+     tree with element refs). Required for every UI change so roles, labels,
+     names, and ref targets are verified, not just pixels.
+  3. **Interaction smoke path.** A real user interaction via
+     `agent-browser click` / `type` / `fill` / `press` against live elements
+     found in the a11y snapshot. Direct navigation, opening a URL
+     (`agent-browser open`, `goto`, address-bar entry), or a successful page
+     load is **not** interaction evidence and never counts as a pass on its
+     own. "Looks right" from markup alone is also not a pass. If the real
+     interaction is blocked or fails (element missing, click refused, auth
+     wall, timeout), report that interaction as **blocked/failed** with the
+     screenshot, snapshot, and console evidence of the failure. Do not
+     substitute direct navigation or a page-load for the required interaction.
+  4. **Console and network observations** when relevant. Capture
+     `agent-browser eval` output, console errors/warnings, and failing
+     network requests (4xx/5xx) that bear on the change.
+- **QA evidence artifacts default to `/tmp`** (or another external temp path),
+  not inside the repo. Read-only QA tasks must not create artifact directories
+  in the working tree (for example `.qa-smoke-artifacts/`, `qa-output/`, or
+  per-run screenshot folders under `apps/`, `docs/`, or any repo path). Write
+  QA artifacts into the repo only when the user explicitly asks to keep them
+  there. **Intentional CI/harness artifact directories are preserved and are
+  not forbidden by the /tmp rule**: `artifacts/ai-game-smoke/` (CI output of
+  `scripts/ai-game-smoke.mjs`) and `artifacts/ai-game-agent/` (full
+  `npm run test:game:agent` output).
+- Subagents that perform visual inspection of screenshots **must** load the
+  `vision-9router` skill. Vision-blind models cannot judge screenshots
+  reliably without vision tooling. Do not attempt visual verdicts without it.
+
+### Relationship to the AI game harness
+
+The existing AI game harness stays canonical for RPG-JS canvas and gameplay.
+
+- `npm run test:game:render`. Build and render integrity.
+- `npm run test:game:ai`. `scripts/ai-game-smoke.mjs`, the screenshot-driven
+  autonomous smoke runner. It currently uses **Playwright internally** as an
+  approved project harness. Do **not** blanket-ban Playwright in this repo.
+- `npm run test:game:agent`. Full Python/VLM autonomous tester.
+
+Do not introduce **new** Playwright or browser-automation flows unless you are
+explicitly working on the existing harness or the user approves. For ad-hoc
+browser-visible QA, agents use `agent-browser`, not new Playwright scripts.
+
+## IMPLEMENTATION VERIFICATION (TDD)
+
+- After implementing code, **trigger the `tdd` skill** and run the relevant
+  tests for the behavior you changed. Untested code is not done.
+- Implementations must be **clickable, tryable, and tested** where applicable.
+  Anything shipping a UI, an API route, a server action, a game event, a quest
+  node, or any user-facing path must be exercised end to end before claiming
+  completion.
+- For game/canvas/gameplay/map/quest work, combine the **AI game harness**
+  (`npm run build:vercel && npm run test:game:render && npm run test:game:ai`,
+  optionally `npm run test:game:agent`) with the **Browser QA (agent-driven)**
+  workflow above when the change is browser-visible.
+- For non-game browser-visible changes (web claim page, wallet proof UX,
+  leaderboard shell), verify the click/interaction path through the approved
+  **Browser QA (agent-driven)** workflow, not by reading markup alone. No
+  visual verdict without `vision-9router`.
+- Pure docs or config changes carry no test suite. When skipping verification
+  for that reason, say so explicitly.
+
+## WORKFLOW PREFERENCES
+
+Persistent defaults for AI-assisted (vibe-coding) prompts. Hold across every
+task unless the user overrides them inline.
+
+- **Delegate-first.** For non-trivial implementation, fan out exploration and
+  parallelizable work to background sub-agents (`explore`, `librarian`,
+  feature specialists) and synthesize their results. Don't serially do what
+  can run in parallel. Don't re-search what a delegated agent is already
+  investigating.
+- **No implementation without explicit instruction.** The default action for
+  "look into X" / "review Y" / "plan Z" is analysis and a recommendation, not
+  code edits. Do not write or modify app source, tests, configs, or env
+  unless the user asked for that change.
+- **TDD after implementation.** Once code lands, follow the
+  `Implementation verification (TDD)` section above. Untested code is not
+  done. Green tests are required before claiming completion.
+- **UI/browser-visible work must be clickable, tryable, and tested** end to
+  end through the Browser QA workflow, not just compiled or lint-clean.
+- **Report blockers honestly.** If work cannot proceed because of auth,
+  missing data, missing env, or any external dependency, stop and say so
+  explicitly. Don't paper over blockers with partial output, silent
+  fallbacks, or guesses.
+
 ## RPG-JS GAME INTEGRITY
 
 - The game is an RPG-JS v5 game. Treat the RPG-JS canvas, Tiled maps, spritesheets, NPCs, terrain, beach/water scenery, trees, and in-engine movement as the source of truth.
