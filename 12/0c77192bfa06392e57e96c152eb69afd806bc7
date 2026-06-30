@@ -1,0 +1,22 @@
+apps/game/src/config/config.client.ts
+  s_019c85bfb06839::t_cb924cca011c25 9-11,16,25-26,30-31,35-36,41-43
+scripts/check-game-render.mjs
+  s_019c85bfb06839::t_2c176e100d54cf 55-57,205-207
+  s_019c85bfb06839::t_3f8a0978dc1b24 5-9,12,50-52,97,100-101,116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "120c77192bfa06392e57e96c152eb69afd806bc7",
+  "prompts": {},
+  "sessions": {
+    "s_019c85bfb06839": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f175d-ae3e-7680-b4c5-bc54139f8c89",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
