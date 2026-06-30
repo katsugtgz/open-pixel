@@ -10,6 +10,7 @@ import {
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_COLUMNS,
+  SUPABASE_SCHEMA_TARGETS,
   SUPABASE_SCHEMA_MISSING_TEXT,
   SUPABASE_TABLES,
   toLeaderboardEntry,
@@ -78,6 +79,15 @@ describe("claim/proof row shaping", () => {
   it("maps claim rows to the expected Supabase tables", () => {
     assert.equal(SUPABASE_TABLES.players, "players");
     assert.equal(SUPABASE_TABLES.questRuns, "quest_runs");
+    assert.deepEqual(
+      SUPABASE_SCHEMA_TARGETS.map((target) => [target.name, target.columns]),
+      [
+        [SUPABASE_TABLES.players, SUPABASE_COLUMNS.players],
+        [SUPABASE_TABLES.questRuns, SUPABASE_COLUMNS.questRuns],
+        [SUPABASE_TABLES.walletProofs, SUPABASE_COLUMNS.walletProofs],
+        [SUPABASE_TABLES.leaderboard, SUPABASE_COLUMNS.leaderboard],
+      ],
+    );
     assert.deepEqual(SUPABASE_COLUMNS.players, [
       "guest_id",
       "wallet_address",

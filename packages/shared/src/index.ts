@@ -87,6 +87,25 @@ export const SUPABASE_COLUMNS = {
   leaderboard: ["guest_id", "display_name", "total_points", "completed_runs"],
 } as const;
 
+export const SUPABASE_SCHEMA_TARGETS = [
+  {
+    name: SUPABASE_TABLES.players,
+    columns: SUPABASE_COLUMNS.players,
+  },
+  {
+    name: SUPABASE_TABLES.questRuns,
+    columns: SUPABASE_COLUMNS.questRuns,
+  },
+  {
+    name: SUPABASE_TABLES.walletProofs,
+    columns: SUPABASE_COLUMNS.walletProofs,
+  },
+  {
+    name: SUPABASE_TABLES.leaderboard,
+    columns: SUPABASE_COLUMNS.leaderboard,
+  },
+] as const;
+
 export const DEFAULT_QUEST_ID = "Quest #1 - Restore village nodes";
 export const DEFAULT_QUEST_POINTS = 130;
 export const DEFAULT_QUEST_SHARDS = 3;

@@ -1,40 +1,9 @@
+import { SUPABASE_SCHEMA_TARGETS } from "@open-pixel/shared";
+
 const url = process.env.VITE_SUPABASE_URL;
 const key =
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-const targets = [
-  {
-    name: "players",
-    columns: ["guest_id", "wallet_address", "display_name"],
-  },
-  {
-    name: "quest_runs",
-    columns: [
-      "id",
-      "guest_id",
-      "display_name",
-      "quest_id",
-      "points",
-      "shards",
-      "completed_at",
-    ],
-  },
-  {
-    name: "wallet_proofs",
-    columns: [
-      "quest_run_id",
-      "wallet_address",
-      "message",
-      "signature",
-      "method",
-      "verified_at",
-    ],
-  },
-  {
-    name: "leaderboard",
-    columns: ["guest_id", "display_name", "total_points", "completed_runs"],
-  },
-];
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !key) {
   console.error(
@@ -45,8 +14,9 @@ if (!url || !key) {
 
 let failed = false;
 
-for (const target of targets) {
-  const select = encodeURIComponent(target.columns.join(","));
+for (const target of SUPABASE_SCHEMA_TARGETS) {
+  const columns = [...target.columns];
+  const select = encodeURIComponent(columns.join(","));
   const endpoint = `${url.replace(/\/$/, "")}/rest/v1/${target.name}?select=${select}&limit=1`;
   const response = await fetch(endpoint, {
     headers: {
@@ -59,10 +29,10 @@ for (const target of targets) {
   if (!response.ok) {
     failed = true;
     console.error(
-      `${target.name}: HTTP ${response.status}; expected columns ${target.columns.join(", ")}; ${text}`,
+      `${target.name}: HTTP ${response.status}; expected columns ${columns.join(", ")}; ${text}`,
     );
   } else {
-    console.log(`${target.name}: ok (${target.columns.join(", ")})`);
+    console.log(`${target.name}: ok (${columns.join(", ")})`);
   }
 }
 
