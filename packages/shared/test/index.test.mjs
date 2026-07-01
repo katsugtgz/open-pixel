@@ -3,11 +3,20 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
+
+describe("random id generation", () => {
+  it("produces a non-empty unique string", () => {
+    const id = createRandomId();
+    assert.ok(typeof id === "string" && id.length > 0);
+    assert.notEqual(createRandomId(), createRandomId());
+  });
+});
 
 describe("guest id generation", () => {
   it("uses the guest UUID format", () => {
@@ -15,6 +24,24 @@ describe("guest id generation", () => {
       createGuestId(),
       /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
+  });
+
+  it("survives when crypto.randomUUID is missing", () => {
+    const original = globalThis.crypto;
+    Object.defineProperty(globalThis, "crypto", {
+      value: { ...original, randomUUID: undefined },
+      configurable: true,
+    });
+    try {
+      const id = createGuestId();
+      assert.ok(id.startsWith("guest_"));
+      assert.ok(id.length > "guest_".length);
+    } finally {
+      Object.defineProperty(globalThis, "crypto", {
+        value: original,
+        configurable: true,
+      });
+    }
   });
 });
 
