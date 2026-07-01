@@ -1,0 +1,22 @@
+docs/DOCS_AUDIT.md
+  s_250479573a9427::t_da7d0871dfbcbe 52-53
+  s_250479573a9427::t_25dad18ade6c98 1-51,54-75
+AGENTS.md
+  s_250479573a9427::t_07116b52a8dac4 3-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "1d118c05cecb974760513a3cb6c74f76ac3e57ce",
+  "prompts": {},
+  "sessions": {
+    "s_250479573a9427": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1af9-e872-7520-a1f2-9cda4109b006",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
