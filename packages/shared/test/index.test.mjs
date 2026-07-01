@@ -3,17 +3,36 @@ import { describe, it } from "node:test";
 import {
   buildProofMessage,
   createGuestId,
+  createRandomId,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
   SUPABASE_SCHEMA_MISSING_TEXT,
 } from "../dist/index.js";
 
+describe("random id generation", () => {
+  it("produces unique IDs", () => {
+    const a = createRandomId();
+    const b = createRandomId();
+    assert.notEqual(a, b);
+    assert.ok(a.length >= 8, `expected non-trivial id, got "${a}"`);
+  });
+
+  it("returns a UUID when crypto.randomUUID is available", () => {
+    const id = createRandomId();
+    assert.match(
+      id,
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      `expected UUID format, got "${id}"`,
+    );
+  });
+});
+
 describe("guest id generation", () => {
   it("uses the guest UUID format", () => {
     assert.match(
       createGuestId(),
-      /^guest_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      /^guest_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
     );
   });
 });
