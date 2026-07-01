@@ -1,12 +1,22 @@
 # Resource-Village Deterministic Packet
 
-This packet is the handoff contract for implementing the Cozy Resource-Village Loop.
-Agents must read this before implementing gameplay issues #16, #17, #18, or #20.
+This packet is the handoff contract for implementing the **Cozy Resource-Village Loop**. Agents must read it before implementing gameplay issues #16, #17, #18, or #20.
+
+## Canonical Source Order
+
+When project documents conflict, follow:
+
+1. `CONTEXT.md`
+2. `docs/DESIGN.md`
+3. GitHub issue #15
+4. this packet and GitHub issue #21
+5. current game code
+
+Current game code may still contain legacy AI Guide + three Pixel Shards/village nodes. That is implementation debt, not the target loop.
 
 ## Firecrawl Research Pack
 
-Firecrawl was used to collect repeatable context. API keys are env-only and must
-never be committed.
+Firecrawl was used to collect repeatable context. API keys are env-only and must never be committed.
 
 Saved artifacts:
 
@@ -23,54 +33,38 @@ Saved artifacts:
 - `.firecrawl/search-farming-loop-implementation.json`
 - `.firecrawl/game-asset-pipeline-qa.json`
 
-Reusable commands:
+## Product Target
 
-```bash
-export FIRECRAWL_API_KEY=...
-firecrawl scrape https://docs.firecrawl.dev/sdks/cli --output .firecrawl/firecrawl-cli-doc.json
-firecrawl scrape https://docs.firecrawl.dev/ai-onboarding --output .firecrawl/firecrawl-ai-onboarding.json
-firecrawl scrape https://www.firecrawl.dev/changelog --output .firecrawl/firecrawl-changelog.json
-firecrawl map https://docs.firecrawl.dev --search 'CLI scrape search map agent onboarding' --limit 20 --output .firecrawl/map-firecrawl-docs.json
-firecrawl scrape https://doc.mapeditor.org/en/stable/manual/objects/ --output .firecrawl/tiled-objects-doc.json
-firecrawl scrape https://doc.mapeditor.org/en/stable/manual/custom-properties/ --output .firecrawl/tiled-custom-properties-doc.json
-firecrawl search 'Tiled custom properties object templates game workflow resource nodes' --limit 8 --sources web --scrape --output .firecrawl/search-tiled-resource-node-workflow.json
-firecrawl search 'farming game inventory order fulfillment resource loop implementation 2D' --limit 8 --sources web --scrape --output .firecrawl/search-farming-loop-implementation.json
-```
+The first playable minute should communicate cozy farm/resource village:
 
-## Product Direction
+- house or workshop;
+- farm plots;
+- trees or wood source;
+- mine, rock, crystal, or stone source;
+- visible pathing and reachable interactables;
+- inventory or resource counter;
+- task board, order board, or workstation;
+- fulfillment/completion feedback.
 
-The game is not an AI Guide plus three collectible markers. The target loop is:
+NPCs may exist as helper/tutorial flavor, but they must not gate the main loop.
 
-1. Move through a coherent farm/resource village.
-2. Perform direct resource actions.
-3. See inventory/resource progress.
-4. Fulfill one small order at a workstation or task board.
-5. Receive visible off-chain completion feedback.
+## Asset Manifest Required
 
-NPCs can explain or decorate. NPCs must not gate the main loop.
+Before map or gameplay implementation, document:
 
-## Asset Manifest Requirements
-
-Before map or interaction work starts, define:
-
-- Source URL or local source path.
-- License.
-- Tile size and intended scale.
-- Terrain set.
-- Farm plot set.
-- Tree or wood resource set.
-- Mine, rock, crystal, or equivalent resource set.
-- Workshop or house set.
-- Item icons.
-- UI/HUD elements.
-- Preview image path for each group.
-- Normalization rule for mixed styles.
+- source URL/path;
+- license;
+- intended use: terrain, farm plots, trees, mine/resource node, workshop/house, UI, item icons;
+- tile size and sprite scale;
+- pixel-art rendering rule;
+- normalization rule for mixed styles;
+- preview screenshot/thumb path.
 
 No random tileset mixing without explicit normalization.
 
 ## Tiled Object Grammar
 
-Object layers:
+Required object layers:
 
 - `spawn`
 - `collisions`
@@ -90,53 +84,53 @@ Required custom properties:
 - `rewardItem`: item id awarded by interaction
 - `orderId`: workstation or board order id
 
-Agent rule: if a map object lacks `kind` and stable `id`, gameplay code must not
-bind to it.
+Agent rule: if a map object lacks `kind` and stable `id`, gameplay code must not bind to it.
 
 ## Module Contracts
 
-Build deep modules with small interfaces:
+Build small, testable modules:
 
 - Resource loop module: owns plot/resource-node state transitions.
-- Inventory module: owns item counts and item mutations.
+- Inventory module: owns item counts and mutations.
 - Orders module: owns order definitions, fulfillment checks, and rewards.
 - Map/object adapter: turns Tiled/RPG-JS objects into resource-loop objects.
 - HUD adapter: displays state without owning game truth.
 - Completion/proof bridge: exposes off-chain completion to the web/proof shell.
 
-Do not put core game state only in DOM, HUD text, or notification parsing.
+Do not put core game state only in DOM, HUD text, notification parsing, or claim-page local state.
+
+## Definition Done Standard
+
+Agent self-report is not enough. A task only passes when evidence exists:
+
+- build/test command output for required repo scripts;
+- screenshot or smoke artifact showing the real RPG-JS canvas;
+- resource action evidence for farm/plot, tree/wood, and mine/rock/crystal where applicable;
+- inventory/task/order state evidence;
+- fulfillment/completion evidence;
+- explicit note if canvas automation cannot prove an interaction, plus human keyboard smoke evidence.
 
 ## QA Gates
 
-Required screenshots:
+Required screenshots or equivalent artifacts:
 
-- First viewport: farm/resource hub visible.
-- Farm action feedback.
-- Tree/resource action feedback.
-- Mine/resource action feedback.
-- Inventory/order state.
-- Fulfillment/completion state.
+- first viewport: farm/resource hub visible;
+- farm action feedback;
+- tree/resource action feedback;
+- mine/resource action feedback;
+- inventory/order progress;
+- fulfillment/completion;
+- no DOM fake game replacing RPG-JS scene.
 
-Required behavior checks:
-
-- Player moves in RPG-JS canvas.
-- Player can progress without talking to an NPC first.
-- At least two direct resource actions work.
-- Inventory/resource count changes after actions.
-- One order can be fulfilled.
-- Completion feedback is visible.
-- No DOM fake game replaces the RPG-JS scene.
-
-If canvas automation cannot press/interact reliably, record the limitation and
-include a human keyboard smoke result with screenshots.
+If canvas automation cannot press/interact reliably, record the limitation and include human keyboard smoke result screenshots.
 
 ## Stop Conditions
 
 Stop and update #21 instead of coding when:
 
-- Asset source/license is unknown.
-- Tile size/scale is unknown.
-- Tiled object grammar is missing.
-- Resource module ownership is unclear.
-- QA screenshots cannot be produced.
-- The implementation starts reverting to NPC dialogue plus three pickups.
+- asset source/license is unknown;
+- tile size/scale is unknown;
+- Tiled object grammar is missing;
+- resource module ownership is unclear;
+- QA screenshots cannot be produced;
+- implementation starts reverting to NPC dialogue plus three pickups.
