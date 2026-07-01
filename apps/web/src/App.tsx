@@ -1,424 +1,505 @@
-import { useMemo, useState } from "react";
+import { useMemo, useReducer } from "react";
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  buildProofMessage,
+  createGuestId,
+  createRandomId,
+  formatSupabaseError,
+} from "@open-pixel/shared";
 import "./App.css";
 
-type View = "landing" | "app";
-type AppPage = "dashboard" | "rooms" | "guests" | "finance" | "requests";
-type Toast = { id: number; text: string };
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
+const configuredGameUrl = import.meta.env.VITE_GAME_URL as string | undefined;
+const defaultGameUrl = import.meta.env.DEV
+  ? `${window.location.protocol}//${window.location.hostname}:5174/`
+  : "/game/";
+const rawGameUrl = configuredGameUrl || defaultGameUrl;
+const gameUrl = rawGameUrl.endsWith("/game") ? `${rawGameUrl}/` : rawGameUrl;
+const repoUrl = "https://github.com/katsugtgz/open-pixel";
 
-const seedCredentials = { email: "owner@thekost.demo", password: "thekost123" };
-const photos = [
-  "https://lh3.googleusercontent.com/gps-cs-s/APNQkAE9iFzHMKm8SYvdsqYWV9Lvm7pPxCVVGG4S3eQ9HVRRmuIYLkmDGWCKwRszl1l_Rla4B-uKcVw1QmT18Y6OgytrkZn53wo5_yOme6to9XESrJ0Isr5VJ4OVi6MTwS4fBCqOrSM=w1200-h900-k-no",
-  "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHe8Q5qGVGNJRRkgIFQVgE4a2hsNEgJrAZ8inVE0h2ivmhM09rS-IkaVI5I2CAvOH7xnf8pLULiEqO7Cg_RmM-QVhc40TI1hzX_FBLwpCMDZ-IOhccF9jimwRBnHxbZikK89ZZwFQ=w900-h1200-k-no",
-  "https://lh3.googleusercontent.com/gps-cs-s/APNQkAEhYXgl21UPif1LjH3A-gyFr_gpaI2KL2DgeUC3gaWj8Ih9mD6mBugkkg_OOKcd_R36kWDaf_5CeV64XpeylyolU0c-4xRhnLtlMMV5xkejTDoRSQny55Vq9HIFHE7EuPBsrYW3=w1200-h900-k-no",
-];
-const reviews = [
-  [
-    "nabilla",
-    "Owner responsif, lingkungan bersih, WiFi lancar, aman dan betah.",
-  ],
-  ["Shinta", "Fasilitas lengkap, dekat UPN, akses 24 jam big plus."],
-  ["Salma", "Nyaman banget, biaya ramah pelajar, cari makan gampang."],
-];
-const rooms = [
+const supabase =
+  supabaseUrl && supabasePublishableKey ? createSupabaseBrowserClient() : null;
+
+const pillars = [
   {
-    no: "A1",
-    name: "Standard",
-    price: "Rp1,25jt",
-    status: "Ready",
-    guest: "Open",
-    img: photos[1],
+    title: "Play",
+    body: "Enter as guest. Arrow keys move; Space interacts.",
+    stat: "guest-first",
   },
   {
-    no: "B2",
-    name: "Plus",
-    price: "Rp1,55jt",
-    status: "Booked",
-    guest: "Shinta",
-    img: photos[2],
+    title: "Gather",
+    body: "Talk to the AI Guide, then collect 3 cyan Pixel Shards.",
+    stat: "+130 pts",
   },
   {
-    no: "C3",
-    name: "Long stay",
-    price: "Rp1,9jt",
-    status: "Paid",
-    guest: "Nabilla",
-    img: photos[0],
+    title: "Prove",
+    body: "Claim a badge. Wallet proof stays optional and readable.",
+    stat: "safe proof",
   },
 ];
-const requests = [
-  "AC B2 dicek",
-  "Tambah token listrik C3",
-  "Survey calon penghuni 16:00",
+
+const mockLeaderboard = [
+  { name: "Pixel Runner", score: 130, tag: "guest" },
+  { name: "Shard Scout", score: 90, tag: "proof ready" },
+  { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
 
-function App() {
-  const [view, setView] = useState<View>("landing");
-  const [page, setPage] = useState<AppPage>("dashboard");
-  const [hero, setHero] = useState(0);
-  const [authed, setAuthed] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+type QuestRunView = {
+  id: string;
+  guestId: string;
+  displayName: string;
+  questId: string;
+  points: number;
+  shards: number;
+  completedAt: string;
+};
 
-  const stats = useMemo(
-    () => ({
-      occupied: "92%",
-      rating: "5.0",
-      reviews: "52",
-      revenue: "Rp8,7jt",
-    }),
-    [],
-  );
-  function toast(text: string) {
-    const id = Date.now();
-    setToasts((x) => [...x, { id, text }]);
-    setTimeout(() => setToasts((x) => x.filter((t) => t.id !== id)), 2400);
-  }
-  function login(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setAuthed(true);
-    setView("app");
-    toast("Logged in with seed credentials");
-  }
+type AppState = {
+  guestId: string;
+  displayName: string;
+  walletAddress: string;
+  signature: string;
+  status: string;
+};
 
-  return (
-    <main className="site">
-      {view === "landing" ? (
-        <Landing
-          stats={stats}
-          hero={hero}
-          setHero={setHero}
-          setView={setView}
-          toast={toast}
-        />
-      ) : (
-        <DemoApp
-          page={page}
-          setPage={setPage}
-          setView={setView}
-          authed={authed}
-          login={login}
-        />
-      )}
-      <div className="toast-stack">
-        {toasts.map((x) => (
-          <div className="toast" key={x.id}>
-            {x.text}
-          </div>
-        ))}
-      </div>
-    </main>
-  );
+type AppAction =
+  | { type: "displayName"; value: string }
+  | { type: "walletAddress"; value: string }
+  | { type: "signature"; value: string }
+  | { type: "status"; value: string };
+
+function getGuestId() {
+  const existing = localStorage.getItem("open_pixel_guest_id");
+  if (existing) return existing;
+  const next = createGuestId();
+  localStorage.setItem("open_pixel_guest_id", next);
+  return next;
 }
 
-function Landing({
-  stats,
-  hero,
-  setHero,
-  setView,
-  toast,
-}: {
-  stats: Record<string, string>;
-  hero: number;
-  setHero(n: number): void;
-  setView(v: View): void;
-  toast(t: string): void;
-}) {
+function initialState(): AppState {
+  return {
+    guestId: getGuestId(),
+    displayName: "Pixel Runner",
+    walletAddress: "",
+    signature: "",
+    status: "Ready. Play as guest; wallet proof is optional.",
+  };
+}
+
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case "displayName":
+      return { ...state, displayName: action.value };
+    case "walletAddress":
+      return { ...state, walletAddress: action.value };
+    case "signature":
+      return { ...state, signature: action.value };
+    case "status":
+      return { ...state, status: action.value };
+  }
+}
+
+function shortAddress(address: string) {
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+function Topbar() {
   return (
-    <>
-      <header className="topbar">
-        <a className="logo" href="#top">
-          TheKost
+    <nav className="topbar" aria-label="Open Pixel navigation">
+      <a className="brand" href="#top" aria-label="Open Pixel home">
+        <span className="brand-mark" aria-hidden="true">
+          OP
+        </span>
+        <span>Open Pixel</span>
+      </a>
+      <div className="nav-links">
+        <a className="nav-play" href={gameUrl}>
+          Play demo
         </a>
-        <nav>
-          <a href="#rooms">Kamar</a>
-          <a href="#reviews">Review</a>
-          <a href="#book">Booking</a>
-        </nav>
-        <div className="social">
-          <a
-            aria-label="Instagram"
-            href="https://instagram.com"
-            target="_blank"
-          >
-            ◎
-          </a>
-          <a aria-label="TikTok" href="https://tiktok.com" target="_blank">
-            ♪
-          </a>
-          <a
-            aria-label="WhatsApp"
-            href="https://wa.me/6285117433313"
-            target="_blank"
-          >
-            WA
-          </a>
-        </div>
-      </header>
-      <section className="hero" id="top">
-        <div className="copy">
-          <span className="super">Medokan Ayu · Surabaya</span>
-          <h1>Kos clean, aman, dekat UPN.</h1>
-          <p>
-            Landing + demo app untuk TheKost: calon penghuni cek kamar; owner
-            kelola booking, tagihan, request.
-          </p>
-          <div className="actions">
-            <a
-              className="cta"
-              href="https://wa.me/6285117433313"
-              target="_blank"
-            >
-              Chat WhatsApp
-            </a>
-            <button onClick={() => setView("app")}>Buka demo app</button>
-          </div>
-          <div className="seed">
-            <b>Seed login</b>
-            <span>{seedCredentials.email}</span>
-            <span>{seedCredentials.password}</span>
-          </div>
-        </div>
-        <div className="showcase">
-          <img src={photos[hero]} alt="TheKost gallery" />
-          <div className="thumbs">
-            {photos.map((p, i) => (
-              <button
-                className={i === hero ? "on" : ""}
-                onClick={() => setHero(i)}
-                key={p}
-              >
-                <img src={p} alt="" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="trust">
-        <div>
-          <b>{stats.rating}</b>
-          <span>Google rating</span>
-        </div>
-        <div>
-          <b>{stats.reviews}</b>
-          <span>Reviews</span>
-        </div>
-        <div>
-          <b>{stats.occupied}</b>
-          <span>Occupancy</span>
-        </div>
-        <div>
-          <b>24h</b>
-          <span>CCTV + akses</span>
-        </div>
-      </section>
-      <section className="features">
-        <article>
-          <b>01</b>
-          <h2>WiFi kencang buat nugas.</h2>
-          <p>
-            Copy harus terasa kos riil: aman, bersih, dekat kampus, owner
-            responsif.
-          </p>
-        </article>
-        <article>
-          <b>02</b>
-          <h2>Dapur, CCTV, akses 24 jam.</h2>
-          <p>Fasilitas prioritas tampil lebih kuat, bukan badge rata semua.</p>
-        </article>
-        <article>
-          <b>03</b>
-          <h2>Booking via WhatsApp.</h2>
-          <p>CTA sticky dan form singkat memotong friksi survey.</p>
-        </article>
-      </section>
-      <section className="rooms" id="rooms">
-        <h2>Pilih kamar</h2>
-        <div>
-          {rooms.map((r) => (
-            <article key={r.no}>
-              <img src={r.img} alt={r.name} />
-              <span>{r.status}</span>
-              <h3>{r.name}</h3>
-              <p>
-                {r.price} / bulan · {r.guest}
-              </p>
-              <button onClick={() => toast(`${r.name} selected`)}>
-                Lihat detail
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-      <section className="reviews" id="reviews">
-        <h2>Review penghuni</h2>
-        {reviews.map(([n, t]) => (
-          <article key={n}>
-            <b>{n}</b>
-            <span>★★★★★</span>
-            <p>{t}</p>
-          </article>
-        ))}
-      </section>
-      <section className="book" id="book">
-        <div>
-          <h2>Survey hari ini?</h2>
-          <p>
-            Jl. Medokan Asri Barat VIII M-20. Dekat kampus, minimarket, warung
-            makan.
-          </p>
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            toast("Booking request sent");
-          }}
-        >
-          <input placeholder="Nama" required />
-          <input placeholder="WhatsApp" required />
-          <select>
-            <option>Survey kamar</option>
-            <option>Booking bulan ini</option>
-          </select>
-          <button className="cta">Kirim request</button>
-        </form>
-      </section>
-      <button className="sticky-cta" onClick={() => setView("app")}>
-        Open demo app
-      </button>
-      <footer>
-        © TheKost Medokan Ayu <span>Instagram · TikTok · WhatsApp</span>
-      </footer>
-    </>
+        <a href="#loop">Loop</a>
+        <a href="#claim">Claim</a>
+        <a href="#proof">Proof</a>
+        <a href={repoUrl} target="_blank">
+          GitHub
+        </a>
+      </div>
+    </nav>
   );
 }
 
-function DemoApp({
-  page,
-  setPage,
-  setView,
-  authed,
-  login,
-}: {
-  page: AppPage;
-  setPage(p: AppPage): void;
-  setView(v: View): void;
-  authed: boolean;
-  login(e: React.FormEvent<HTMLFormElement>): void;
-}) {
-  if (!authed)
-    return (
-      <section className="login">
-        <form onSubmit={login}>
-          <h1>Owner demo</h1>
-          <p>Seed credentials</p>
-          <code>
-            {seedCredentials.email}
-            <br />
-            {seedCredentials.password}
-          </code>
-          <input defaultValue={seedCredentials.email} />
-          <input defaultValue={seedCredentials.password} type="password" />
-          <button className="cta">Login</button>
-          <button type="button" onClick={() => setView("landing")}>
-            Back landing
-          </button>
-        </form>
-      </section>
-    );
+function HeroSection() {
   return (
-    <section className="app">
-      <aside>
-        <b>TheKost OS</b>
-        {(
-          ["dashboard", "rooms", "guests", "finance", "requests"] as AppPage[]
-        ).map((p) => (
-          <button
-            className={page === p ? "active" : ""}
-            onClick={() => setPage(p)}
-            key={p}
-          >
-            {p}
-          </button>
-        ))}
-        <button onClick={() => setView("landing")}>Landing</button>
-      </aside>
-      <div className="panel">
-        <h1>{page}</h1>
-        {page === "dashboard" && <Dashboard />}
-        {page === "rooms" && <RoomAdmin />}
-        {page === "guests" && <Guests />}
-        {page === "finance" && <Finance />}
-        {page === "requests" && <Requests />}
+    <section className="hero" id="top">
+      <div className="hero-copy">
+        <p className="eyebrow">Zero Cup 2026 · Cozy Web3 RPG</p>
+        <h1>Play a cozy pixel quest. No wallet required.</h1>
+        <div className="actions">
+          <a className="button primary" href={gameUrl}>
+            Play demo
+          </a>
+          <a className="button secondary" href="#claim">
+            Claim badge
+          </a>
+        </div>
+        <p className="subtitle">
+          Talk to the AI Guide, collect 3 Pixel Shards, claim an off-chain
+          badge. Wallet proof stays optional and readable.
+        </p>
+        <div className="control-guide" aria-label="Demo controls">
+          <span className="desktop-control">Desktop: Arrow keys to move</span>
+          <span className="desktop-control">Space to talk / collect</span>
+          <span className="mobile-control">Mobile: joystick + A button</span>
+        </div>
+        <div className="trust-row" aria-label="Safety summary">
+          <span>guest-first</span>
+          <span>no gas / no token</span>
+          <span>optional personal_sign</span>
+        </div>
+      </div>
+
+      <div className="pixel-window" aria-label="Pixel quest world preview">
+        <div className="sun" />
+        <div className="cloud cloud-one" />
+        <div className="cloud cloud-two" />
+        <div className="island">
+          <div className="tile grass" />
+          <div className="tile flower" />
+          <div className="tile path" />
+          <div className="tile crystal" />
+          <div className="tile grass" />
+          <div className="tile path" />
+          <div className="tile player" />
+          <div className="tile npc" />
+          <div className="tile crystal small" />
+        </div>
+        <div className="dialog-card">
+          <strong>AI Guide</strong>
+          <span>Gather 3 Pixel Shards → +130 pts</span>
+        </div>
       </div>
     </section>
   );
 }
-function Dashboard() {
+
+function LoopSection() {
   return (
-    <div className="cards">
-      <Card t="Occupancy" v="92%" />
-      <Card t="Revenue" v="Rp8,7jt" />
-      <Card t="Open tickets" v="3" />
-      <Card t="Google" v="5.0" />
-    </div>
+    <section className="section" id="loop">
+      <div className="section-heading">
+        <p className="eyebrow">Demo loop</p>
+        <h2>Three steps: talk, gather, claim.</h2>
+      </div>
+      <div className="pillar-grid">
+        {pillars.map((pillar) => (
+          <article className="pillar-card" key={pillar.title}>
+            <span>{pillar.stat}</span>
+            <h3>{pillar.title}</h3>
+            <p>{pillar.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
-function RoomAdmin() {
+
+function DesignSection() {
   return (
-    <div className="table">
-      {rooms.map((r) => (
-        <p key={r.no}>
-          <b>{r.no}</b>
-          <span>{r.name}</span>
-          <span>{r.price}</span>
-          <button>edit</button>
+    <section className="split-section">
+      <article className="panel economy-panel">
+        <p className="eyebrow">Design stance</p>
+        <h2>Web3 proof, not Web3 economy.</h2>
+        <p>
+          Open Pixel keeps quests, identity, gathering, and visible progress. It
+          skips token emissions, staking, marketplace loops, and speculative
+          rewards.
         </p>
-      ))}
-    </div>
+        <div className="comparison">
+          <span>Off-chain points</span>
+          <span>Guest badge</span>
+          <span>Optional proof</span>
+        </div>
+      </article>
+
+      <article className="panel leaderboard-panel">
+        <p className="eyebrow">Leaderboard shell</p>
+        <h2>Proof-ready scores</h2>
+        {mockLeaderboard.map((row, index) => (
+          <div className="leaderboard-row" key={row.name}>
+            <strong>#{index + 1}</strong>
+            <span>{row.name}</span>
+            <em>{row.score} pts</em>
+            <small>{row.tag}</small>
+          </div>
+        ))}
+      </article>
+    </section>
   );
 }
-function Guests() {
+
+type ClaimSectionProps = {
+  state: AppState;
+  questRun: QuestRunView;
+  onDisplayNameChange(value: string): void;
+  onClaim(): void;
+  onConnectWallet(): void;
+  onSignProof(): void;
+};
+
+function ClaimSection({
+  state,
+  questRun,
+  onDisplayNameChange,
+  onClaim,
+  onConnectWallet,
+  onSignProof,
+}: ClaimSectionProps) {
   return (
-    <div className="table">
-      {["Nabilla", "Shinta", "Salma"].map((n) => (
-        <p key={n}>
-          <b>{n}</b>
-          <span>active tenant</span>
-          <span>paid</span>
-          <button>chat</button>
+    <section className="claim-grid" id="claim">
+      <article className="panel claim-panel">
+        <p className="eyebrow">Guest claim</p>
+        <h2>Claim the demo badge.</h2>
+        <label>
+          Display name
+          <input
+            value={state.displayName}
+            onChange={(event) => onDisplayNameChange(event.target.value)}
+          />
+        </label>
+        <div className="claim-stats">
+          <p>
+            <span>Guest ID</span>
+            <strong>{state.guestId}</strong>
+          </p>
+          <p>
+            <span>Quest</span>
+            <strong>{questRun.questId}</strong>
+          </p>
+          <p>
+            <span>Result</span>
+            <strong>
+              {questRun.shards}/3 shards · {questRun.points} pts
+            </strong>
+          </p>
+        </div>
+        <button className="button primary" type="button" onClick={onClaim}>
+          Claim guest badge
+        </button>
+      </article>
+
+      <article className="panel wallet-panel" id="proof">
+        <p className="eyebrow">Optional wallet proof</p>
+        <h2>Sign only if you want proof.</h2>
+        <p>Optional readable personal_sign receipt only.</p>
+        <div className="safety-pills" aria-label="Wallet safety summary">
+          <span>No gas</span>
+          <span>No approvals</span>
+          <span>No transaction</span>
+        </div>
+        <p className="security-receipt">
+          Receipt: personal_sign only · no contract call · no token approval
         </p>
-      ))}
-    </div>
+        <div className="wallet-actions">
+          <button
+            className="button secondary"
+            type="button"
+            onClick={onConnectWallet}
+          >
+            {state.walletAddress
+              ? `Connected ${shortAddress(state.walletAddress)}`
+              : "Connect wallet"}
+          </button>
+          <button
+            className="button primary"
+            type="button"
+            onClick={onSignProof}
+            disabled={!state.walletAddress}
+          >
+            Sign readable proof
+          </button>
+        </div>
+        {!state.walletAddress && (
+          <p className="wallet-helper">Connect wallet first to sign proof.</p>
+        )}
+        {state.signature && (
+          <p className="proof-receipt">
+            Signed: {shortAddress(state.signature)}
+          </p>
+        )}
+      </article>
+    </section>
   );
 }
-function Finance() {
+
+function StatusBar({ status }: { status: string }) {
   return (
-    <div className="cards">
-      <Card t="Paid" v="9" />
-      <Card t="Pending" v="2" />
-      <Card t="Overdue" v="1" />
-    </div>
+    <section className="status-bar" aria-live="polite">
+      <strong>Status</strong>
+      <span>{status}</span>
+    </section>
   );
 }
-function Requests() {
+
+function App() {
+  const [state, dispatch] = useReducer(appReducer, undefined, initialState);
+
+  const questRun = useMemo(
+    () => ({
+      id: `run_${state.guestId.slice(-8)}`,
+      guestId: state.guestId,
+      displayName: state.displayName.trim() || "Pixel Runner",
+      questId: "Quest #1 — Gather Pixel Shards",
+      points: 130,
+      shards: 3,
+      completedAt: new Date().toISOString(),
+    }),
+    [state.displayName, state.guestId],
+  );
+
+  function setStatus(value: string) {
+    dispatch({ type: "status", value });
+  }
+
+  async function saveGuestClaim(showSuccess = true) {
+    if (!supabase) {
+      setStatus("Guest badge ready locally. Add Supabase env to sync online.");
+      return true;
+    }
+
+    const { error: playerError } = await supabase.from("players").upsert(
+      {
+        guest_id: questRun.guestId,
+        wallet_address: state.walletAddress || null,
+        display_name: questRun.displayName,
+      },
+      { onConflict: "guest_id" },
+    );
+
+    if (playerError) {
+      setStatus(
+        formatSupabaseError("Supabase player save failed", playerError),
+      );
+      return false;
+    }
+
+    const { error: questError } = await supabase.from("quest_runs").upsert({
+      id: questRun.id,
+      guest_id: questRun.guestId,
+      display_name: questRun.displayName,
+      quest_id: questRun.questId,
+      points: questRun.points,
+      shards: questRun.shards,
+      completed_at: questRun.completedAt,
+    });
+
+    if (questError) {
+      setStatus(formatSupabaseError("Supabase quest save failed", questError));
+      return false;
+    }
+
+    if (showSuccess) {
+      setStatus("Guest badge synced. Wallet proof remains optional.");
+    }
+    return true;
+  }
+
+  async function connectWallet() {
+    const ethereum = window.ethereum;
+    if (!ethereum) {
+      setStatus("No wallet detected. You can still use guest claim.");
+      return;
+    }
+    const accounts = (await ethereum.request({
+      method: "eth_requestAccounts",
+    })) as string[];
+    dispatch({ type: "walletAddress", value: accounts[0] || "" });
+    setStatus("Wallet connected. No approval or transaction requested.");
+  }
+
+  async function signProof() {
+    const ethereum = window.ethereum;
+    if (!ethereum || !state.walletAddress) {
+      setStatus("Connect wallet first, or stay in guest mode.");
+      return;
+    }
+
+    const claimSaved = await saveGuestClaim(false);
+    if (!claimSaved) return;
+
+    const now = new Date();
+    const expires = new Date(now.getTime() + 10 * 60 * 1000);
+    const message = buildProofMessage({
+      domain: window.location.host,
+      walletAddress: state.walletAddress,
+      questRunId: questRun.id,
+      questId: questRun.questId,
+      points: questRun.points,
+      nonce: createRandomId(),
+      issuedAt: now.toISOString(),
+      expirationTime: expires.toISOString(),
+    });
+
+    const sig = (await ethereum.request({
+      method: "personal_sign",
+      params: [message, state.walletAddress],
+    })) as string;
+
+    dispatch({ type: "signature", value: sig });
+    setStatus("Proof signed with personal_sign. No transaction sent.");
+
+    if (supabase) {
+      const { error } = await supabase.from("wallet_proofs").upsert(
+        {
+          quest_run_id: questRun.id,
+          wallet_address: state.walletAddress,
+          message,
+          signature: sig,
+          method: "personal_sign",
+          verified_at: new Date().toISOString(),
+        },
+        { onConflict: "quest_run_id,wallet_address" },
+      );
+
+      if (error) {
+        setStatus(
+          formatSupabaseError(
+            "Proof signed, but Supabase proof save failed",
+            error,
+          ),
+        );
+        return;
+      }
+      setStatus("Proof signed and synced. personal_sign only; no tx.");
+    }
+  }
+
   return (
-    <div className="table">
-      {requests.map((r) => (
-        <p key={r}>
-          <b>{r}</b>
-          <span>open</span>
-          <button>assign</button>
-        </p>
-      ))}
-    </div>
+    <main className="site-shell">
+      <Topbar />
+      <HeroSection />
+      <LoopSection />
+      <DesignSection />
+      <ClaimSection
+        state={state}
+        questRun={questRun}
+        onDisplayNameChange={(value) =>
+          dispatch({ type: "displayName", value })
+        }
+        onClaim={() => void saveGuestClaim()}
+        onConnectWallet={() => void connectWallet()}
+        onSignProof={() => void signProof()}
+      />
+      <StatusBar status={state.status} />
+    </main>
   );
 }
-function Card({ t, v }: { t: string; v: string }) {
-  return (
-    <article className="card">
-      <span>{t}</span>
-      <b>{v}</b>
-    </article>
-  );
+
+declare global {
+  interface Window {
+    ethereum?: {
+      request(args: { method: string; params?: unknown[] }): Promise<unknown>;
+    };
+  }
 }
 
 export default App;
