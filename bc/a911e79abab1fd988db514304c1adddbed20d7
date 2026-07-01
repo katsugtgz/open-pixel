@@ -1,0 +1,19 @@
+CONTEXT.md
+  s_250479573a9427::t_7c58dbb9bee2c7 3-6,9-12,15,17-27,30-33,37-38,41-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "bca911e79abab1fd988db514304c1adddbed20d7",
+  "prompts": {},
+  "sessions": {
+    "s_250479573a9427": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1af9-e872-7520-a1f2-9cda4109b006",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
