@@ -91,4 +91,27 @@ describe("Supabase schema diagnostics", () => {
       `Supabase player save failed: ${SUPABASE_SCHEMA_MISSING_TEXT}`,
     );
   });
+
+  it("handles plain string errors in formatSupabaseError", () => {
+    assert.equal(
+      formatSupabaseError("Save failed", "network timeout"),
+      "Save failed: network timeout",
+    );
+  });
+
+  it("returns false for string errors that don't match schema-missing patterns", () => {
+    assert.equal(
+      isSupabaseMissingTableError("permission denied"),
+      false,
+    );
+  });
+
+  it("detects schema-missing from a plain string error", () => {
+    assert.equal(
+      isSupabaseMissingTableError(
+        'relation "public.players" does not exist',
+      ),
+      true,
+    );
+  });
 });

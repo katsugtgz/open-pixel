@@ -74,25 +74,43 @@ type SupabaseLikeError = {
   details?: string;
 };
 
-export function isSupabaseMissingTableError(error: unknown): boolean {
+function getErrorText(error: unknown): string {
+  if (typeof error === "string") return error;
   const candidate = error as SupabaseLikeError | null;
-  const message = [candidate?.code, candidate?.message, candidate?.details]
+  return candidate?.message || "";
+}
+
+export function isSupabaseMissingTableError(error: unknown): boolean {
+  if (typeof error === "string") {
+    const lower = error.toLowerCase();
+    return (
+      lower.includes("pgrst205") ||
+      lower.includes("schema cache") ||
+      lower.includes("could not find the table") ||
+      (lower.includes("relation") && lower.includes("does not exist"))
+    );
+  }
+
+  const candidate = error as SupabaseLikeError | null;
+  if (!candidate) return false;
+
+  const combined = [candidate?.code, candidate?.message, candidate?.details]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
 
   return (
-    message.includes("pgrst205") ||
-    message.includes("schema cache") ||
-    message.includes("could not find the table") ||
-    (message.includes("relation") && message.includes("does not exist"))
+    combined.includes("pgrst205") ||
+    combined.includes("schema cache") ||
+    combined.includes("could not find the table") ||
+    (combined.includes("relation") && combined.includes("does not exist"))
   );
 }
 
 export function formatSupabaseError(prefix: string, error: unknown): string {
-  const candidate = error as SupabaseLikeError | null;
   if (isSupabaseMissingTableError(error)) {
     return `${prefix}: ${SUPABASE_SCHEMA_MISSING_TEXT}`;
   }
-  return `${prefix}: ${candidate?.message || "Unknown Supabase error"}`;
+  const message = getErrorText(error);
+  return `${prefix}: ${message || "Unknown Supabase error"}`;
 }
