@@ -23,6 +23,15 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm test
+      - name: AI game smoke test
+        run: npm run test:game:ai
+      - name: Upload AI game smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ai-game-smoke
+          path: artifacts/ai-game-smoke
+          if-no-files-found: ignore
       - run: npm run build
       - name: React Doctor
         run: npx react-doctor@0.5.2 ./apps/web --no-score --blocking none --yes

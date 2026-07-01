@@ -164,9 +164,10 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full plan.
 
 - Docs: [`docs/`](docs/)
 - Security model: [`docs/SECURITY_MODEL.md`](docs/SECURITY_MODEL.md)
+- Agent workspace: [`docs/AGENT_WORKSPACE.md`](docs/AGENT_WORKSPACE.md)
 - Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Security policy: [`SECURITY.md`](SECURITY.md)
-- Discord: coming soon
+- Discord: Open Pixel agent channel/route pending
 - Hackathon page: coming soon
 
 ## License
