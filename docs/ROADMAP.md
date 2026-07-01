@@ -1,41 +1,51 @@
 # Roadmap
 
-## v0.1 — hackathon demo
+## Current Correction — Docs And Direction
 
-- RPG-JS map.
-- AI Guide NPC.
-- Pixel Shard gather quest.
-- Off-chain points.
-- Guest claim.
+- Treat AI Guide plus three Pixel Shards/village nodes as legacy/current implementation, not target product.
+- Align docs, agent guidance, QA prompts, submission copy, and roadmap around **Cozy Resource-Village Loop**.
+- Keep wallet safety language explicit: guest-first, no token, no gas, no approvals, optional readable `personal_sign` only.
+
+## v0.1 — Playable Resource-Village Slice
+
+- RPG-JS farm/resource hub first viewport.
+- Farm plot action.
+- Tree or wood action.
+- Mine, rock, or crystal action.
+- Inventory or resource counter.
+- Task board, order board, or workstation request.
+- Fulfillment completion moment.
+- Game Completion Receipt.
+- Guest Badge claim.
 - Optional wallet signature proof.
 - Supabase leaderboard/proof storage.
-- Demo GIF/video.
+- Evidence pack: screenshots, command outputs, and smoke report.
 
-## v0.2 — better prototype
+## v0.2 — Better Prototype
 
+- More resource actions and recipes.
+- Crafting or drink preparation.
 - Persistent player profile.
-- Multiple quest templates.
-- Leaderboard UI.
-- Better map art.
+- Better map art and object grammar.
 - Claim certificate page.
 - Server-side proof verification.
 
-## v0.3 — social world
+## v0.3 — Social World
 
-- 1–10 player live room.
+- 1-10 player live room.
 - Chat or emotes.
-- More gathering nodes.
-- Daily quests.
+- Daily village orders.
+- More resource nodes.
 - Cosmetic badges.
 
-## Later, only after validation
+## Later, Only After Validation
 
 - Real LLM quest generation.
 - On-chain attestation.
 - Cosmetic NFT badge.
 - Stronger anti-bot design.
 
-## Explicitly not planned for MVP
+## Explicitly Not Planned
 
 - Token launch.
 - Staking.
