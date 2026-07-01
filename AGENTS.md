@@ -1,5 +1,18 @@
 # PROJECT KNOWLEDGE BASE
 
+## CURRENT PRODUCT DIRECTION OVERRIDE
+
+Use this section before older generated guidance below.
+
+- Public brand: **Open Pixel**.
+- Internal mechanic name: **Cozy Resource-Village Loop**.
+- Target loop: guest player -> resource actions -> inventory/task progress -> board/workstation fulfillment -> Game Completion Receipt -> Guest Badge -> optional Wallet Proof -> leaderboard.
+- Legacy/current loop: AI Guide + three Pixel Shards/village nodes. This exists in code but is not the target product direction.
+- Do not optimize old shard/NPC dialogue flow as the product unless the user explicitly asks to patch current shipped behavior.
+- Game completion must come from game evidence. A claim-page-only demo run is not a real completion proof.
+- Required product references: `CONTEXT.md`, `docs/DESIGN.md`, `docs/ROADMAP.md`, GitHub issue #15, GitHub issue #21, and `docs/agents/resource-village-deterministic-packet.md`.
+- Done means evidence exists: command output, screenshots, and game-state proof. Agent self-report without artifacts is not a pass.
+
 **Generated:** 2026-06-18
 **Commit:** d836ebe
 **Branch:** fix/uiux
