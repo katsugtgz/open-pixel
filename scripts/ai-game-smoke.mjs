@@ -45,6 +45,14 @@ const config = {
 
 mkdirSync(config.outputDir, { recursive: true });
 const preview = process.env.AI_GAME_URL ? null : await startPreview();
+// A CI timeout or Ctrl-C must not orphan the detached vite preview. Tear it
+// down via the existing stopPreview() on signal, then exit non-zero.
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    stopPreview(preview);
+    process.exit(1);
+  });
+}
 const pageErrors = [];
 const failedRequests = [];
 const steps = [];
@@ -295,7 +303,7 @@ try {
 } catch (error) {
   reason = error?.stack || error?.message || String(error);
 } finally {
-  await browser?.close();
+  await browser?.close().catch(() => {});
   stopPreview(preview);
   const report = {
     passed,

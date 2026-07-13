@@ -64,6 +64,60 @@ describe("Cozy Resource-Village Loop", () => {
     });
   });
 
+  it("sends guests to the AI Guide before any node when the quest is not started", () => {
+    expect(
+      decideVillageNodeAction({
+        started: false,
+        done: false,
+        nodesRestored: 0,
+      }),
+    ).toEqual({
+      kind: "needs-guide",
+      text: "Talk to the AI Guide first. The village loop starts there.",
+    });
+  });
+
+  it("does not re-award points for an already-restored node", () => {
+    const decision = decideVillageNodeAction({
+      started: true,
+      done: false,
+      nodesRestored: 1,
+      nodeCollected: true,
+    });
+    expect(decision).toEqual({
+      kind: "already-restored",
+      text: "This village node is already glowing. Find another node.",
+    });
+    expect(decision).not.toHaveProperty("rewardPoints");
+  });
+
+  it("treats every node as restored once the quest is complete", () => {
+    expect(
+      decideVillageNodeAction({
+        started: true,
+        done: true,
+        nodesRestored: 3,
+        nodeCollected: false,
+      }),
+    ).toEqual({
+      kind: "already-complete",
+      text: "This village node is already restored.",
+    });
+  });
+
+  it("stays complete when talking to the AI Guide after finishing", () => {
+    expect(
+      decideGuideAction({
+        started: true,
+        done: true,
+        nodesRestored: 3,
+      }),
+    ).toEqual({
+      kind: "already-complete",
+      text: "Village restoration complete. Return to the web page to claim your guest badge or add an optional wallet proof.",
+    });
+  });
+
   it("keeps RPG-JS variable keys behind the module interface", () => {
     expect(QUEST_VARIABLES).toEqual({
       nodesRestored: "open_pixel_shards",

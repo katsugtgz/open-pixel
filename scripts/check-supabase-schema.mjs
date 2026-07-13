@@ -23,6 +23,7 @@ for (const target of SUPABASE_SCHEMA_TARGETS) {
       apikey: key,
       authorization: `Bearer ${key}`,
     },
+    signal: AbortSignal.timeout(10_000),
   });
   const text = await response.text();
 

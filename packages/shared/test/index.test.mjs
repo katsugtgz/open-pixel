@@ -69,7 +69,7 @@ describe("claim/proof row shaping", () => {
   });
 
   it("creates the canonical demo quest run", () => {
-    assert.equal(questRun.id, "run_12345678");
+    assert.equal(questRun.id, "run_guest_12345678");
     assert.equal(questRun.displayName, "Pixel Farmer");
     assert.equal(questRun.questId, DEFAULT_QUEST_ID);
     assert.equal(questRun.points, 130);
@@ -100,7 +100,7 @@ describe("claim/proof row shaping", () => {
       display_name: "Pixel Farmer",
     });
     assert.deepEqual(toQuestRunRow(questRun), {
-      id: "run_12345678",
+      id: "run_guest_12345678",
       guest_id: "guest_12345678",
       display_name: "Pixel Farmer",
       quest_id: "Quest #1 - Restore village nodes",
@@ -122,6 +122,9 @@ describe("claim/proof row shaping", () => {
 
     assert.match(proof.message, /Open Pixel Proof/);
     assert.match(proof.message, /does not approve tokens/i);
+    assert.equal(proof.issuedAt, "2026-06-18T00:00:00.000Z");
+    assert.equal(proof.nonce, "nonce-test");
+    assert.equal(proof.expirationTime, "2026-06-18T00:10:00.000Z");
     assert.deepEqual(
       toWalletProofRow({
         questRun,
@@ -131,7 +134,7 @@ describe("claim/proof row shaping", () => {
         verifiedAt: "2026-06-18T00:01:00.000Z",
       }),
       {
-        quest_run_id: "run_12345678",
+        quest_run_id: "run_guest_12345678",
         wallet_address: "0x1234",
         message: proof.message,
         signature: "0xabcd",
@@ -139,6 +142,22 @@ describe("claim/proof row shaping", () => {
         verified_at: "2026-06-18T00:01:00.000Z",
       },
     );
+  });
+
+  it("defaults proof expiry to ten minutes with a generated nonce", () => {
+    const proof = createProofMessage({
+      domain: "open-pixel.test",
+      walletAddress: "0x1234",
+      questRun,
+    });
+
+    assert.equal(
+      new Date(proof.expirationTime).getTime() -
+        new Date(proof.issuedAt).getTime(),
+      600_000,
+    );
+    assert.equal(typeof proof.nonce, "string");
+    assert.ok(proof.nonce.length > 0);
   });
 });
 
@@ -148,7 +167,7 @@ describe("leaderboard row mapping", () => {
       toLeaderboardEntry({
         display_name: "Shard Scout",
         total_points: "90",
-        wallet_address: "0x1234",
+        has_proof: true,
         guest_id: "guest_1",
       }),
       { name: "Shard Scout", score: 90, tag: "proof ready" },
@@ -160,7 +179,7 @@ describe("leaderboard row mapping", () => {
       toLeaderboardEntry({
         display_name: "",
         points: null,
-        wallet_address: null,
+        has_proof: false,
         guest_id: "guest_2",
       }),
       { name: "guest_2", score: 0, tag: "guest" },

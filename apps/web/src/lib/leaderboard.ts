@@ -8,20 +8,16 @@ import {
   type LeaderboardRow,
 } from "@open-pixel/shared";
 
+type LeaderboardQuery = {
+  order(column: string, options?: { ascending?: boolean }): LeaderboardQuery;
+  limit(count: number): PromiseLike<{
+    data: LeaderboardRow[] | null;
+    error: unknown | null;
+  }>;
+};
+
 type SupabaseAdapter = {
-  from(table: string): {
-    select(columns: string): {
-      order(
-        column: string,
-        options?: { ascending?: boolean },
-      ): {
-        limit(count: number): PromiseLike<{
-          data: LeaderboardRow[] | null;
-          error: unknown | null;
-        }>;
-      };
-    };
-  };
+  from(table: string): { select(columns: string): LeaderboardQuery };
 };
 
 export type LeaderboardResult = {
@@ -46,6 +42,7 @@ export async function loadLeaderboard(
       .from(SUPABASE_TABLES.leaderboard)
       .select(SUPABASE_COLUMNS.leaderboard.join(","))
       .order("total_points", { ascending: false })
+      .order("last_completed_at", { ascending: true })
       .limit(10);
 
     if (error) {

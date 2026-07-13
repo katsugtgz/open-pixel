@@ -37,20 +37,22 @@ HEADLESS = os.getenv("AI_GAME_AGENT_HEADLESS", "0") == "1"
 CDP_PORT = int(os.getenv("AI_GAME_CDP_PORT", "9223"))
 SCREENSHOT_SOURCE = os.getenv("AI_GAME_SCREENSHOT_SOURCE", "desktop")
 
-SYSTEM_PROMPT = """You are an autonomous QA tester playing Open Pixel, a real RPG-JS pixel quest game.
-Goal: test actual gameplay flow, not DOM. Try to complete: boot game, move player, find AI Guide NPC, interact, restore 3 village nodes, complete quest.
+SYSTEM_PROMPT = """You are an autonomous QA tester playing Open Pixel, a real RPG-JS cozy resource-village game.
+Goal: test the actual Cozy Resource-Village Loop, not DOM. Try to complete: boot game, move player, perform a farm/plot action, a tree/wood action, and a mine/rock/crystal action, watch inventory/resource counters update, check the task/order board, and fulfill at least one order to see completion feedback.
+NPCs are optional tutorial flavor; they must NOT gate the loop. Do not chase NPC quests.
 Use only human-like controls: arrow keys, Space, Enter, Escape, mouse click.
-Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, NPC dialogue failing, nodes unreachable, quest not progressing.
+Look for bugs: blank canvas, frozen screen, broken sprites, stuck movement, unreachable farm/tree/mine nodes, resource action giving no feedback, inventory count not updating, order board missing or not fulfilling, completion feedback absent.
 Return ONLY strict JSON. No markdown.
 Schema:
 {
   "action": {"type":"key","key":"ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Space|Enter|Escape"},
   "observation": "what you see",
   "reason": "why this action",
-  "progress": "boot|move|npc|dialogue|shard|quest|stuck|bug|done",
+  "progress": "boot|move|farm|tree|mine|inventory|order|fulfill|stuck|bug|done",
   "bug": null or {"severity":"low|medium|high","title":"short","evidence":"visual reason"}
 }
 For mouse action use: {"type":"click","x":640,"y":400}.
+Report progress "done" only after at least one resource action succeeded AND inventory/order state visibly changed AND fulfillment/completion feedback appeared.
 If stuck, do not repeat the same action more than 3 times; explore alternate directions/interact.
 """
 
@@ -133,7 +135,7 @@ def main() -> int:
                 diff_score=diff_score,
             )
             steps.append(step)
-            if step.progress.lower() in {"move", "npc", "dialogue", "shard", "quest", "done"}:
+            if step.progress.lower() in {"move", "farm", "tree", "mine", "inventory", "order", "fulfill", "done"}:
                 stuck_count = 0
             write_live_report(steps, bugs, passed=False, reason="running")
 
@@ -177,7 +179,7 @@ def ask_vlm(img: Image.Image, steps: list[Step], stuck_count: int) -> dict[str, 
         "url": URL,
         "stuck_count": stuck_count,
         "recent_steps": recent,
-        "reminder": "Return strict JSON only. Prefer movement/exploration, Space near NPC/shard, Enter to advance dialogue.",
+        "reminder": "Return strict JSON only. Prefer movement/exploration, Space near farm/tree/mine resource nodes, Enter/Space at the order board to fulfill orders.",
     }
     payload = {
         "model": MODEL,
@@ -290,8 +292,8 @@ def to_pyautogui_key(key: str) -> str:
 def has_gameplay_progress(steps: list[Step]) -> bool:
     progress = {s.progress.lower() for s in steps}
     text = " ".join(f"{s.progress} {s.observation}".lower() for s in steps)
-    return bool(progress & {"move", "npc", "dialogue", "shard", "quest", "done"}) or any(
-        token in text for token in ["moved", "npc", "dialogue", "shard", "quest"]
+    return bool(progress & {"move", "farm", "tree", "mine", "inventory", "order", "fulfill", "done"}) or any(
+        token in text for token in ["moved", "farm", "tree", "mine", "inventory", "order", "fulfill"]
     )
 
 
@@ -441,8 +443,11 @@ def start_browser() -> subprocess.Popen[Any]:
             if HEADLESS:
                 browser_args.insert(0, "--headless=new")
             if sys.platform == "darwin" and ".app/Contents/MacOS/" in cmd:
-                app_bundle = cmd.split(".app/Contents/MacOS/", 1)[0] + ".app"
-                args = ["open", "-na", app_bundle, "--args", *browser_args]
+                # cmd is already the in-bundle executable; Popen it directly so the
+                # returned handle IS the browser process. Launching via `open -na`
+                # would hand back a transient launcher we can't terminate on
+                # teardown, leaking an orphaned browser.
+                args = [cmd, *browser_args]
             else:
                 args = [cmd, *browser_args]
             return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)

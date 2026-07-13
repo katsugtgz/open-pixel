@@ -132,7 +132,7 @@ function Topbar() {
         <a href="#loop">Loop</a>
         <a href="#claim">Claim</a>
         <a href="#proof">Proof</a>
-        <a href={repoUrl} target="_blank">
+        <a href={repoUrl} target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
       </div>

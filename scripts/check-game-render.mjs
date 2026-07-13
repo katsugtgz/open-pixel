@@ -11,6 +11,14 @@ import {
 const providedUrl = process.argv[2];
 const url = providedUrl || getGamePreviewUrl();
 const preview = providedUrl ? null : await startPreview();
+// A CI timeout or Ctrl-C must not orphan the detached vite preview. Tear it
+// down via the existing stopPreview() on signal, then exit non-zero.
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    stopPreview(preview);
+    process.exit(1);
+  });
+}
 
 const pageErrors = [];
 const failedRequests = [];
@@ -67,7 +75,7 @@ try {
 
   console.log(`Game render check passed: ${url}`);
 } finally {
-  await browser?.close();
+  await browser?.close().catch(() => {});
   stopPreview(preview);
 }
 

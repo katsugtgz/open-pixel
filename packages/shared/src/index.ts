@@ -52,7 +52,7 @@ export type LeaderboardRow = {
   display_name?: string | null;
   points?: number | string | null;
   total_points?: number | string | null;
-  wallet_address?: string | null;
+  has_proof?: boolean | null;
   guest_id?: string | null;
   completed_runs?: number | string | null;
   last_completed_at?: string | null;
@@ -84,7 +84,14 @@ export const SUPABASE_COLUMNS = {
     "method",
     "verified_at",
   ],
-  leaderboard: ["guest_id", "display_name", "total_points", "completed_runs"],
+  leaderboard: [
+    "guest_id",
+    "display_name",
+    "total_points",
+    "completed_runs",
+    "last_completed_at",
+    "has_proof",
+  ],
 } as const;
 
 export const SUPABASE_SCHEMA_TARGETS = [
@@ -134,7 +141,7 @@ export function createDemoQuestRun(input: {
   completedAt?: string;
 }): QuestRun {
   return {
-    id: `run_${input.guestId.slice(-8)}`,
+    id: `run_${input.guestId}`,
     guestId: input.guestId,
     displayName: input.displayName.trim() || "Pixel Runner",
     questId: DEFAULT_QUEST_ID,
@@ -250,7 +257,7 @@ export function toWalletProofRow(input: {
 export function toLeaderboardEntry(row: LeaderboardRow): LeaderboardEntry {
   const displayName =
     row.display_name?.trim() || row.guest_id || "Guest player";
-  const hasProof = Boolean(row.wallet_address);
+  const hasProof = Boolean(row.has_proof);
   const score = row.total_points ?? row.points ?? 0;
 
   return {
