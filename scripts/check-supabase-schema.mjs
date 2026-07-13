@@ -1,9 +1,9 @@
+import { SUPABASE_SCHEMA_TARGETS } from "@open-pixel/shared";
+
 const url = process.env.VITE_SUPABASE_URL;
 const key =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   process.env.VITE_SUPABASE_ANON_KEY;
-
-const targets = ["players", "quest_runs", "wallet_proofs", "leaderboard"];
 
 if (!url || !key) {
   console.error(
@@ -14,26 +14,32 @@ if (!url || !key) {
 
 let failed = false;
 
-for (const target of targets) {
-  const endpoint = `${url.replace(/\/$/, "")}/rest/v1/${target}?select=*&limit=1`;
+for (const target of SUPABASE_SCHEMA_TARGETS) {
+  const columns = [...target.columns];
+  const select = encodeURIComponent(columns.join(","));
+  const endpoint = `${url.replace(/\/$/, "")}/rest/v1/${target.name}?select=${select}&limit=1`;
   const response = await fetch(endpoint, {
     headers: {
       apikey: key,
       authorization: `Bearer ${key}`,
     },
+    signal: AbortSignal.timeout(10_000),
   });
   const text = await response.text();
+
   if (!response.ok) {
     failed = true;
-    console.error(`${target}: HTTP ${response.status} ${text}`);
+    console.error(
+      `${target.name}: HTTP ${response.status}; expected columns ${columns.join(", ")}; ${text}`,
+    );
   } else {
-    console.log(`${target}: ok`);
+    console.log(`${target.name}: ok (${columns.join(", ")})`);
   }
 }
 
 if (failed) {
   console.error(
-    "\nRun supabase/schema.sql in the Supabase SQL editor, then rerun this check.",
+    "\nRun supabase/schema.sql in Supabase SQL editor, then rerun this check.",
   );
   process.exit(1);
 }

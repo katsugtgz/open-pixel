@@ -6,7 +6,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "echo no lint configured",
-    "typecheck": "echo typecheck via vite build"
+    "typecheck": "echo typecheck via vite build",
+    "test": "vitest run src/modules/main && node --test src/config/gameSmokeContract.test.mjs"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +17,8 @@
     "@canvasengine/compiler": "2.0.0-beta.56",
     "@vitejs/plugin-vue": "^6.0.5",
     "path-browserify": "^1.0.1",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vitest": "4.1.8"
   },
   "private": true,
   "dependencies": {

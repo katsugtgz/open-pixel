@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "module",
   "types": "dist/index.d.ts",
-  "private": "true",
+  "private": true,
   "devDependencies": {
     "@types/node": "^24.13.2"
   }

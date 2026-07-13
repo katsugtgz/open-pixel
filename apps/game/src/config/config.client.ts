@@ -6,11 +6,14 @@ import {
 } from "@rpgjs/client";
 import { provideMain } from "../modules/main";
 import { provideTiledMap } from "@rpgjs/tiledmap/client";
+import { GAME_SMOKE_CONTRACT } from "./gameSmokeContract.js";
+
+const { assets, sounds, sprites } = GAME_SMOKE_CONTRACT;
 
 export default {
   providers: [
     provideTiledMap({
-      basePath: "map",
+      basePath: assets.mapBasePath,
     }),
     provideClientGlobalConfig(),
     provideMain(),
@@ -19,25 +22,25 @@ export default {
       {
         spritesheets: [
           {
-            id: "hero",
-            image: "spritesheets/hero.png",
+            id: sprites.player.id,
+            image: sprites.player.image,
             ...Presets.RMSpritesheet(3, 4),
           },
           {
-            id: "female",
-            image: "spritesheets/female.png",
+            id: sprites.guide.id,
+            image: sprites.guide.image,
             ...Presets.RMSpritesheet(3, 4),
           },
           {
-            id: "shard",
-            image: "spritesheets/shard.png",
+            id: sprites.shard.id,
+            image: sprites.shard.image,
             ...Presets.RMSpritesheet(3, 4),
           },
         ],
         sounds: [
-          { id: "collect", src: "audio/collect.wav" },
-          { id: "quest-complete", src: "audio/quest-complete.wav" },
-          { id: "ui-click", src: "audio/click.wav" },
+          { id: sounds.collect.id, src: sounds.collect.src },
+          { id: sounds.questComplete.id, src: sounds.questComplete.src },
+          { id: sounds.uiClick.id, src: sounds.uiClick.src },
         ],
       },
     ]),
