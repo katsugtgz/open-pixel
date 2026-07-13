@@ -35,13 +35,16 @@ create table if not exists public.wallet_proofs (
 
 create or replace view public.leaderboard as
 select
-  guest_id,
-  max(display_name) as display_name,
-  sum(points) as total_points,
+  qr.guest_id,
+  max(qr.display_name) as display_name,
+  sum(qr.points) as total_points,
   count(*) as completed_runs,
-  max(completed_at) as last_completed_at
-from public.quest_runs
-group by guest_id
+  max(qr.completed_at) as last_completed_at,
+  bool_or(exists (
+    select 1 from public.wallet_proofs wp where wp.quest_run_id = qr.id
+  )) as has_proof
+from public.quest_runs qr
+group by qr.guest_id
 order by total_points desc, last_completed_at asc;
 
 alter table public.players enable row level security;

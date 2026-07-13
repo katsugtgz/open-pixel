@@ -1,5 +1,4 @@
 import { Audio } from "@remotion/media";
-import { z } from "zod";
 import {
   AbsoluteFill,
   Easing,
@@ -8,9 +7,8 @@ import {
   interpolate,
   staticFile,
   useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
-import "./style.css";
+import { z } from "zod";
 
 export const promoSchema = z.object({
   title: z.string(),
@@ -19,326 +17,226 @@ export const promoSchema = z.object({
 
 export type PromoProps = z.infer<typeof promoSchema>;
 
-const FPS = 30;
+const DURATION = 900;
 
-const chapters = [
-  "Guest first",
-  "AI Guide",
-  "3 Pixel Shards",
-  "Off-chain points",
-  "Optional proof",
-];
-
-const scenes = [
+const beats = [
   {
     from: 0,
-    duration: 150,
-    kind: "intro",
-    kicker: "Zero Cup prototype",
-    title: "Open Pixel",
-    body: "A cozy pixel quest RPG with optional Web3 proof.",
+    duration: 135,
+    image: "gameplay/step-00.png",
+    eyebrow: "Open Pixel",
+    title: "The village is quiet.",
+    body: "A small quest begins before any wallet appears.",
+    crop: { scale: 1.34, x: 78, y: 30 },
   },
   {
     from: 135,
-    duration: 195,
-    kind: "game",
-    kicker: "Playable first",
-    title: "Start as a guest",
-    body: "Open the browser game, move around with WASD, and meet the AI Guide in the field.",
+    duration: 150,
+    image: "gameplay/step-06.png",
+    eyebrow: "No wallet gate",
+    title: "Walk in first.",
+    body: "Move through the village. Find the guide. Start the run.",
+    crop: { scale: 1.48, x: -26, y: -18 },
   },
   {
-    from: 315,
-    duration: 180,
-    kind: "gameZoom",
-    kicker: "Core loop",
-    title: "Gather 3 Pixel Shards",
-    body: "Small quest loop: talk, explore, collect, score. No wallet required to play.",
-  },
-  {
-    from: 480,
-    duration: 180,
-    kind: "web",
-    kicker: "Claim flow",
-    title: "Points stay off-chain",
-    body: "The web shell handles the badge, leaderboard, and proof receipt without turning the game into DeFi.",
-  },
-  {
-    from: 645,
+    from: 285,
     duration: 165,
-    kind: "proof",
-    kicker: "Safety stance",
-    title: "Readable proof only",
-    body: "personal_sign only. No gas, no token, no approvals, no swaps, no permit.",
+    image: "gameplay/step-10.png",
+    eyebrow: "Quest trigger",
+    title: "Talk to the guide.",
+    body: "Three village nodes are offline. The map waits.",
+    crop: { scale: 1.62, x: -120, y: -58 },
   },
   {
-    from: 795,
-    duration: 105,
-    kind: "outro",
-    kicker: "Demo-ready loop",
-    title: "Quest. Gather. Prove.",
-    body: "Open Pixel keeps Web3 optional and the game playable first.",
+    from: 450,
+    duration: 165,
+    image: "gameplay/step-15.png",
+    eyebrow: "Resource village",
+    title: "Paths, plots, nodes.",
+    body: "Explore the paths. Collect what the village needs.",
+    crop: { scale: 1.72, x: 20, y: -46 },
+  },
+  {
+    from: 615,
+    duration: 165,
+    image: "gameplay/step-16.png",
+    eyebrow: "Finish the run",
+    title: "Play first. Prove later.",
+    body: "Finish the quest, then claim your proof.",
+    crop: { scale: 1.56, x: -70, y: -34 },
+  },
+  {
+    from: 780,
+    duration: 120,
+    image: "gameplay/step-10.png",
+    eyebrow: "Open Pixel",
+    title: "Village RPG, not DeFi.",
+    body: "No gas. No approvals. Just the village and the run.",
+    crop: { scale: 1.24, x: 0, y: 0 },
   },
 ] as const;
 
-type Scene = Omit<(typeof scenes)[number], "title" | "body"> & {
-  title: string;
-  body: string;
+const clamp = {
+  extrapolateLeft: "clamp" as const,
+  extrapolateRight: "clamp" as const,
 };
 
-function clamp(
+function ease(
   frame: number,
   input: [number, number],
   output: [number, number],
 ) {
   return interpolate(frame, input, output, {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    ...clamp,
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 }
 
-function SceneShell({ children }: { children: React.ReactNode }) {
+function currentBeat(frame: number) {
   return (
-    <AbsoluteFill className="scene-shell">
-      <div className="bg-grid" />
-      <div className="bg-glow bg-glow-lime" />
-      <div className="bg-glow bg-glow-pink" />
-      {children}
-    </AbsoluteFill>
+    beats.find(
+      (beat) => frame >= beat.from && frame < beat.from + beat.duration,
+    ) ?? beats[beats.length - 1]
   );
 }
 
-function BrandBug() {
+function Brand() {
   return (
-    <div className="brand-bug">
-      <Img src={staticFile("open-pixel-logo.svg")} />
-      <span>Open Pixel</span>
+    <div className="brand">
+      <Img src={staticFile("open-pixel-logo-village.jpg")} />
     </div>
   );
 }
 
-function ProgressBar({ frame }: { frame: number }) {
-  const width = interpolate(frame, [0, 900], [0, 100], {
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <div className="progress-rail">
-      {chapters.map((chapter) => (
-        <span key={chapter}>{chapter}</span>
-      ))}
-      <div className="progress-fill" style={{ width: `${width}%` }} />
-    </div>
-  );
-}
-
-function FrameCard({
-  src,
-  variant = "wide",
-  zoom = 1,
-}: {
-  src: string;
-  variant?: "wide" | "tilt";
-  zoom?: number;
-}) {
+function GameShot({ beat }: { beat: (typeof beats)[number] }) {
   const frame = useCurrentFrame();
-  const drift = clamp(frame, [0, 160], [0, 1]);
-  const scale = zoom + drift * 0.055;
-  const x = variant === "tilt" ? interpolate(drift, [0, 1], [32, -18]) : 0;
+  const local = frame - beat.from;
+  const enter = ease(local, [0, 24], [0.72, 1]);
+  const exit = interpolate(
+    local,
+    [beat.duration - 24, beat.duration],
+    [1, 0],
+    clamp,
+  );
+  const drift = interpolate(local, [0, beat.duration], [0, 1], clamp);
 
   return (
-    <div className={`frame-card ${variant}`}>
-      <Img
-        src={staticFile(src)}
-        style={{ transform: `translateX(${x}px) scale(${scale})` }}
-      />
-    </div>
+    <Sequence from={beat.from} durationInFrames={beat.duration}>
+      <AbsoluteFill
+        className="shot"
+        style={{
+          opacity: Math.min(enter, exit),
+        }}
+      >
+        <Img
+          src={staticFile(beat.image)}
+          className="gameplay-image"
+          style={{
+            scale: beat.crop.scale + drift * 0.1,
+            translate: `${beat.crop.x + drift * -42}px ${beat.crop.y + drift * -18}px`,
+          }}
+        />
+        <div className="scanlines" />
+        <div className="vignette" />
+      </AbsoluteFill>
+    </Sequence>
   );
 }
 
-function CopyBlock({ scene }: { scene: Scene }) {
+function Copy() {
   const frame = useCurrentFrame();
-  const enter = clamp(frame, [0, 24], [0, 1]);
+  const beat = currentBeat(frame);
+  const local = frame - beat.from;
+  const inOpacity = ease(local, [8, 34], [0, 1]);
+  const outOpacity = interpolate(
+    local,
+    [beat.duration - 30, beat.duration - 8],
+    [1, 0],
+    clamp,
+  );
 
   return (
     <div
-      className="copy-block"
+      className="copy"
       style={{
-        opacity: enter,
-        transform: `translateY(${interpolate(enter, [0, 1], [34, 0])}px)`,
+        opacity: Math.min(inOpacity, outOpacity),
+        translate: `0 ${interpolate(inOpacity, [0, 1], [30, 0], clamp)}px`,
       }}
     >
-      <p className="kicker">{scene.kicker}</p>
-      <h2>{scene.title}</h2>
-      <p>{scene.body}</p>
+      <div className="eyebrow">{beat.eyebrow}</div>
+      <h1>{beat.title}</h1>
+      <p>{beat.body}</p>
     </div>
   );
 }
 
-function PixelMotif() {
+function ThreatHud() {
   const frame = useCurrentFrame();
-  const bob = Math.sin((frame / FPS) * Math.PI * 2) * 8;
+  const progress = interpolate(frame, [0, DURATION], [0, 100], clamp);
+  const shardCount = Math.min(
+    3,
+    Math.floor(interpolate(frame, [250, 690], [0, 3], clamp)),
+  );
+
   return (
-    <div className="pixel-motif" style={{ transform: `translateY(${bob}px)` }}>
-      <div className="motif-sun" />
-      <div className="motif-tile motif-a" />
-      <div className="motif-tile motif-b" />
-      <div className="motif-shard motif-c" />
-      <div className="motif-shard motif-d" />
+    <div className="hud-trailer">
+      <div className="mission">
+        <span>Mission</span>
+        <strong>Restore village nodes</strong>
+      </div>
+      <div className="stats">
+        <span>Nodes {shardCount}/3</span>
+        <span>Guest mode</span>
+        <span>personal_sign only</span>
+      </div>
+      <div className="bar">
+        <div style={{ width: `${progress}%` }} />
+      </div>
     </div>
   );
 }
 
-function Intro({ scene }: { scene: Scene }) {
+function FinalSeal() {
   const frame = useCurrentFrame();
-  const enter = clamp(frame, [0, 34], [0, 1]);
-  return (
-    <SceneShell>
-      <BrandBug />
-      <div className="intro-lockup" style={{ opacity: enter }}>
-        <Img src={staticFile("open-pixel-logo.svg")} />
-        <CopyBlock scene={scene} />
-      </div>
-      <PixelMotif />
-      <ProgressBar frame={scene.from + frame} />
-    </SceneShell>
-  );
-}
-
-function GameScene({ scene, zoom = 1 }: { scene: Scene; zoom?: number }) {
-  const frame = useCurrentFrame();
-  return (
-    <SceneShell>
-      <BrandBug />
-      <FrameCard src="captures/game.png" variant="tilt" zoom={zoom} />
-      <CopyBlock scene={scene} />
-      <div className="badge-strip">
-        <span>WASD movement</span>
-        <span>AI Guide NPC</span>
-        <span>Pixel Shards</span>
-      </div>
-      <ProgressBar frame={scene.from + frame} />
-    </SceneShell>
-  );
-}
-
-function WebScene({ scene, src }: { scene: Scene; src: string }) {
-  const frame = useCurrentFrame();
-  return (
-    <SceneShell>
-      <BrandBug />
-      <FrameCard src={src} zoom={1.03} />
-      <CopyBlock scene={scene} />
-      <div className="receipt-stack">
-        <span>No token</span>
-        <span>No gas</span>
-        <span>No approvals</span>
-      </div>
-      <ProgressBar frame={scene.from + frame} />
-    </SceneShell>
-  );
-}
-
-function Outro({ scene }: { scene: Scene }) {
-  const frame = useCurrentFrame();
-  return (
-    <SceneShell>
-      <BrandBug />
-      <div className="outro-panel">
-        <CopyBlock scene={scene} />
-        <div className="outro-grid">
-          <span>guest-first</span>
-          <span>off-chain points</span>
-          <span>personal_sign only</span>
-        </div>
-      </div>
-      <PixelMotif />
-      <ProgressBar frame={scene.from + frame} />
-    </SceneShell>
-  );
-}
-
-function TransitionWipe({
-  at,
-  direction,
-}: {
-  at: number;
-  direction: "left" | "right";
-}) {
-  const frame = useCurrentFrame();
-  const p = clamp(frame, [at, at + 20], [0, 1]);
-  const x =
-    direction === "left"
-      ? interpolate(p, [0, 1], [-110, 110])
-      : interpolate(p, [0, 1], [110, -110]);
+  const opacity = interpolate(frame, [805, 850], [0, 1], clamp);
 
   return (
-    <div
-      className="wipe"
-      style={{ transform: `translateX(${x}%) skewX(-12deg)` }}
-    >
-      <div />
+    <div className="seal" style={{ opacity }}>
+      <span>No token economy</span>
+      <span>No approvals</span>
+      <span>No fake game layer</span>
     </div>
   );
 }
 
-export function OpenPixelPromo({ title, subtitle }: PromoProps) {
-  const promoScenes = scenes.map((scene, index) =>
-    index === 0 ? { ...scene, title, body: subtitle } : scene,
-  );
+export const OpenPixelPromo = (_props: PromoProps) => {
+  const frame = useCurrentFrame();
 
   return (
-    <AbsoluteFill className="promo-v2">
-      <Audio src={staticFile("generated/voiceover.mp3")} volume={0.9} />
-      <Sequence
-        from={promoScenes[0].from}
-        durationInFrames={promoScenes[0].duration}
-        premountFor={30}
-      >
-        <Intro scene={promoScenes[0]} />
-      </Sequence>
-      <Sequence
-        from={promoScenes[1].from}
-        durationInFrames={promoScenes[1].duration}
-        premountFor={30}
-      >
-        <GameScene scene={promoScenes[1]} zoom={0.98} />
-      </Sequence>
-      <Sequence
-        from={promoScenes[2].from}
-        durationInFrames={promoScenes[2].duration}
-        premountFor={30}
-      >
-        <GameScene scene={promoScenes[2]} zoom={1.22} />
-      </Sequence>
-      <Sequence
-        from={promoScenes[3].from}
-        durationInFrames={promoScenes[3].duration}
-        premountFor={30}
-      >
-        <WebScene scene={promoScenes[3]} src="captures/web-home.png" />
-      </Sequence>
-      <Sequence
-        from={promoScenes[4].from}
-        durationInFrames={promoScenes[4].duration}
-        premountFor={30}
-      >
-        <WebScene scene={promoScenes[4]} src="captures/web-claim.png" />
-      </Sequence>
-      <Sequence
-        from={promoScenes[5].from}
-        durationInFrames={promoScenes[5].duration}
-        premountFor={30}
-      >
-        <Outro scene={promoScenes[5]} />
-      </Sequence>
-      {[130, 310, 475, 640, 790].map((at, index) => (
-        <TransitionWipe
-          key={at}
-          at={at}
-          direction={index % 2 === 0 ? "left" : "right"}
-        />
+    <AbsoluteFill className="trailer-root">
+      <Audio
+        src={staticFile("audio/open-pixel-issue-14-voice.mp3")}
+        volume={0.92}
+      />
+      <div className="black-base" />
+      {beats.map((beat) => (
+        <GameShot key={`${beat.from}-${beat.title}`} beat={beat} />
       ))}
+      <div
+        className="pulse"
+        style={{
+          opacity: interpolate(
+            frame % 90,
+            [0, 8, 90],
+            [0.28, 0.06, 0.28],
+            clamp,
+          ),
+        }}
+      />
+      <Brand />
+      <Copy />
+      <ThreatHud />
+      <FinalSeal />
     </AbsoluteFill>
   );
-}
+};
