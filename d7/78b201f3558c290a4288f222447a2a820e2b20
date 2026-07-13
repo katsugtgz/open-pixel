@@ -1,0 +1,87 @@
+packages/shared/src/index.ts
+  s_1f28fb6744d70b::t_34f927db428d77 87-94
+  s_1f28fb6744d70b::t_99720c6e344f16 260
+  s_1f28fb6744d70b::t_678408f26d232c 144
+  s_1f28fb6744d70b::t_a5c8c6816ef9b9 55
+scripts/ai-game-smoke.mjs
+  s_1f28fb6744d70b::t_81dbf30a68d8ee 48-55
+  s_1f28fb6744d70b::t_1cc1db1b773c91 306
+.github/workflows/ci.yml
+  s_1f28fb6744d70b::t_8b0c63909a5a50 19-21
+  s_1f28fb6744d70b::t_71cc42f891bc62 28
+scripts/ai-game-agent-runner.py
+  s_87857afe5ada58::t_ad95be9876801d 40-42,44,51,55
+  s_1f28fb6744d70b::t_498286d2bfc77f 295-296
+  s_87857afe5ada58::t_8fd573b8ff3236 138
+  s_1f28fb6744d70b::t_f3d6fcbae84ce5 182
+  s_1f28fb6744d70b::t_ccfb00ce217d28 446-450
+apps/web/src/lib/claimProof.test.ts
+  s_1f28fb6744d70b::t_9fb2a37fbff764 39-41
+  s_1f28fb6744d70b::t_7244f658079cfc 1-38,42-141
+package.json
+  s_1f28fb6744d70b::t_006af35c0d1ed2 13-15
+apps/web/src/lib/leaderboard.ts
+  s_1f28fb6744d70b::t_8ba3ab8de150dd 45
+  s_1f28fb6744d70b::t_1f18043d266f37 11-18,20
+apps/game/src/standalone.ts
+  s_1f28fb6744d70b::t_52797fd833a6a1 1-2
+supabase/schema.sql
+  s_1f28fb6744d70b::t_f194f4f572cc8a 38-40,42-47
+scripts/check-supabase-schema.mjs
+  s_1f28fb6744d70b::t_b1de5864c57945 26
+apps/game/src/client.ts
+  s_1f28fb6744d70b::t_5c813b12438c9d 1-2
+.nvmrc
+  s_1f28fb6744d70b::t_d967bb42ba77ef 1
+apps/web/package.json
+  s_1f28fb6744d70b::t_876662ad46fc11 3
+  s_1f28fb6744d70b::t_93020b4eec46fb 11-12
+packages/shared/package.json
+  s_1f28fb6744d70b::t_5ab58940d1b0fd 17
+apps/game/package.json
+  s_1f28fb6744d70b::t_9361a293c1b3d1 20-21
+apps/web/src/App.tsx
+  s_1f28fb6744d70b::t_4b9bb3e8abd262 135
+packages/shared/test/index.test.mjs
+  s_1f28fb6744d70b::t_b98a4e521b2e9a 103
+  s_1f28fb6744d70b::t_f3f781a4252939 125-127,137
+  s_1f28fb6744d70b::t_8a19173e33e60b 182
+  s_1f28fb6744d70b::t_a1c8d5bccf9934 170
+  s_1f28fb6744d70b::t_5ba6766925580e 146-161
+  s_1f28fb6744d70b::t_489a51707716eb 72
+apps/web/src/lib/leaderboard.test.ts
+  s_1f28fb6744d70b::t_628a5d876e2045 1,3-45,48-56
+  s_1f28fb6744d70b::t_e0d1d3d2ab90ea 46-47
+  s_1f28fb6744d70b::t_9fb2a37fbff764 2
+apps/game/src/modules/main/questLoop.test.ts
+  s_1f28fb6744d70b::t_acf0a44cbb9d59 67-120
+scripts/check-game-render.mjs
+  s_1f28fb6744d70b::t_d94c64a0c1c993 14-21
+  s_1f28fb6744d70b::t_0b1d8482e546a9 78
+package-lock.json
+  s_1f28fb6744d70b::t_e8e024b75818ac 22-24,48-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "d778b201f3558c290a4288f222447a2a820e2b20",
+  "prompts": {},
+  "sessions": {
+    "s_1f28fb6744d70b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78181ed7-5b26-4577-93f0-13cd5caa2ce7",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_87857afe5ada58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "60e280cd-f47a-425c-ab5f-466be3ffcf57",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
