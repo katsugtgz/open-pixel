@@ -27,3 +27,4 @@ skills-lock.json
 # Root-level QA screenshots (debug captures, diag dumps, etc.)
 # Scoped to repo root so legitimate PNGs under apps/, assets/, docs/ are unaffected.
 /*.png
+apps/video/dist/
