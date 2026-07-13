@@ -2,11 +2,21 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildProofMessage,
+  createDemoQuestRun,
+  createProofMessage,
   createGuestId,
+  DEFAULT_QUEST_ID,
   formatSupabaseError,
   isSupabaseMissingTableError,
   SECURITY_RECEIPT,
+  SUPABASE_COLUMNS,
+  SUPABASE_SCHEMA_TARGETS,
   SUPABASE_SCHEMA_MISSING_TEXT,
+  SUPABASE_TABLES,
+  toLeaderboardEntry,
+  toPlayerRow,
+  toQuestRunRow,
+  toWalletProofRow,
 } from "../dist/index.js";
 
 describe("guest id generation", () => {
@@ -48,6 +58,132 @@ describe("wallet proof safety copy", () => {
       nftApproval: "none",
       spender: "none",
     });
+  });
+});
+
+describe("claim/proof row shaping", () => {
+  const questRun = createDemoQuestRun({
+    guestId: "guest_12345678",
+    displayName: "  Pixel Farmer  ",
+    completedAt: "2026-06-18T00:00:00.000Z",
+  });
+
+  it("creates the canonical demo quest run", () => {
+    assert.equal(questRun.id, "run_guest_12345678");
+    assert.equal(questRun.displayName, "Pixel Farmer");
+    assert.equal(questRun.questId, DEFAULT_QUEST_ID);
+    assert.equal(questRun.points, 130);
+    assert.equal(questRun.shards, 3);
+  });
+
+  it("maps claim rows to the expected Supabase tables", () => {
+    assert.equal(SUPABASE_TABLES.players, "players");
+    assert.equal(SUPABASE_TABLES.questRuns, "quest_runs");
+    assert.deepEqual(
+      SUPABASE_SCHEMA_TARGETS.map((target) => [target.name, target.columns]),
+      [
+        [SUPABASE_TABLES.players, SUPABASE_COLUMNS.players],
+        [SUPABASE_TABLES.questRuns, SUPABASE_COLUMNS.questRuns],
+        [SUPABASE_TABLES.walletProofs, SUPABASE_COLUMNS.walletProofs],
+        [SUPABASE_TABLES.leaderboard, SUPABASE_COLUMNS.leaderboard],
+      ],
+    );
+    assert.deepEqual(SUPABASE_COLUMNS.players, [
+      "guest_id",
+      "wallet_address",
+      "display_name",
+    ]);
+
+    assert.deepEqual(toPlayerRow({ questRun, walletAddress: "" }), {
+      guest_id: "guest_12345678",
+      wallet_address: null,
+      display_name: "Pixel Farmer",
+    });
+    assert.deepEqual(toQuestRunRow(questRun), {
+      id: "run_guest_12345678",
+      guest_id: "guest_12345678",
+      display_name: "Pixel Farmer",
+      quest_id: "Quest #1 - Restore village nodes",
+      points: 130,
+      shards: 3,
+      completed_at: "2026-06-18T00:00:00.000Z",
+    });
+  });
+
+  it("creates readable personal_sign proof rows", () => {
+    const proof = createProofMessage({
+      domain: "open-pixel.test",
+      walletAddress: "0x1234",
+      questRun,
+      nonce: "nonce-test",
+      issuedAt: "2026-06-18T00:00:00.000Z",
+      ttlMs: 600_000,
+    });
+
+    assert.match(proof.message, /Open Pixel Proof/);
+    assert.match(proof.message, /does not approve tokens/i);
+    assert.equal(proof.issuedAt, "2026-06-18T00:00:00.000Z");
+    assert.equal(proof.nonce, "nonce-test");
+    assert.equal(proof.expirationTime, "2026-06-18T00:10:00.000Z");
+    assert.deepEqual(
+      toWalletProofRow({
+        questRun,
+        walletAddress: "0x1234",
+        message: proof.message,
+        signature: "0xabcd",
+        verifiedAt: "2026-06-18T00:01:00.000Z",
+      }),
+      {
+        quest_run_id: "run_guest_12345678",
+        wallet_address: "0x1234",
+        message: proof.message,
+        signature: "0xabcd",
+        method: "personal_sign",
+        verified_at: "2026-06-18T00:01:00.000Z",
+      },
+    );
+  });
+
+  it("defaults proof expiry to ten minutes with a generated nonce", () => {
+    const proof = createProofMessage({
+      domain: "open-pixel.test",
+      walletAddress: "0x1234",
+      questRun,
+    });
+
+    assert.equal(
+      new Date(proof.expirationTime).getTime() -
+        new Date(proof.issuedAt).getTime(),
+      600_000,
+    );
+    assert.equal(typeof proof.nonce, "string");
+    assert.ok(proof.nonce.length > 0);
+  });
+});
+
+describe("leaderboard row mapping", () => {
+  it("maps Supabase leaderboard rows and proof tags", () => {
+    assert.deepEqual(
+      toLeaderboardEntry({
+        display_name: "Shard Scout",
+        total_points: "90",
+        has_proof: true,
+        guest_id: "guest_1",
+      }),
+      { name: "Shard Scout", score: 90, tag: "proof ready" },
+    );
+  });
+
+  it("falls back to guest labels for empty names", () => {
+    assert.deepEqual(
+      toLeaderboardEntry({
+        display_name: "",
+        points: null,
+        has_proof: false,
+        guest_id: "guest_2",
+      }),
+      { name: "guest_2", score: 0, tag: "guest" },
+    );
   });
 });
 
