@@ -213,7 +213,7 @@ Module boundaries under `apps/game/src/modules/`:
 
 ### Reward flow
 
-Successful `applyAction` calls (harvest/chop/mine) never mutate inventory. They return the new node state plus a `rewards` list of `{ itemId, qty }` grants. The RPG-JS event wiring in `apps/game/src/modules/main/` is the single caller that consumes this result and applies each grant via `inventory.addItem`. `orders.fulfill(orderId)` verifies with `isFulfillable`, removes payment items and adds reward items through the inventory API (never by touching counts directly), and returns a completion result that the same wiring layer forwards to `proofBridge`. Dropping the `rewards` list or granting items from anywhere else violates module ownership.
+Successful `applyAction` calls (harvest/chop/mine) never mutate inventory. They return the new node state plus a `rewards` list of `{ itemId, qty }` grants. The RPG-JS event wiring in `apps/game/src/modules/main/` is the single caller that consumes this result and applies each grant via `inventory.addItem`. `orders.fulfill(orderId)` verifies with `isFulfillable`, removes payment items and adds reward items through the inventory API (never by touching counts directly), and returns a completion result that the same wiring layer forwards to `proofBridge`. Order definitions — order id, required payment items, and reward items, each as `{ itemId, qty }` — live in the orders module's own definition data, keyed by `orderId`; the map carries only the `orderId` reference on the board object. Dropping the `rewards` list or granting items from anywhere else violates module ownership.
 
 ### Legacy replacement note
 
