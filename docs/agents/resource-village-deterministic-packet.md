@@ -73,7 +73,7 @@ Normalization rule: every sourced group must read as one style. Kenney packs (ke
 
 Approximate first-viewport layout on the current 25x20, 32px tile grid (`apps/game/src/tiled/simplemap.tmx`, orthogonal, Tiled 1.9.2). Each character is one tile. This sketch is canonical until committed `artifacts/frame-analysis/` contact sheets exist; those sheets are not in this repo today.
 
-Legend: `.` walkable grass · `#` house/workshop (blocking) · `B` order board · `P` farm plot · `T` tree · `M` mine/rock · `S` spawn.
+Legend: `.` walkable grass · `#` house/workshop (blocking) · `B` order board · `P` farm plot · `T` tree · `M` mine/rock · `D` house door (walkable, enters workstation scene) · `S` spawn.
 
 ```text
       x: 0123456789012345678901234
@@ -81,7 +81,7 @@ Legend: `.` walkable grass · `#` house/workshop (blocking) · `B` order board �
  y1   ..#####..............MMM.
  y2   ..#####..............MMM.
  y3   ..#####B.............M...
- y4   ..#####..................
+ y4   ..##D##..................
  y5   .........................
  y6   .....PPP........TT.......
  y7   .....PPP........TT.......
@@ -102,7 +102,8 @@ y19   .........................
 Approximate tile coordinates per element:
 
 - Spawn `S` — tile (2, 17), layer `spawn`.
-- House/workshop `#` — tiles (2,1) to (6,4), layer `collisions` (blocking); interior workstation enters a workstation scene.
+- House/workshop `#` — tiles (2,1) to (6,4) except the door tile, layer `collisions` (blocking); interior workstation enters a workstation scene.
+- House door `D` — tile (4, 4), layer `workstations`, id `door_house`; walking onto it enters the workstation scene.
 - Order board `B` — tile (7, 3), layer `workstations`, id `board_orders`.
 - Farm plot cluster 3x2 `P` — tiles (5,6)(6,6)(7,6)(5,7)(6,7)(7,7), layer `farm_plots`, ids `plot_01`..`plot_06`.
 - Tree cluster `T` — tiles (16,6)(17,6)(16,7)(17,7), layer `resource_nodes`, ids `tree_01`..`tree_04`.
@@ -127,14 +128,14 @@ Required custom properties:
 - `action`: `plant | water | harvest | chop | mine | fulfill | inspect`
 - `requiresTool`: `none | hoe | can | axe | pickaxe`
 - `initialState`: `empty | planted | watered | grown | ready | depleted | active`
-- `rewardItem`: item id awarded by interaction
-- `orderId`: workstation or board order id
+- `rewardItem`: item id awarded by interaction; `none` if the object awards nothing.
+- `orderId`: workstation or board order id; `none` for non-board objects.
 
 Agent rule: if a map object lacks `kind` and stable `id`, gameplay code must not bind to it.
 
 ### Example objects
 
-Tiled 1.9 exposes the object type as the `class` attribute (formerly `type`). Both examples below use the custom properties above.
+Tiled 1.9 exposes the object type as the `class` attribute (formerly `type`). Tiled 1.10+ writes this attribute as `type` again, so the map adapter must read both `class` and `type`; committed maps stay on Tiled 1.9.x until it does. Both examples below use the custom properties above.
 
 `plot_01` on layer `farm_plots`:
 
@@ -149,6 +150,7 @@ Tiled 1.9 exposes the object type as the `class` attribute (formerly `type`). Bo
       <property name="requiresTool" value="hoe" />
       <property name="initialState" value="empty" />
       <property name="rewardItem" value="item_turnip" />
+      <property name="orderId" value="none" />
     </properties>
   </object>
 </objectgroup>
@@ -166,6 +168,7 @@ Tiled 1.9 exposes the object type as the `class` attribute (formerly `type`). Bo
       <property name="action" value="fulfill" />
       <property name="requiresTool" value="none" />
       <property name="initialState" value="active" />
+      <property name="rewardItem" value="none" />
       <property name="orderId" value="order_01" />
     </properties>
   </object>
@@ -178,7 +181,7 @@ All solid and blocking geometry lives in the `collisions` object layer. Every in
 
 ### Stable ID rule
 
-The Tiled object `name` field **is** the stable `id`. IDs are never renamed, never reused, never assigned by coordinates. Gameplay code, modules, tests, and screenshots bind to objects by `id` only. Editing an object's tile position is allowed; renaming an `id` is a breaking change that requires updating every consumer.
+The Tiled object `name` field **is** the stable `id`. IDs are never renamed, never reused, never assigned by coordinates. Gameplay code, modules, tests, and screenshots bind to objects by `id` only. Editing an object's tile position is allowed; renaming an `id` is a breaking change that requires updating every consumer. The `id` custom property must always equal the object `name`; a mismatch is a validation failure and gameplay code must refuse to bind to the object.
 
 ## Module Contracts
 
@@ -197,14 +200,14 @@ Do not put core game state only in DOM, HUD text, notification parsing, or claim
 
 Module boundaries under `apps/game/src/modules/`:
 
-| Path                     | Owns                                                                | Exposes                                             | Must not                                           |
-| ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
-| `resourceLoop/index.ts`  | plot/node state machine (plant/water/harvest/chop/mine transitions) | `applyAction(nodeId, action)` -> new state          | Touch inventory counts directly; render UI         |
-| `inventory/index.ts`     | item counts and mutations                                           | `addItem(itemId, n)`, `removeItem`, `count(itemId)` | Know about map objects; emit proof                 |
-| `orders/index.ts`        | order definitions, fulfillment checks, rewards                      | `fulfill(orderId)`, `isFulfillable(orderId)`        | Own plot state; mutate inventory (call into it)    |
-| `adapters/mapObjects.ts` | Tiled/RPG-JS object -> resource-loop object mapping                 | `getById(id)`, `listByKind(kind)`                   | Mutate game truth; own state                       |
-| `adapters/hud.ts`        | display layer over RPG-JS scene                                     | `render(state)`, hotbar/HUD read API                | Own counts/states; persist anything                |
-| `proofBridge.ts`         | off-chain completion -> web/proof shell                             | `buildReceipt(completion)`, `isComplete()`          | Grant completion from claim-page local state alone |
+| Path                     | Owns                                                                | Exposes                                             | Must not                                                                 |
+| ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
+| `resourceLoop/index.ts`  | plot/node state machine (plant/water/harvest/chop/mine transitions) | `applyAction(nodeId, action)` -> new state          | Touch inventory counts directly; render UI                               |
+| `inventory/index.ts`     | item counts and mutations                                           | `addItem(itemId, n)`, `removeItem`, `count(itemId)` | Know about map objects; emit proof                                       |
+| `orders/index.ts`        | order definitions, fulfillment checks, rewards                      | `fulfill(orderId)`, `isFulfillable(orderId)`        | Own plot state; mutate inventory directly (go through the inventory API) |
+| `adapters/mapObjects.ts` | Tiled/RPG-JS object -> resource-loop object mapping                 | `getById(id)`, `listByKind(kind)`                   | Mutate game truth; own state                                             |
+| `adapters/hud.ts`        | display layer over RPG-JS scene                                     | `render(state)`, hotbar/HUD read API                | Own counts/states; persist anything                                      |
+| `proofBridge.ts`         | off-chain completion -> web/proof shell                             | `buildReceipt(completion)`, `isComplete()`          | Grant completion from claim-page local state alone                       |
 
 ### Legacy replacement note
 
@@ -241,7 +244,8 @@ npm run test:game:render
 npm run test:game:ai
 
 # Full autonomous VLM tester (vision endpoint required)
-AI_GAME_VLM_BASE_URL=http://ktzserver.tail3d7914.ts.net:20128/v1 \
+# base URL example lives in docs/AI_GAME_AGENT_WORKFLOW.md (tailnet-only endpoint)
+AI_GAME_VLM_BASE_URL=<vision-endpoint-base-url> \
 AI_GAME_VLM_MODEL=<vision-chat-model> \
 AI_GAME_VLM_API_KEY=dummy \
 npm run test:game:agent
