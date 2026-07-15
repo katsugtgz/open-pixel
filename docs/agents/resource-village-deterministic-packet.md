@@ -127,9 +127,9 @@ Required custom properties:
 - `kind`: `plot | tree | mine | workstation | board | spawn | collision`
 - `id`: stable unique id, e.g. `plot_01`, `tree_03`, `mine_01`, `board_orders`
 - `resource`: `crop | wood | stone | crystal | none`
-- `action`: `plant | water | harvest | chop | mine | fulfill | inspect`
+- `action`: `plant | water | harvest | chop | mine | fulfill | inspect | none`; `none` for non-interactable kinds (`spawn`, `collision`).
 - `requiresTool`: `none | hoe | can | axe | pickaxe`
-- `initialState`: `empty | planted | watered | grown | ready | depleted | active`
+- `initialState`: `empty | planted | watered | grown | ready | depleted | active | none`; `none` for non-interactable kinds (`spawn`, `collision`).
 - `rewardItem`: item id awarded by interaction; `none` if the object awards nothing.
 - `orderId`: board order id (only `board` objects carry a non-`none` value; workstations reference orders through the board); `none` for all other objects.
 
@@ -202,14 +202,18 @@ Do not put core game state only in DOM, HUD text, notification parsing, or claim
 
 Module boundaries under `apps/game/src/modules/`:
 
-| Path                     | Owns                                                                | Exposes                                             | Must not                                                                 |
-| ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
-| `resourceLoop/index.ts`  | plot/node state machine (plant/water/harvest/chop/mine transitions) | `applyAction(nodeId, action)` -> new state          | Touch inventory counts directly; render UI                               |
-| `inventory/index.ts`     | item counts and mutations                                           | `addItem(itemId, n)`, `removeItem`, `count(itemId)` | Know about map objects; emit proof                                       |
-| `orders/index.ts`        | order definitions, fulfillment checks, rewards                      | `fulfill(orderId)`, `isFulfillable(orderId)`        | Own plot state; mutate inventory directly (go through the inventory API) |
-| `adapters/mapObjects.ts` | Tiled/RPG-JS object -> resource-loop object mapping                 | `getById(id)`, `listByKind(kind)`                   | Mutate game truth; own state                                             |
-| `adapters/hud.ts`        | display layer over RPG-JS scene                                     | `render(state)`, hotbar/HUD read API                | Own counts/states; persist anything                                      |
-| `proofBridge.ts`         | off-chain completion -> web/proof shell                             | `buildReceipt(completion)`, `isComplete()`          | Grant completion from claim-page local state alone                       |
+| Path                     | Owns                                                                | Exposes                                               | Must not                                                                 |
+| ------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| `resourceLoop/index.ts`  | plot/node state machine (plant/water/harvest/chop/mine transitions) | `applyAction(nodeId, action)` -> `{ state, rewards }` | Touch inventory counts directly; render UI                               |
+| `inventory/index.ts`     | item counts and mutations                                           | `addItem(itemId, n)`, `removeItem`, `count(itemId)`   | Know about map objects; emit proof                                       |
+| `orders/index.ts`        | order definitions, fulfillment checks, rewards                      | `fulfill(orderId)`, `isFulfillable(orderId)`          | Own plot state; mutate inventory directly (go through the inventory API) |
+| `adapters/mapObjects.ts` | Tiled/RPG-JS object -> resource-loop object mapping                 | `getById(id)`, `listByKind(kind)`                     | Mutate game truth; own state                                             |
+| `adapters/hud.ts`        | display layer over RPG-JS scene                                     | `render(state)`, hotbar/HUD read API                  | Own counts/states; persist anything                                      |
+| `proofBridge.ts`         | off-chain completion -> web/proof shell                             | `buildReceipt(completion)`, `isComplete()`            | Grant completion from claim-page local state alone                       |
+
+### Reward flow
+
+Successful `applyAction` calls (harvest/chop/mine) never mutate inventory. They return the new node state plus a `rewards` list of `{ itemId, qty }` grants. The RPG-JS event wiring in `apps/game/src/modules/main/` is the single caller that consumes this result and applies each grant via `inventory.addItem`. `orders.fulfill(orderId)` verifies with `isFulfillable`, removes payment items and adds reward items through the inventory API (never by touching counts directly), and returns a completion result that the same wiring layer forwards to `proofBridge`. Dropping the `rewards` list or granting items from anywhere else violates module ownership.
 
 ### Legacy replacement note
 
@@ -249,7 +253,7 @@ npm run test:game:ai
 # base URL example lives in docs/AI_GAME_AGENT_WORKFLOW.md (tailnet-only endpoint)
 AI_GAME_VLM_BASE_URL=<vision-endpoint-base-url> \
 AI_GAME_VLM_MODEL=<vision-chat-model> \
-AI_GAME_VLM_API_KEY=dummy \
+AI_GAME_VLM_API_KEY="${AI_GAME_VLM_API_KEY:?set AI_GAME_VLM_API_KEY (any placeholder works for no-auth endpoints)}" \
 npm run test:game:agent
 ```
 
