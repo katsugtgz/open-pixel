@@ -1,0 +1,20 @@
+docs/agents/resource-village-deterministic-packet.md
+  s_7131d7a8296f8f::t_06cec04b48339f 203-210
+  s_7131d7a8296f8f::t_3082c6b62dcd19 76,84,105-106,131-132,138,153,171,184,247-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "790a4ac351d5d464bd773c7269b820287a428b71",
+  "prompts": {},
+  "sessions": {
+    "s_7131d7a8296f8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f6487-44dc-7083-ab95-9fbc936dccae",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
