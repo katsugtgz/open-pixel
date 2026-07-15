@@ -1,0 +1,40 @@
+docs/agents/resource-village-deterministic-packet.md
+  s_3ad39d57c46f55::t_007bc7b3a4998c 61-70,200-207
+  s_19b1b0a9c8957c::t_d22cb52899b496 53,56,60,71,75,77-78,100-103,135,156,176,179-180,197,199,208-209,253,263,265-267,269-281,283,286-288,290
+  s_774e6fe2bbb20f::t_a26c0d3f1265fe 83
+  s_774e6fe2bbb20f::t_b359b8bdf2bb31 105,108-109
+  s_3ad39d57c46f55::t_4900fc51c67fb7 21-23,55,57-59,72-74,76,79-82,84-99,104,106-107,136-155,157-175,177-178,181-182,196,198,211-212,226-252,254-262,264,268,285,289,291
+  s_774e6fe2bbb20f::t_47c3766a987640 54,210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "944c54ef5dd6321bb85d8058de72a1462fcc6e5b",
+  "prompts": {},
+  "sessions": {
+    "s_19b1b0a9c8957c": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f646b-50b5-7a06-9224-d14b5e210cc3",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_3ad39d57c46f55": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f646d-32c4-7853-af7b-bd0c0c1eb879",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_774e6fe2bbb20f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "563a442f-929f-48a1-b2e1-e88fbadd8c76",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
