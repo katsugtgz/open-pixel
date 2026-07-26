@@ -12,6 +12,8 @@
   <strong>Live demo:</strong> <a href="https://open-pixel-beta.vercel.app">https://open-pixel-beta.vercel.app</a>
 </p>
 
+![Open Pixel gameplay](assets/open-pixel-demo.gif)
+
 <p align="center">
   <a href="#getting-started">Getting started</a> ·
   <a href="#how-it-works">How it works</a> ·
