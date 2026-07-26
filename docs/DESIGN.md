@@ -9,7 +9,7 @@ Build a guest-first cozy pixel RPG where the main loop is resource work, village
 - Public brand: **Open Pixel**.
 - Internal mechanic name: **Cozy Resource-Village Loop**.
 - Current target PRD: GitHub issue #15, "Replace legacy AI Guide quest with Cozy Resource-Village Loop".
-- Deterministic implementation packet: GitHub issue #21 and `docs/agents/resource-village-deterministic-packet.md`.
+- Deterministic implementation packet: GitHub issue #21.
 - Legacy/current implementation: AI Guide plus three Pixel Shards/village nodes. This is not the target product loop.
 
 ## Locked Decisions

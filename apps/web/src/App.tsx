@@ -258,34 +258,6 @@ function DesignSection({
   );
 }
 
-function VideoSection() {
-  return (
-    <section className="video-section" aria-labelledby="trailer-title">
-      <div className="section-heading">
-        <p className="eyebrow">Issue 14 trailer</p>
-        <h2 id="trailer-title">Watch Open Pixel quest</h2>
-        <p>
-          Full audio trailer for judges: cozy RPG loop, AI Guide, village nodes,
-          guest badge, optional wallet proof.
-        </p>
-      </div>
-      <div className="video-frame">
-        <video
-          controls
-          preload="metadata"
-          playsInline
-          poster="/generated/issue-14-thriller-760.png"
-          src="/video/open-pixel-issue-14-thriller.mp4"
-        >
-          <a href="/video/open-pixel-issue-14-thriller.mp4">
-            Download Open Pixel Issue 14 trailer.
-          </a>
-        </video>
-      </div>
-    </section>
-  );
-}
-
 type ClaimSectionProps = {
   state: AppState;
   questRun: QuestRun;
@@ -467,7 +439,6 @@ function App() {
         rows={state.leaderboardRows}
         source={state.leaderboardSource}
       />
-      <VideoSection />
       <ClaimSection
         state={state}
         questRun={questRun}

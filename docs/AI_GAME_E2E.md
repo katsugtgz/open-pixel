@@ -19,7 +19,6 @@ build web+game
 
 - `scripts/ai-game-smoke.mjs` — agent smoke runner.
 - `artifacts/ai-game-smoke/` — local reports/screenshots.
-- `docs/agents/resource-village-deterministic-packet.md` — target product QA contract.
 
 ## Local Usage
 

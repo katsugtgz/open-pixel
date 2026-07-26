@@ -6,7 +6,6 @@ Open Pixel currently uses lightweight placeholder assets so the repo is submissi
 
 - `assets/open-pixel-logo.svg` — generated logo placeholder.
 - `assets/open-pixel-demo.gif` — generated animated README demo placeholder.
-- `assets/demo-placeholder.svg` — static fallback.
 - `apps/game/public/audio/collect.wav` — generated UI collect sound.
 - `apps/game/public/audio/quest-complete.wav` — generated quest complete sound.
 - `apps/game/public/audio/click.wav` — generated UI click sound.
