@@ -1,0 +1,22 @@
+docs/AI_GAME_AGENT_WORKFLOW.md
+  s_038d67559c775f::t_4b63d74faca75b 78
+  s_038d67559c775f::t_ceb44d5ab74851 59-60,66,68
+docs/AI_GAME_E2E.md
+  s_038d67559c775f::t_4cf8800909b958 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2ed42813df556f1d07c23545726a344bd65d7e49",
+  "prompts": {},
+  "sessions": {
+    "s_038d67559c775f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ac43211-929f-4887-90cb-9d4473d7cf07",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
