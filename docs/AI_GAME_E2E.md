@@ -73,7 +73,7 @@ Enable only when an OpenAI-compatible vision endpoint is available.
 
 ```bash
 AI_GAME_VLM_ENABLED=1 \
-AI_GAME_VLM_BASE_URL=http://ktzserver.tail3d7914.ts.net:20128/v1 \
+AI_GAME_VLM_BASE_URL=<your-endpoint>/v1 \
 AI_GAME_VLM_MODEL=<your-vision-model> \
 AI_GAME_VLM_API_KEY=dummy \
 npm run test:game:ai
