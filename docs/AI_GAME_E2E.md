@@ -84,9 +84,9 @@ Notes:
 - `gemini/gemini-embedding-2-preview` is embeddings-only; not enough for screenshot decisions.
 - Keep default scripted mode if endpoint latency/secrets are unstable.
 
-## Agent Instruction
+## When to Run
 
-When gameplay, map, sprites, RPG-JS config, quest/resource events, NPCs, input, or build output changes, run:
+Run the smoke harness whenever gameplay, map, sprites, RPG-JS config, quest/resource events, NPCs, input, or build output changes:
 
 ```bash
 npm run build:vercel
@@ -94,21 +94,18 @@ npm run test:game:render
 npm run test:game:ai
 ```
 
-Do not claim completion from command success alone. Include:
+Review the artifacts, not just the exit code:
 
 - `artifacts/ai-game-smoke/summary.md`
 - `artifacts/ai-game-smoke/report.json`
 - relevant `artifacts/ai-game-smoke/step-*.png` screenshots
-- resource-loop screenshots when the change targets the **Cozy Resource-Village Loop**
 
-If AI smoke fails:
+## Troubleshooting
+
+If the smoke test fails:
 
 1. Open `artifacts/ai-game-smoke/summary.md`.
-2. Inspect last `step-*.png`.
+2. Inspect the last `step-*.png`.
 3. Check `report.json` fields: `pageErrors`, `failedRequests`, `reason`.
 4. Fix the RPG-JS pipeline/asset/input/event bug.
 5. Re-run `npm run test:game:ai`.
-
-Old AI Guide + three-pickup evidence is not enough for target resource-loop work.
-
-Do not bypass failure by hiding/replacing the RPG-JS canvas with DOM fallback.
