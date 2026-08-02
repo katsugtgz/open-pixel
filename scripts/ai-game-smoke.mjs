@@ -45,9 +45,7 @@ function resolveTileSize() {
   const widthMatch = tmx.match(/\btilewidth="(\d+)"/);
   const heightMatch = tmx.match(/\btileheight="(\d+)"/);
   if (!widthMatch || !heightMatch) {
-    throw new Error(
-      `could not parse tilewidth/tileheight from ${MAP_PATH}`,
-    );
+    throw new Error(`could not parse tilewidth/tileheight from ${MAP_PATH}`);
   }
   const tileWidth = Number.parseInt(widthMatch[1], 10);
   const tileHeight = Number.parseInt(heightMatch[1], 10);

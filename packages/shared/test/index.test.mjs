@@ -227,10 +227,7 @@ describe("leaderboard row mapping", () => {
   });
 
   it("coerces non-finite scores (NaN/Infinity/string-junk) to 0", () => {
-    assert.equal(
-      toLeaderboardEntry({ total_points: "not-a-number" }).score,
-      0,
-    );
+    assert.equal(toLeaderboardEntry({ total_points: "not-a-number" }).score, 0);
     assert.equal(
       toLeaderboardEntry({ total_points: Number.POSITIVE_INFINITY }).score,
       0,
