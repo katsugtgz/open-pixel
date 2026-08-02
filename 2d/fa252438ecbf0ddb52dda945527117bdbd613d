@@ -1,0 +1,73 @@
+apps/web/src/lib/leaderboard.ts
+  s_eb6dfa150b299a::t_c5d132af676d35 13,32,42-45,47,51-57,77-79
+apps/web/src/lib/leaderboard.test.ts
+  s_eb6dfa150b299a::t_c0347c16b65a04 9,19
+  s_eb6dfa150b299a::t_6cc576047ea56a 58-68
+apps/game/src/modules/main/questLoop.test.ts
+  s_eb6dfa150b299a::t_674d4b4dba5eab 94-105
+  s_eb6dfa150b299a::t_66f964916df273 92-93
+supabase/functions/verify-wallet-proof/index.ts
+  s_eb6dfa150b299a::t_d714906ff01be3 96
+  s_eb6dfa150b299a::t_9760d2435bb811 1-9,11-95,97-136
+  s_eb6dfa150b299a::t_4e4fc63e3f6f58 10
+  s_eb6dfa150b299a::t_f7052f2f09c30e 137
+supabase/schema.sql
+  s_eb6dfa150b299a::t_73bd18b51873ec 10,20-21
+  s_eb6dfa150b299a::t_41f421cfb4324c 36-65
+scripts/ai-game-smoke.mjs
+  s_eb6dfa150b299a::t_77b7de3078d0bd 497-502
+  s_eb6dfa150b299a::t_67d7c2de701bc2 4-6,15-62
+  s_eb6dfa150b299a::t_8123bae185ba1b 63
+apps/game/src/modules/main/questLoop.ts
+  s_eb6dfa150b299a::t_bfa7ad51f954fe 101-112
+apps/web/src/lib/supabase/client.ts
+  s_eb6dfa150b299a::t_8992ca15002732 3-5,13
+packages/shared/test/index.test.mjs
+  s_eb6dfa150b299a::t_d09767ace3011e 184-185,228-281
+  s_eb6dfa150b299a::t_0dcd6f0048cf61 72-76,83-94,119,129-139,164,174-183
+  s_eb6dfa150b299a::t_dcd28a596e5d9f 186
+apps/game/src/modules/main/event.ts
+  s_eb6dfa150b299a::t_1a4c72dba01c55 39-43
+  s_eb6dfa150b299a::t_4bfd562e547d41 66-71
+supabase/functions/verify-wallet-proof/index.test.ts
+  s_eb6dfa150b299a::t_c15acb00045ba4 1-147
+apps/web/src/App.tsx
+  s_eb6dfa150b299a::t_020a3dc1c40055 253
+  s_eb6dfa150b299a::t_3d087c916da632 383,385-386,400
+  s_eb6dfa150b299a::t_c2f8cc52e295ef 440-441
+  s_eb6dfa150b299a::t_214e0cc6dd3942 377,379
+  s_eb6dfa150b299a::t_753efaed30f6b9 421-428
+  s_eb6dfa150b299a::t_b1a134971e79c5 1
+  s_eb6dfa150b299a::t_d40b2c9c999150 109-110
+  s_eb6dfa150b299a::t_1b0cdf27e884c6 251-252,254
+  s_eb6dfa150b299a::t_bd8e705083d2b9 371
+apps/web/src/lib/claimProof.ts
+  s_eb6dfa150b299a::t_f0e6f57ddfab97 111-112,142,150-177,181,188
+  s_eb6dfa150b299a::t_ec2b891d347e9e 31-33
+  s_eb6dfa150b299a::t_3000f3fe8ce536 34-35
+apps/web/src/lib/claimProof.test.ts
+  s_eb6dfa150b299a::t_d6deb909ff3ec6 1
+  s_eb6dfa150b299a::t_4db851c468c10d 114,117-131,133-137,141-142,144-145,148-186
+packages/shared/src/index.ts
+  s_eb6dfa150b299a::t_4bd75f37700419 283-285,289
+  s_eb6dfa150b299a::t_e1ea856f762ffc 194-199,201
+  s_eb6dfa150b299a::t_9ada6fb8285e06 246-252,260-268
+  s_eb6dfa150b299a::t_4e94064f4d5491 229-230
+  s_eb6dfa150b299a::t_58fbeb924b6473 144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "2dfa252438ecbf0ddb52dda945527117bdbd613d",
+  "prompts": {},
+  "sessions": {
+    "s_eb6dfa150b299a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_03c6fdedbffet7bLEhdgBFio95",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
