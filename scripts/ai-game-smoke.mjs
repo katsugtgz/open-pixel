@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { setTimeout as sleep } from "node:timers/promises";
 import { chromium } from "playwright";
 import {
@@ -10,6 +11,55 @@ import {
   getGamePreviewUrl,
   isGameAssetUrl,
 } from "../apps/game/src/config/gameSmokeContract.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const MAP_PATH = join(
+  __dirname,
+  "..",
+  "apps",
+  "game",
+  "src",
+  "tiled",
+  "map.tmx",
+);
+
+// Tile size must match the map's tilewidth/tileheight. Hardcoding 32 silently
+// breaks onAction hitbox math if the map ever changes its tile grid. Read it
+// from map.tmx at startup and fail fast on mismatch. Override via
+// AI_GAME_TILE_SIZE for experiments.
+function resolveTileSize() {
+  const overrideRaw = process.env.AI_GAME_TILE_SIZE;
+  if (overrideRaw) {
+    const override = Number.parseInt(overrideRaw, 10);
+    if (!Number.isFinite(override) || override <= 0) {
+      throw new Error(`AI_GAME_TILE_SIZE must be a positive integer`);
+    }
+    return override;
+  }
+  if (!existsSync(MAP_PATH)) {
+    throw new Error(
+      `map.tmx not found at ${MAP_PATH}; set AI_GAME_TILE_SIZE to override`,
+    );
+  }
+  const tmx = readFileSync(MAP_PATH, "utf8");
+  const widthMatch = tmx.match(/\btilewidth="(\d+)"/);
+  const heightMatch = tmx.match(/\btileheight="(\d+)"/);
+  if (!widthMatch || !heightMatch) {
+    throw new Error(
+      `could not parse tilewidth/tileheight from ${MAP_PATH}`,
+    );
+  }
+  const tileWidth = Number.parseInt(widthMatch[1], 10);
+  const tileHeight = Number.parseInt(heightMatch[1], 10);
+  if (tileWidth !== tileHeight) {
+    throw new Error(
+      `non-square tile size in ${MAP_PATH}: ${tileWidth}x${tileHeight}`,
+    );
+  }
+  return tileWidth;
+}
+
+const TILE = resolveTileSize();
 
 const MOVEMENT_KEYS = new Set([
   "ArrowUp",
@@ -444,11 +494,12 @@ function nextScriptedAction(gameState, ctrl) {
   // NOT enough — the player must be on a tile orthogonally adjacent to
   // the guide's tile, with facing pointing at it.
   //
-  // Tile size is 32px (RPG-JS default). Guide pixel (384, 352) lives on
-  // tile (12, 11). We navigate the player to the tile NORTH of the guide
-  // (12, 10) = pixel centre ~(400, 320), approaching via ArrowDown so the
-  // player's facing ends up SOUTH — pointing directly at the guide. Then
-  // Space fires onAction on the guide tile.
+  // TILE size is read from map.tmx at startup (or AI_GAME_TILE_SIZE).
+  // Guide pixel (384, 352) lives on tile (12, 11) for a 32px grid. We
+  // navigate the player to the tile NORTH of the guide (12, 10) = pixel
+  // centre ~(400, 320), approaching via ArrowDown so the player's facing
+  // ends up SOUTH — pointing directly at the guide. Then Space fires
+  // onAction on the guide tile.
   //
   // SERVER-SYNC LAG: RPG-JS is server-authoritative. The PIXI-read
   // position can lag the server-side position by 1 tile during movement.
@@ -456,7 +507,6 @@ function nextScriptedAction(gameState, ctrl) {
   // server might still see them one tile away. We handle this by retrying
   // Space several times across multiple approach cycles, accepting that
   // onAction fires nondeterministically.
-  const TILE = 32;
   const guideTile = {
     x: Math.round(guide.x / TILE),
     y: Math.round(guide.y / TILE),

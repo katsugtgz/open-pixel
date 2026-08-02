@@ -31,13 +31,16 @@ export function QuestGiver(): EventDefinition {
       const decision = decideGuideAction(snapshotQuest(player));
 
       if (decision.kind === "complete") {
-        player.setVariable(QUEST_VARIABLES.done, decision.setDone);
-        player.gold += decision.rewardPoints;
         await player.showNotification(decision.notification.message, {
           sound: decision.notification.sound,
           type: decision.notification.type,
         });
         await player.showText(decision.text);
+        // Apply state mutations only after the awaited UI side effects
+        // resolve, so a rejected notification does not leave the quest
+        // half-marked-complete.
+        player.setVariable(QUEST_VARIABLES.done, decision.setDone);
+        player.gold += decision.rewardPoints;
         return;
       }
 
@@ -60,16 +63,18 @@ export function PixelShard(): EventDefinition {
       const decision = decideVillageNodeAction(snapshotQuest(player, nodeKey));
 
       if (decision.kind === "restore-node") {
+        await player.showNotification(decision.notification.message, {
+          sound: decision.notification.sound,
+          type: decision.notification.type,
+        });
+        // Apply state mutations only after the awaited notification, so a
+        // rejected notification does not half-mark the node collected.
         player.setVariable(nodeKey, decision.markCollected);
         player.setVariable(
           QUEST_VARIABLES.nodesRestored,
           decision.nodesRestored,
         );
         player.gold += decision.rewardPoints;
-        await player.showNotification(decision.notification.message, {
-          sound: decision.notification.sound,
-          type: decision.notification.type,
-        });
       }
 
       await player.showText(decision.text);

@@ -7,7 +7,7 @@ create table if not exists public.players (
   id uuid primary key default gen_random_uuid(),
   guest_id text not null unique,
   wallet_address text unique,
-  display_name text not null default 'Pixel Runner',
+  display_name text not null default 'Pixel Runner' check (char_length(display_name) <= 32),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -17,8 +17,8 @@ create table if not exists public.quest_runs (
   guest_id text not null references public.players(guest_id) on delete cascade,
   display_name text not null,
   quest_id text not null,
-  points integer not null check (points >= 0),
-  shards integer not null check (shards >= 0),
+  points integer not null check (points >= 0 and points <= 200),
+  shards integer not null check (shards >= 0 and shards <= 10),
   completed_at timestamptz not null default now()
 );
 
@@ -32,6 +32,36 @@ create table if not exists public.wallet_proofs (
   verified_at timestamptz not null default now(),
   unique (quest_run_id, wallet_address)
 );
+
+-- Idempotent CHECK constraints: inline checks above only apply on fresh
+-- `create table`. These alter blocks let an already-deployed database pick
+-- up the same guards without manual surgery.
+do $$ begin
+  alter table public.players
+    add constraint players_display_name_length
+    check (char_length(display_name) <= 32);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
+
+do $$ begin
+  alter table public.quest_runs
+    add constraint quest_runs_points_range
+    check (points >= 0 and points <= 200);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
+
+do $$ begin
+  alter table public.quest_runs
+    add constraint quest_runs_shards_range
+    check (shards >= 0 and shards <= 10);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
 
 create or replace view public.leaderboard as
 select

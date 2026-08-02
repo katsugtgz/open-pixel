@@ -141,7 +141,7 @@ export function createDemoQuestRun(input: {
   completedAt?: string;
 }): QuestRun {
   return {
-    id: `run_${input.guestId}`,
+    id: createRandomId(),
     guestId: input.guestId,
     displayName: input.displayName.trim() || "Pixel Runner",
     questId: DEFAULT_QUEST_ID,
@@ -191,9 +191,14 @@ export function createProofMessage(input: {
   expirationTime: string;
   nonce: string;
 } {
-  const issuedAt = input.issuedAt || new Date().toISOString();
+  const issuedAtInput = input.issuedAt || new Date().toISOString();
+  const issuedAtMs = new Date(issuedAtInput).getTime();
+  if (!Number.isFinite(issuedAtMs)) {
+    throw new Error(`createProofMessage: invalid issuedAt "${input.issuedAt}"`);
+  }
+  const issuedAt = new Date(issuedAtMs).toISOString();
   const expirationTime = new Date(
-    new Date(issuedAt).getTime() + (input.ttlMs || 10 * 60 * 1000),
+    issuedAtMs + (input.ttlMs || 10 * 60 * 1000),
   ).toISOString();
   const nonce = input.nonce || createRandomId();
 
@@ -221,7 +226,8 @@ export function toPlayerRow(input: {
   return {
     guest_id: input.questRun.guestId,
     wallet_address: input.walletAddress || null,
-    display_name: input.questRun.displayName,
+    // Mirrors the players.display_name CHECK constraint in supabase/schema.sql.
+    display_name: input.questRun.displayName.slice(0, 32),
   };
 }
 
@@ -237,6 +243,13 @@ export function toQuestRunRow(questRun: QuestRun): QuestRunRow {
   };
 }
 
+// SECURITY: the `wallet_address` column and the `Wallet:` line inside the
+// signed `message` text MUST reference the same address. The Edge Function
+// re-derives the address from the signature, so any mismatch would either
+// fail recovery (different address) or persist a row whose column does not
+// match what was actually signed. toWalletProofRow() asserts the invariant.
+const MESSAGE_WALLET_LINE = /^Wallet:\s*(0x[a-fA-F0-9]{40})\s*$/m;
+
 export function toWalletProofRow(input: {
   questRun: QuestRun;
   walletAddress: string;
@@ -244,6 +257,15 @@ export function toWalletProofRow(input: {
   signature: string;
   verifiedAt?: string;
 }): WalletProofRow {
+  const match = input.message.match(MESSAGE_WALLET_LINE);
+  if (match) {
+    const messageWallet = match[1];
+    if (messageWallet.toLowerCase() !== input.walletAddress.toLowerCase()) {
+      throw new Error(
+        "toWalletProofRow: wallet_address diverges from the Wallet: line in message",
+      );
+    }
+  }
   return {
     quest_run_id: input.questRun.id,
     wallet_address: input.walletAddress,
@@ -258,11 +280,13 @@ export function toLeaderboardEntry(row: LeaderboardRow): LeaderboardEntry {
   const displayName =
     row.display_name?.trim() || row.guest_id || "Guest player";
   const hasProof = Boolean(row.has_proof);
-  const score = row.total_points ?? row.points ?? 0;
+  const rawScore = row.total_points ?? row.points ?? 0;
+  const numericScore = Number(rawScore);
+  const score = Number.isFinite(numericScore) ? numericScore : 0;
 
   return {
     name: displayName,
-    score: Number(score || 0),
+    score,
     tag: hasProof ? "proof ready" : "guest",
   };
 }
@@ -311,9 +335,7 @@ export function formatSupabaseError(prefix: string, error: unknown): string {
 
 export function formatWalletRequestError(error: unknown): string {
   const candidate = error as
-    | { code?: number; message?: string }
-    | null
-    | undefined;
+    { code?: number; message?: string } | null | undefined;
 
   if (candidate?.code === 4001) {
     return "Wallet request rejected. Guest mode still works.";

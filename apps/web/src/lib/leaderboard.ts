@@ -10,6 +10,7 @@ import {
 
 type LeaderboardQuery = {
   order(column: string, options?: { ascending?: boolean }): LeaderboardQuery;
+  abortSignal(signal: AbortSignal): LeaderboardQuery;
   limit(count: number): PromiseLike<{
     data: LeaderboardRow[] | null;
     error: unknown | null;
@@ -28,6 +29,7 @@ export type LeaderboardResult = {
 
 export async function loadLeaderboard(
   supabase: SupabaseAdapter | null,
+  signal?: AbortSignal,
 ): Promise<LeaderboardResult> {
   if (!supabase) {
     return {
@@ -37,13 +39,22 @@ export async function loadLeaderboard(
     };
   }
 
+  if (signal?.aborted) {
+    return { rows: DEMO_LEADERBOARD_ROWS, source: "demo" };
+  }
+
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from(SUPABASE_TABLES.leaderboard)
       .select(SUPABASE_COLUMNS.leaderboard.join(","))
       .order("total_points", { ascending: false })
-      .order("last_completed_at", { ascending: true })
-      .limit(10);
+      .order("last_completed_at", { ascending: true });
+    if (signal) query = query.abortSignal(signal);
+    const { data, error } = await query.limit(10);
+
+    if (signal?.aborted) {
+      return { rows: DEMO_LEADERBOARD_ROWS, source: "demo" };
+    }
 
     if (error) {
       return {
@@ -63,6 +74,9 @@ export async function loadLeaderboard(
 
     return { rows: data.map(toLeaderboardEntry), source: "supabase" };
   } catch (error) {
+    if (signal?.aborted) {
+      return { rows: DEMO_LEADERBOARD_ROWS, source: "demo" };
+    }
     return {
       rows: DEMO_LEADERBOARD_ROWS,
       source: "demo",

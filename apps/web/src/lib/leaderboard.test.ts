@@ -6,6 +6,7 @@ type FakeResult = { data: LeaderboardRow[] | null; error?: unknown };
 
 type FakeQuery = {
   order(column?: string, options?: { ascending?: boolean }): FakeQuery;
+  abortSignal(signal?: AbortSignal): FakeQuery;
   limit(
     count?: number,
   ): Promise<{ data: LeaderboardRow[] | null; error: unknown }>;
@@ -15,6 +16,7 @@ type FakeQuery = {
 function fakeSupabase(result: FakeResult) {
   const query: FakeQuery = {
     order: () => query,
+    abortSignal: () => query,
     limit: () =>
       Promise.resolve({ data: result.data, error: result.error ?? null }),
   };
@@ -52,5 +54,16 @@ describe("loadLeaderboard", () => {
       { name: "Alice", score: 200, tag: "proof ready" },
       { name: "Bob", score: 100, tag: "guest" },
     ]);
+  });
+
+  it("returns demo rows when called with an already-aborted signal", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const result = await loadLeaderboard(
+      fakeSupabase({ data: [{ display_name: "X", total_points: 1 }] }),
+      controller.signal,
+    );
+    expect(result.source).toBe("demo");
+    expect(result.rows).toEqual(DEMO_LEADERBOARD_ROWS);
   });
 });

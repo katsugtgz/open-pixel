@@ -5,7 +5,6 @@ import {
   SUPABASE_TABLES,
   toPlayerRow,
   toQuestRunRow,
-  toWalletProofRow,
   type QuestRun,
 } from "@open-pixel/shared";
 
@@ -27,6 +26,11 @@ export type ClaimProofStatus = {
   status: string;
   signature?: string;
   walletAddress?: string;
+};
+
+type VerifyProofResponse = {
+  verified?: boolean;
+  error?: string;
 };
 
 export async function saveGuestClaim(input: {
@@ -104,6 +108,8 @@ export async function signQuestProof(input: {
   questRun: QuestRun;
   walletAddress: string;
   domain: string;
+  supabaseUrl?: string;
+  supabasePublishableKey?: string;
 }): Promise<ClaimProofStatus> {
   if (!input.wallet || !input.walletAddress) {
     return {
@@ -133,7 +139,7 @@ export async function signQuestProof(input: {
       params: [proof.message, input.walletAddress],
     })) as string;
 
-    if (!input.supabase) {
+    if (!input.supabaseUrl || !input.supabasePublishableKey) {
       return {
         ok: true,
         signature,
@@ -141,33 +147,45 @@ export async function signQuestProof(input: {
       };
     }
 
-    const { error } = await input.supabase
-      .from(SUPABASE_TABLES.walletProofs)
-      .upsert(
-        toWalletProofRow({
-          questRun: input.questRun,
-          walletAddress: input.walletAddress,
-          message: proof.message,
-          signature,
-        }),
-        { onConflict: "quest_run_id,wallet_address" },
-      );
+    // Server-side verification via Supabase Edge Function. The function
+    // recovers the signer address from the signature and refuses to
+    // persist a row when recovery fails, the address mismatches, or the
+    // message has expired — which is why we no longer upsert directly.
+    const endpoint = `${input.supabaseUrl.replace(/\/$/, "")}/functions/v1/verify-wallet-proof`;
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: input.supabasePublishableKey,
+        Authorization: `Bearer ${input.supabasePublishableKey}`,
+      },
+      body: JSON.stringify({
+        quest_run_id: input.questRun.id,
+        wallet_address: input.walletAddress,
+        message: proof.message,
+        signature,
+      }),
+    });
 
-    if (error) {
+    if (!response.ok) {
+      let reason = `HTTP ${response.status}`;
+      try {
+        const body = (await response.json()) as VerifyProofResponse;
+        if (body?.error) reason = body.error;
+      } catch {
+        // Body was not JSON; keep the HTTP-status reason.
+      }
       return {
         ok: false,
         signature,
-        status: formatSupabaseError(
-          "Proof signed, but Supabase proof save failed",
-          error,
-        ),
+        status: `Proof signed, but server verification failed: ${reason}`,
       };
     }
 
     return {
       ok: true,
       signature,
-      status: "Proof signed and synced. personal_sign only; no tx.",
+      status: "Proof signed and verified. personal_sign only; no tx.",
     };
   } catch (error) {
     return { ok: false, status: formatWalletRequestError(error) };

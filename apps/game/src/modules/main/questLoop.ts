@@ -98,6 +98,18 @@ export function decideVillageNodeAction(
     };
   }
 
+  // Guard against the Math.min cap below masking a no-op restore: if
+  // nodesRestored has already hit VILLAGE_NODE_TOTAL without the quest
+  // being marked done (a race / earlier crash between PixelShard.onAction
+  // and QuestGiver.onAction), incrementing would not increase the count.
+  // Treat that as already-complete so we do not re-award points.
+  if (snapshot.nodesRestored >= VILLAGE_NODE_TOTAL) {
+    return {
+      kind: "already-complete",
+      text: "All village nodes are already restored. Return to the AI Guide to finalise the quest.",
+    };
+  }
+
   const nodesRestored = Math.min(
     snapshot.nodesRestored + 1,
     VILLAGE_NODE_TOTAL,

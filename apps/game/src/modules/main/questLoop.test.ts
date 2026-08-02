@@ -91,6 +91,20 @@ describe("Cozy Resource-Village Loop", () => {
     expect(decision).not.toHaveProperty("rewardPoints");
   });
 
+  it("returns already-complete when nodesRestored is at cap but the node is uncollected", () => {
+    const decision = decideVillageNodeAction({
+      started: true,
+      done: false,
+      nodesRestored: 3,
+      nodeCollected: false,
+    });
+    expect(decision).toEqual({
+      kind: "already-complete",
+      text: "All village nodes are already restored. Return to the AI Guide to finalise the quest.",
+    });
+    expect(decision).not.toHaveProperty("rewardPoints");
+  });
+
   it("treats every node as restored once the quest is complete", () => {
     expect(
       decideVillageNodeAction({
