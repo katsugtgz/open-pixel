@@ -1,0 +1,16 @@
+packages/shared/test/index.test.mjs
+  h_cc1f32aec57e6b 230
+scripts/ai-game-smoke.mjs
+  h_cc1f32aec57e6b 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "4513aa0cb5c5d805b00dbe2150e39e5540c02627",
+  "prompts": {},
+  "humans": {
+    "h_cc1f32aec57e6b": {
+      "author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
