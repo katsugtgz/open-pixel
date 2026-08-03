@@ -150,6 +150,31 @@ describe("signQuestProof", () => {
     fetchSpy.mockRestore();
   });
 
+  it("surfaces a timeout-specific status and keeps the signature when the Edge Function times out", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValueOnce(
+        new DOMException("signal timed out", "TimeoutError"),
+      );
+
+    const result = await signQuestProof({
+      wallet: fakeWallet(async () => "0xsig"),
+      supabase: fakeSupabase(),
+      questRun,
+      walletAddress: "0xabc",
+      domain: "example.test",
+      supabaseUrl: "https://example.supabase.co",
+      supabasePublishableKey: "anon-key",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(result.ok).toBe(false);
+    expect(result.signature).toBe("0xsig");
+    expect(result.status).toContain("timed out");
+    expect(result.status).not.toMatch(/wallet request failed/i);
+    fetchSpy.mockRestore();
+  });
+
   it("returns ok when the Edge Function verifies the proof", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ verified: true }), {

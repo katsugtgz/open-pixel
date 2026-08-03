@@ -133,25 +133,32 @@ export async function signQuestProof(input: {
     questRun: input.questRun,
   });
 
+  let signature: string;
   try {
-    const signature = (await input.wallet.request({
+    signature = (await input.wallet.request({
       method: "personal_sign",
       params: [proof.message, input.walletAddress],
     })) as string;
+  } catch (error) {
+    // Signing itself failed (rejection, wallet locked, etc.). Guest mode
+    // is still usable, so reuse the wallet-error formatter.
+    return { ok: false, status: formatWalletRequestError(error) };
+  }
 
-    if (!input.supabaseUrl || !input.supabasePublishableKey) {
-      return {
-        ok: true,
-        signature,
-        status: "Proof signed locally with personal_sign. No transaction sent.",
-      };
-    }
+  if (!input.supabaseUrl || !input.supabasePublishableKey) {
+    return {
+      ok: true,
+      signature,
+      status: "Proof signed locally with personal_sign. No transaction sent.",
+    };
+  }
 
-    // Server-side verification via Supabase Edge Function. The function
-    // recovers the signer address from the signature and refuses to
-    // persist a row when recovery fails, the address mismatches, or the
-    // message has expired — which is why we no longer upsert directly.
-    const endpoint = `${input.supabaseUrl.replace(/\/$/, "")}/functions/v1/verify-wallet-proof`;
+  // Server-side verification via Supabase Edge Function. The function
+  // recovers the signer address from the signature and refuses to
+  // persist a row when recovery fails, the address mismatches, or the
+  // message has expired — which is why we no longer upsert directly.
+  const endpoint = `${input.supabaseUrl.replace(/\/$/, "")}/functions/v1/verify-wallet-proof`;
+  try {
     const response = await fetch(endpoint, {
       signal: AbortSignal.timeout(5000),
       method: "POST",
@@ -189,6 +196,23 @@ export async function signQuestProof(input: {
       status: "Proof signed and verified. personal_sign only; no tx.",
     };
   } catch (error) {
-    return { ok: false, status: formatWalletRequestError(error) };
+    // The wallet already signed successfully, so any failure here is a
+    // transport/verification problem — not a wallet problem. The fetch
+    // is the only call guarded by AbortSignal.timeout, so a
+    // TimeoutError means the verifier was unreachable in time; surface
+    // that distinctly instead of reusing formatWalletRequestError,
+    // which would imply the wallet itself failed and discard the
+    // signature from the returned status.
+    const isTimeout =
+      error instanceof DOMException && error.name === "TimeoutError";
+    return {
+      ok: false,
+      signature,
+      status: isTimeout
+        ? "Proof signed, but server verification timed out — please retry."
+        : `Proof signed, but server verification failed: ${
+            error instanceof Error ? error.message : "network error"
+          }`,
+    };
   }
 }

@@ -150,18 +150,37 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!signedDomain) {
     return unauthorized("proof message missing Domain");
   }
-  const origin = req.headers.get("origin");
-  if (!origin) {
-    return unauthorized("missing Origin header");
-  }
-  let originHost: string;
-  try {
-    originHost = new URL(origin).host;
-  } catch {
-    return unauthorized("invalid Origin header");
-  }
-  if (originHost !== signedDomain) {
-    return unauthorized("signed Domain does not match request origin");
+  // The signed Domain is caller-controlled and the Origin header is
+  // forgeable by non-browser callers (CORS is `*`), so an Origin
+  // comparison alone only enforces internal consistency. ALLOWED_DOMAINS
+  // (comma-separated canonical app hosts) is the authoritative server-
+  // side trust boundary when configured; without it we fall back to the
+  // Origin check so existing deployments keep working.
+  const allowedDomainsRaw = Deno.env.get("ALLOWED_DOMAINS");
+  if (allowedDomainsRaw) {
+    const allowed = new Set(
+      allowedDomainsRaw
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean),
+    );
+    if (!allowed.has(signedDomain)) {
+      return unauthorized("signed Domain is not an allowed app host");
+    }
+  } else {
+    const origin = req.headers.get("origin");
+    if (!origin) {
+      return unauthorized("missing Origin header");
+    }
+    let originHost: string;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return unauthorized("invalid Origin header");
+    }
+    if (originHost !== signedDomain) {
+      return unauthorized("signed Domain does not match request origin");
+    }
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
