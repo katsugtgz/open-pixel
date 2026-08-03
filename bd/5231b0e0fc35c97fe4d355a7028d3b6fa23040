@@ -1,0 +1,32 @@
+apps/web/src/lib/claimProof.test.ts
+  s_05951bd071affc::t_1cfca12f41a737 153-175
+  s_8e86e5c48a3820::t_a96c94ae1312a5 176-177
+supabase/functions/verify-wallet-proof/index.ts
+  s_05951bd071affc::t_e160d65ea85f5c 153-183
+apps/web/src/lib/claimProof.ts
+  s_05951bd071affc::t_41369e4a7493a5 136,138,142-146,148-154,156-161,199-216
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "bd5231b0e0fc35c97fe4d355a7028d3b6fa23040",
+  "prompts": {},
+  "sessions": {
+    "s_05951bd071affc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_03997be91ffeZTmISPtAVtnoOM",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    },
+    "s_8e86e5c48a3820": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0398439faffeHlF7fbITk0I0NA",
+        "model": "glm-5.2"
+      },
+      "human_author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
