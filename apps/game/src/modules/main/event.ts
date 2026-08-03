@@ -63,18 +63,20 @@ export function PixelShard(): EventDefinition {
       const decision = decideVillageNodeAction(snapshotQuest(player, nodeKey));
 
       if (decision.kind === "restore-node") {
-        await player.showNotification(decision.notification.message, {
-          sound: decision.notification.sound,
-          type: decision.notification.type,
-        });
-        // Apply state mutations only after the awaited notification, so a
-        // rejected notification does not half-mark the node collected.
+        // Mark the node collected BEFORE the awaited notification so a
+        // concurrent or rapid second onAction cannot read a stale snapshot
+        // and re-award points. Rolling back on a notification rejection is
+        // not needed: showNotification rejecting already aborts the handler.
         player.setVariable(nodeKey, decision.markCollected);
         player.setVariable(
           QUEST_VARIABLES.nodesRestored,
           decision.nodesRestored,
         );
         player.gold += decision.rewardPoints;
+        await player.showNotification(decision.notification.message, {
+          sound: decision.notification.sound,
+          type: decision.notification.type,
+        });
       }
 
       await player.showText(decision.text);

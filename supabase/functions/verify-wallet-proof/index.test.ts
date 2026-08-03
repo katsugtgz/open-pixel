@@ -2,9 +2,11 @@
 // Run: `deno test --allow-env --allow-net supabase/functions/verify-wallet-proof/index.test.ts`
 //
 // These tests stub the global `Deno.serve` so the handler can be invoked
-// directly without binding a socket. Supabase insertion is exercised
-// against a fake fetch that always succeeds; the negative cases verify
-// that every verification failure returns HTTP 401.
+// directly without binding a socket. All cases exercise the negative path
+// (every verification failure returns HTTP 401). The 200 success path
+// requires a real ECDSA signature and is not covered here; the fake fetch
+// stub for /rest/v1/wallet_proofs exists so the handler can be imported
+// without network errors but is never reached by these tests.
 
 import {
   assert,

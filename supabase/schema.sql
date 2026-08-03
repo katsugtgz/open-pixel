@@ -103,12 +103,20 @@ do $$ begin
   create policy "quest runs public update" on public.quest_runs for update using (true) with check (true);
 exception when duplicate_object then null; end $$;
 
+-- wallet_proofs: read-only for anon (leaderboard has_proof check), but NO
+-- public insert/update. Writes happen ONLY through the verify-wallet-proof
+-- Edge Function, which uses the service role key and bypasses RLS. Any
+-- client-side insert with the anon key must be rejected so a verified row
+-- cannot be forged by a direct upsert. The deny policies below also make
+-- the intent explicit if someone later adds a permissive one.
 do $$ begin
   create policy "wallet proofs public read" on public.wallet_proofs for select using (true);
 exception when duplicate_object then null; end $$;
 do $$ begin
-  create policy "wallet proofs public insert" on public.wallet_proofs for insert with check (true);
+  create policy "wallet proofs deny anon insert"
+    on public.wallet_proofs for insert to anon with check (false);
 exception when duplicate_object then null; end $$;
 do $$ begin
-  create policy "wallet proofs public update" on public.wallet_proofs for update using (true) with check (true);
+  create policy "wallet proofs deny anon update"
+    on public.wallet_proofs for update to anon using (false) with check (false);
 exception when duplicate_object then null; end $$;

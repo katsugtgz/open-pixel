@@ -153,6 +153,7 @@ export async function signQuestProof(input: {
     // message has expired — which is why we no longer upsert directly.
     const endpoint = `${input.supabaseUrl.replace(/\/$/, "")}/functions/v1/verify-wallet-proof`;
     const response = await fetch(endpoint, {
+      signal: AbortSignal.timeout(5000),
       method: "POST",
       headers: {
         "Content-Type": "application/json",

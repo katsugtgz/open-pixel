@@ -37,16 +37,18 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
-// Parses the `Expiration Time: <iso>` line emitted by buildProofMessage
-// (packages/shared/src/index.ts). Returns null when absent or unparseable
-// so the caller can decide whether to enforce expiry.
-function parseExpirationTime(message: string): Date | null {
-  const match = message.match(/^Expiration Time:\s*(.+)$/m);
-  if (!match) return null;
-  const parsed = new Date(match[1].trim());
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed;
+// Extracts the value of a `Label: <value>` line from a canonical proof
+// message (see buildProofMessage in packages/shared/src/index.ts). Returns
+// null when the line is absent.
+function parseProofLine(message: string, label: string): string | null {
+  const match = message.match(new RegExp(`^${label}:\\s*(.+)$`, "m"));
+  return match ? match[1].trim() : null;
 }
+
+// Upper bound on how far in the future a proof may expire. The client sets a
+// 10-minute TTL (createProofMessage default); 1 hour is generous and stops a
+// stolen proof from being replayed indefinitely.
+const MAX_PROOF_TTL_MS = 60 * 60 * 1000;
 
 function unauthorized(reason: string): Response {
   return json({ verified: false, error: reason }, 401);
@@ -106,9 +108,60 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return unauthorized("recovered address does not match wallet_address");
   }
 
-  const expiration = parseExpirationTime(message);
-  if (expiration && expiration.getTime() < Date.now()) {
+  // Bind the signed message to the request before persisting. A valid
+  // signature over arbitrary text would otherwise be replayable against any
+  // quest_run_id. The canonical message format is produced by
+  // buildProofMessage (packages/shared/src/index.ts) and carries Domain,
+  // Wallet, Quest Run, and Expiration Time lines that we pin to this call.
+  const firstLine = message.split("\n", 1)[0];
+  if (firstLine !== "Open Pixel Proof") {
+    return unauthorized("message is not a canonical Open Pixel proof");
+  }
+
+  const expirationRaw = parseProofLine(message, "Expiration Time");
+  if (!expirationRaw) {
+    return unauthorized("proof message missing Expiration Time");
+  }
+  const expiration = new Date(expirationRaw);
+  if (Number.isNaN(expiration.getTime())) {
+    return unauthorized("proof Expiration Time is not a valid date");
+  }
+  if (expiration.getTime() < Date.now()) {
     return unauthorized("proof expired");
+  }
+  if (expiration.getTime() > Date.now() + MAX_PROOF_TTL_MS) {
+    return unauthorized("proof expiration too far in the future");
+  }
+
+  const signedQuestRun = parseProofLine(message, "Quest Run");
+  if (!signedQuestRun || signedQuestRun !== questRunId) {
+    return unauthorized("signed Quest Run does not match quest_run_id");
+  }
+
+  const signedWallet = parseProofLine(message, "Wallet");
+  if (
+    !signedWallet ||
+    signedWallet.toLowerCase() !== walletAddress.toLowerCase()
+  ) {
+    return unauthorized("signed Wallet does not match wallet_address");
+  }
+
+  const signedDomain = parseProofLine(message, "Domain");
+  if (!signedDomain) {
+    return unauthorized("proof message missing Domain");
+  }
+  const origin = req.headers.get("origin");
+  if (!origin) {
+    return unauthorized("missing Origin header");
+  }
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return unauthorized("invalid Origin header");
+  }
+  if (originHost !== signedDomain) {
+    return unauthorized("signed Domain does not match request origin");
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -130,7 +183,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   });
 
   if (error) {
-    return unauthorized(`proof insert failed: ${error.message}`);
+    console.error("wallet_proofs insert failed", error);
+    return unauthorized("proof insert failed");
   }
 
   return json({ verified: true, wallet_address: walletAddress }, 200);
