@@ -1,0 +1,35 @@
+apps/web/src/lib/claimProof.ts
+  s_4dac822d514b19::t_ee186ee9bbc924 156
+supabase/functions/verify-wallet-proof/index.test.ts
+  s_4dac822d514b19::t_2c5830f14d775a 5-9
+supabase/schema.sql
+  s_4dac822d514b19::t_6ef6550612a8de 106-111,116-117,120-121
+supabase/functions/verify-wallet-proof/index.ts
+  s_4dac822d514b19::t_f6b76ae92fb9b1 40-45,48-51
+  s_4dac822d514b19::t_31dea55edac61e 111-129,132-165
+  s_4dac822d514b19::t_827afb99bf9100 186-187
+  s_4dac822d514b19::t_ec4e83027b86f0 52
+apps/game/src/modules/main/event.ts
+  s_4dac822d514b19::t_25acaf1e8422e1 66-69,76-79
+scripts/ai-game-smoke.mjs
+  s_4dac822d514b19::t_cee99c4563707f 34-39,47
+  s_4dac822d514b19::t_7e8af318935dfa 501
+  s_4dac822d514b19::t_4c1240d5cf923d 23
+  s_4dac822d514b19::t_43923c82cfbd6b 28-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "646b99e5fb9bfd468e430b967aa18066be784dc4",
+  "prompts": {},
+  "sessions": {
+    "s_4dac822d514b19": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_039b135e5ffe2D1oKb44dkHMXm",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
