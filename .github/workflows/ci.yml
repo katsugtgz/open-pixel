@@ -16,27 +16,13 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           persist-credentials: false
-<<<<<<< HEAD
-=======
-          # gitleaks scans the PR's full commit range; a shallow clone breaks
-          # range resolution once the branch contains a merge commit.
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
->>>>>>> origin/main
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run format:check
-<<<<<<< HEAD
       - run: npm test
       - run: npm run build
-=======
-      - run: npm run typecheck
-      - run: npm test
->>>>>>> origin/main
       - name: React Doctor
         run: npx react-doctor@0.5.2 ./apps/web --no-score --blocking none --yes

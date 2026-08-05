@@ -8,13 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-<<<<<<< HEAD
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
-=======
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run src/lib"
->>>>>>> origin/main
   },
   "dependencies": {
     "@open-pixel/shared": "file:../../packages/shared",

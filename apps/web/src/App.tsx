@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useEffect, useMemo, useReducer } from "react";
-=======
-import { useEffect, useMemo, useReducer, useState } from "react";
->>>>>>> origin/main
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   connectWallet,
@@ -14,16 +10,10 @@ import { loadLeaderboard } from "@/lib/leaderboard";
 import {
   createDemoQuestRun,
   createGuestId,
-<<<<<<< HEAD
   createRandomId,
   formatSupabaseError,
   type QuestRun,
   type QuestRunResources,
-=======
-  DEMO_LEADERBOARD_ROWS,
-  type LeaderboardEntry,
-  type QuestRun,
->>>>>>> origin/main
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -49,13 +39,8 @@ const pillars = [
   },
   {
     title: "Gather",
-<<<<<<< HEAD
     body: "Harvest crops, gather wood and ore, fulfill village orders.",
     stat: "off-chain pts",
-=======
-    body: "Talk to AI Guide, then restore 3 village nodes.",
-    stat: "+130 pts",
->>>>>>> origin/main
   },
   {
     title: "Prove",
@@ -64,7 +49,6 @@ const pillars = [
   },
 ];
 
-<<<<<<< HEAD
 const mockLeaderboard = [
   { name: "Pixel Runner", score: 130, tag: "guest" },
   { name: "Shard Scout", score: 90, tag: "proof ready" },
@@ -78,20 +62,12 @@ export type VillageProgress = {
 };
 
 export type AppState = {
-=======
-type AppState = {
->>>>>>> origin/main
   guestId: string;
   displayName: string;
   walletAddress: string;
   signature: string;
   status: string;
-<<<<<<< HEAD
   villageProgress?: VillageProgress;
-=======
-  leaderboardRows: LeaderboardEntry[];
-  leaderboardSource: "supabase" | "demo";
->>>>>>> origin/main
 };
 
 export type AppAction =
@@ -99,15 +75,7 @@ export type AppAction =
   | { type: "walletAddress"; value: string }
   | { type: "signature"; value: string }
   | { type: "status"; value: string }
-<<<<<<< HEAD
   | { type: "villageProgress"; value: VillageProgress };
-=======
-  | {
-      type: "leaderboard";
-      rows: LeaderboardEntry[];
-      source: "supabase" | "demo";
-    };
->>>>>>> origin/main
 
 export function getGuestId() {
   const existing = localStorage.getItem("open_pixel_guest_id");
@@ -140,19 +108,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, signature: action.value };
     case "status":
       return { ...state, status: action.value };
-<<<<<<< HEAD
     case "villageProgress":
       return { ...state, villageProgress: action.value };
-=======
-    case "leaderboard":
-      return {
-        ...state,
-        leaderboardRows: action.rows,
-        leaderboardSource: action.source,
-      };
-    default:
-      return state;
->>>>>>> origin/main
   }
 }
 
@@ -270,11 +227,7 @@ export function makeVillageBridgeHandler(
 }
 
 function shortAddress(address: string) {
-<<<<<<< HEAD
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
-=======
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
->>>>>>> origin/main
 }
 
 function Topbar() {
@@ -308,16 +261,8 @@ function HeroSection() {
   return (
     <section className="hero" id="top">
       <div className="hero-copy">
-<<<<<<< HEAD
         <p className="eyebrow">Zero Cup 2026 · Cozy Web3 RPG</p>
         <h1>Play a cozy pixel quest. No wallet required.</h1>
-=======
-        <p className="eyebrow">Zero Cup 2026 - Cozy Web3 RPG</p>
-        <h1>
-          Play a cozy pixel quest.
-          <span>No wallet required.</span>
-        </h1>
->>>>>>> origin/main
         <div className="actions">
           <a className="button primary" href={gameUrl}>
             Play demo
@@ -326,7 +271,6 @@ function HeroSection() {
             Claim badge
           </a>
         </div>
-<<<<<<< HEAD
         <p className="subtitle">
           Harvest crops, gather wood and ore, fulfill village orders, then claim
           an off-chain badge. Wallet proof stays optional and readable.
@@ -335,16 +279,6 @@ function HeroSection() {
           <span className="desktop-control">Desktop: Arrow keys to move</span>
           <span className="desktop-control">Space to talk / collect</span>
           <span className="mobile-control">Mobile: joystick + A button</span>
-=======
-        <p>
-          Talk to AI Guide, restore 3 village nodes, claim an off-chain badge.
-          Wallet proof stays optional and readable.
-        </p>
-        <div className="control-guide" aria-label="Demo controls">
-          <span className="desktop-control">Desktop: arrow keys move</span>
-          <span className="desktop-control">Space collects</span>
-          <span className="mobile-control">Mobile: on-screen button</span>
->>>>>>> origin/main
         </div>
         <div className="trust-row" aria-label="Safety summary">
           <span>guest-first</span>
@@ -368,13 +302,8 @@ function HeroSection() {
           <div className="tile crystal small" />
         </div>
         <div className="dialog-card">
-<<<<<<< HEAD
           <strong>Village Loop</strong>
           <span>Popberry · WhittlewoodLog · OchruxMatrix → off-chain pts</span>
-=======
-          <strong>AI Guide</strong>
-          <span>Restore 3 village nodes - +130 pts</span>
->>>>>>> origin/main
         </div>
       </div>
     </section>
@@ -386,11 +315,7 @@ function LoopSection() {
     <section className="section" id="loop">
       <div className="section-heading">
         <p className="eyebrow">Demo loop</p>
-<<<<<<< HEAD
         <h2>Three steps: gather, fulfill, claim.</h2>
-=======
-        <h2>Three steps: talk, gather, claim.</h2>
->>>>>>> origin/main
       </div>
       <div className="pillar-grid">
         {pillars.map((pillar) => (
@@ -418,13 +343,8 @@ function DesignSection({
         <p className="eyebrow">Design stance</p>
         <h2>Web3 proof, not Web3 economy.</h2>
         <p>
-<<<<<<< HEAD
           Open Pixel keeps quests, identity, gathering, and visible progress. It
           skips token emissions, staking, marketplace loops, and speculative
-=======
-          Open Pixel keeps quests, identity, gathering, visible progress. It
-          skips token emissions, staking, marketplace loops, speculative
->>>>>>> origin/main
           rewards.
         </p>
         <div className="comparison">
@@ -476,16 +396,12 @@ function ClaimSection({
     <section className="claim-grid" id="claim">
       <article className="panel claim-panel">
         <p className="eyebrow">Guest claim</p>
-<<<<<<< HEAD
         <h2>Claim the demo badge.</h2>
         <p className="claim-note">
           Complete village orders in the game to earn resources and off-chain
           points, then claim your badge here. Your run syncs through Supabase;
           no wallet is required.
         </p>
-=======
-        <h2>Claim demo badge.</h2>
->>>>>>> origin/main
         <label>
           Display name
           <input
@@ -505,14 +421,10 @@ function ClaimSection({
           <p>
             <span>Resources</span>
             <strong>
-<<<<<<< HEAD
               {questRun.resources.popberry} Popberry ·{" "}
               {questRun.resources.whittlewood_log} WhittlewoodLog ·{" "}
               {questRun.resources.ochrux_matrix} OchruxMatrix ·{" "}
               {questRun.points} pts
-=======
-              {questRun.shards}/3 nodes - {questRun.points} pts
->>>>>>> origin/main
             </strong>
           </p>
         </div>
@@ -531,11 +443,7 @@ function ClaimSection({
           <span>No transaction</span>
         </div>
         <p className="security-receipt">
-<<<<<<< HEAD
           Receipt: personal_sign only · no contract call · no token approval
-=======
-          Receipt: personal_sign only - no contract call - no token approval
->>>>>>> origin/main
         </p>
         <div className="wallet-actions">
           <button
@@ -580,7 +488,6 @@ function StatusBar({ status }: { status: string }) {
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
-<<<<<<< HEAD
 
   const questRun = useMemo(() => buildQuestRunFromState(state), [state]);
 
@@ -594,18 +501,6 @@ function App() {
       window.removeEventListener("village:complete", handler as EventListener);
     };
   }, []);
-=======
-  const [completedAt] = useState(() => new Date().toISOString());
-  const questRun = useMemo(
-    () =>
-      createDemoQuestRun({
-        guestId: state.guestId,
-        displayName: state.displayName,
-        completedAt,
-      }),
-    [completedAt, state.displayName, state.guestId],
-  );
->>>>>>> origin/main
 
   useEffect(() => {
     const controller = new AbortController();
@@ -633,7 +528,6 @@ function App() {
     dispatch({ type: "status", value });
   }
 
-<<<<<<< HEAD
   async function saveGuestClaim(showSuccess = true) {
     if (!canClaimGuestBadge(state)) {
       setStatus(
@@ -719,42 +613,6 @@ function App() {
       nonce: createRandomId(),
       issuedAt: now.toISOString(),
       expirationTime: expires.toISOString(),
-=======
-  async function handleClaim() {
-    const result = await saveGuestClaim({
-      supabase,
-      questRun,
-      walletAddress: state.walletAddress,
-    });
-    setStatus(result.status);
-  }
-
-  async function handleConnectWallet() {
-    const result = await connectWallet(window.ethereum);
-    if (result.ok && result.walletAddress) {
-      dispatch({ type: "walletAddress", value: result.walletAddress });
-      setStatus(result.status);
-      return;
-    }
-    if (result.ok && !result.walletAddress) {
-      setStatus(
-        "Wallet connected but no account shared. Enable account access in your wallet and retry.",
-      );
-      return;
-    }
-    setStatus(result.status);
-  }
-
-  async function handleSignProof() {
-    const result = await signQuestProof({
-      wallet: window.ethereum,
-      supabase,
-      questRun,
-      walletAddress: state.walletAddress,
-      domain: window.location.host,
-      supabaseUrl,
-      supabasePublishableKey,
->>>>>>> origin/main
     });
 
     if (result.signature) {

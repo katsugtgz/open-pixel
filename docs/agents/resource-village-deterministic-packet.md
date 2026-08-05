@@ -192,22 +192,12 @@ export function provideVillage(): RpgServerModule;
 // apps/game/src/modules/village/state.ts
 export type ResourceKind = "crop" | "wood" | "stone" | "crystal" | "none";
 export type PlotState =
-  | "empty"
-  | "planted"
-  | "watered"
-  | "grown"
-  | "ready"
-  | "depleted";
+  "empty" | "planted" | "watered" | "grown" | "ready" | "depleted";
 export type NodeState = "ready" | "depleted" | "active";
 export type PlotAction = "plant" | "water" | "harvest";
 export type NodeAction = "chop" | "mine";
 export type CompletionAction =
-  | "plant"
-  | "water"
-  | "harvest"
-  | "chop"
-  | "mine"
-  | "fulfill";
+  "plant" | "water" | "harvest" | "chop" | "mine" | "fulfill";
 export function advancePlotState(
   current: PlotState,
   action: PlotAction,
@@ -226,10 +216,7 @@ export function addPoints(keeper: PointKeeper, pts: number): void;
 
 // apps/game/src/modules/village/inventory.ts
 export type ItemId =
-  | "popberry"
-  | "popberry_seeds"
-  | "whittlewood_log"
-  | "ochrux_matrix";
+  "popberry" | "popberry_seeds" | "whittlewood_log" | "ochrux_matrix";
 export interface InventoryShape {
   popberry: number;
   popberry_seeds: number;

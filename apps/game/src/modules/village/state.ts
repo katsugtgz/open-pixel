@@ -20,12 +20,7 @@
 export type ResourceKind = "crop" | "wood" | "stone" | "crystal" | "none";
 
 export type PlotState =
-  | "empty"
-  | "planted"
-  | "watered"
-  | "grown"
-  | "ready"
-  | "depleted";
+  "empty" | "planted" | "watered" | "grown" | "ready" | "depleted";
 
 export type NodeState = "ready" | "depleted" | "active";
 
@@ -37,12 +32,7 @@ export type NodeAction = "chop" | "mine";
 
 /** All completion actions that can award off-chain points. */
 export type CompletionAction =
-  | "plant"
-  | "water"
-  | "harvest"
-  | "chop"
-  | "mine"
-  | "fulfill";
+  "plant" | "water" | "harvest" | "chop" | "mine" | "fulfill";
 
 export interface ResourceState {
   kind: ResourceKind;

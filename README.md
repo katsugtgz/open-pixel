@@ -27,17 +27,12 @@
 
 ## What Is Open Pixel?
 
-<<<<<<< HEAD
 Open Pixel is a cozy browser RPG prototype inspired by social pixel worlds like Pixels.xyz. Players enter as guests, explore a farm village, gather resources, fulfill orders, earn off-chain points, and optionally create a safe wallet proof.
-=======
-Open Pixel is a cozy browser RPG inspired by social pixel worlds like Pixels.xyz. Players enter as guests, perform resource-village actions, fulfill a small board/workstation request, earn off-chain progress, and can optionally create a safe wallet proof.
->>>>>>> origin/main
 
 The project is intentionally **not** a token economy. There is no staking, no swaps, no NFT marketplace, and no play-to-earn financial loop. The Web3 layer is limited to an optional readable wallet signature that proves completion.
 
 ## Features
 
-<<<<<<< HEAD
 > Demo GIF/video slot. Add the final gameplay capture before submission.
 
 <p align="center">
@@ -67,24 +62,6 @@ Guest player
   → claims guest badge
   → optionally signs readable wallet proof
   → appears on leaderboard
-=======
-- Browser-based pixel RPG with a resource-village gameplay loop: farm, chop, mine, craft, or prepare goods.
-- Guest-first onboarding — fully playable without a wallet or account.
-- Village orders: fulfill a board/workstation request to earn a Game Completion Receipt and Guest Badge.
-- Optional wallet proof using a human-readable `personal_sign` message — no transactions, no gas.
-- Live leaderboard backed by Supabase.
-- Off-chain progress tracking with no token or real-money mechanics.
-
-```text
-Guest player
--> enters RPG-JS game
--> performs resource actions
--> fulfills village order
--> receives Game Completion Receipt
--> claims Guest Badge
--> optionally signs readable Wallet Proof
--> appears on leaderboard
->>>>>>> origin/main
 ```
 
 ### Wallet Proof
@@ -163,7 +140,6 @@ VITE_GAME_URL=/game
 
 ```text
 open-pixel/
-<<<<<<< HEAD
   apps/
     game/       # RPG-JS game: map, village, resource loop
     web/        # React/Vite claim page, wallet proof, leaderboard shell
@@ -172,17 +148,6 @@ open-pixel/
   supabase/     # schema and RLS policies
   docs/         # design, security, roadmap, contributor docs
   assets/       # README/logo/demo media
-=======
-apps/
-  game/      # RPG-JS game: map, resource actions, completion loop
-  web/       # React/Vite claim page, wallet proof, leaderboard
-packages/
-  shared/    # proof message helpers + shared types
-supabase/    # schema and RLS policies
-scripts/     # build checks and QA harness
-docs/        # design, security, roadmap, contributor docs
-assets/      # logo and README media
->>>>>>> origin/main
 ```
 
 ## Design Choices

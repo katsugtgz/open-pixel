@@ -21,10 +21,7 @@
 import type { RpgPlayer } from "@rpgjs/server";
 
 export type ItemId =
-  | "popberry"
-  | "popberry_seeds"
-  | "whittlewood_log"
-  | "ochrux_matrix";
+  "popberry" | "popberry_seeds" | "whittlewood_log" | "ochrux_matrix";
 
 export interface InventoryShape {
   popberry: number;
