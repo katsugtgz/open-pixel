@@ -6,14 +6,20 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "echo no lint configured",
+<<<<<<< HEAD
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "postinstall": "patch-package"
+=======
+    "typecheck": "echo typecheck via vite build",
+    "test": "vitest run src/modules/main && node --test src/config/gameSmokeContract.test.mjs"
+>>>>>>> origin/main
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "description": "",
   "devDependencies": {
+<<<<<<< HEAD
     "@canvasengine/compiler": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "path-browserify": "^1.0.1",
@@ -33,6 +39,27 @@
     "canvasengine": "^2.0.1",
     "pixi-filters": "^6.1.5",
     "pixi.js": "^8.9.2"
+=======
+    "@canvasengine/compiler": "2.0.0-beta.56",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "path-browserify": "^1.0.1",
+    "vite": "^8.0.3",
+    "vitest": "4.1.8"
+  },
+  "private": true,
+  "dependencies": {
+    "@canvasengine/presets": "2.0.0-beta.56",
+    "@rpgjs/action-battle": "5.0.0-beta.1",
+    "@rpgjs/client": "5.0.0-beta.1",
+    "@rpgjs/common": "5.0.0-beta.1",
+    "@rpgjs/server": "5.0.0-beta.1",
+    "@rpgjs/tiledmap": "5.0.0-beta.1",
+    "@rpgjs/ui-css": "5.0.0-beta.1",
+    "@rpgjs/vite": "5.0.0-beta.1",
+    "@signe/di": "^2.9.0",
+    "canvasengine": "2.0.0-beta.56",
+    "pixi.js": "8.17.1"
+>>>>>>> origin/main
   },
   "type": "module"
 }

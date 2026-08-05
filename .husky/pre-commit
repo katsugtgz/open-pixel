@@ -1,1 +1,13 @@
 npm exec lint-staged
+
+# Optional local secret scan. Skipped (does not fail the commit) if gitleaks
+# is not installed on this machine. Install options:
+#   brew install gitleaks
+#   scoop install gitleaks
+#   https://github.com/gitleaks/gitleaks/releases
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --config .gitleaks.toml
+else
+  echo "gitleaks not found - skipping optional local secret scan." >&2
+  echo "  install: brew install gitleaks  (or see https://github.com/gitleaks/gitleaks)" >&2
+fi

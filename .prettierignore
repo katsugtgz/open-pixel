@@ -1,5 +1,12 @@
 .worktrees/
+<<<<<<< HEAD
 test-results/
 apps/video/dist/
 apps/video/public/generated/
 apps/game/src/tiled/*.tsx
+=======
+.tokensave/
+test-results/
+apps/game/src/tiled/*.tsx
+results.sarif
+>>>>>>> origin/main

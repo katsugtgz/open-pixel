@@ -1,4 +1,5 @@
 import { RpgPlayer, type RpgPlayerHooks } from "@rpgjs/server";
+<<<<<<< HEAD
 
 export const player: RpgPlayerHooks = {
   onConnected(player: RpgPlayer) {
@@ -9,12 +10,21 @@ export const player: RpgPlayerHooks = {
     player.changeMap("village", {
       x: 640,
       y: 640,
+=======
+import { MAP_ROLES } from "./layoutRoles";
+
+export const player: RpgPlayerHooks = {
+  onConnected(player: RpgPlayer) {
+    player.changeMap(MAP_ROLES.playerSpawn.map, {
+      x: MAP_ROLES.playerSpawn.x,
+      y: MAP_ROLES.playerSpawn.y,
+>>>>>>> origin/main
     });
     player.name = "";
     player.setGraphic("hero");
   },
   onInput(player: RpgPlayer, { action }) {
-    if (action == "escape") {
+    if (action === "escape") {
       player.callMainMenu();
     }
   },

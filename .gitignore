@@ -9,3 +9,15 @@ build/
 .vite/
 coverage/
 .vercel
+
+# Local tool artifacts (not part of the app)
+.claude/
+.venv-ai-game-e2e/
+
+# QA / debug artifacts
+artifacts/
+skills-lock.json
+
+# Root-level QA screenshots (debug captures, diag dumps, etc.)
+# Scoped to repo root so legitimate PNGs under apps/, assets/, docs/ are unaffected.
+/*.png

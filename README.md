@@ -5,11 +5,17 @@
 <h1 align="center">Open Pixel</h1>
 
 <p align="center">
-  <strong>AI-native Web3 pixel quest game — no token economy, no real RMT, guest-first by default.</strong>
+  <strong>Guest-first cozy pixel RPG in the browser — no token economy, with an optional read-only wallet proof.</strong>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> ·
+  <strong>Live demo:</strong> <a href="https://open-pixel-beta.vercel.app">https://open-pixel-beta.vercel.app</a>
+</p>
+
+![Open Pixel gameplay](assets/open-pixel-demo.gif)
+
+<p align="center">
+  <a href="#getting-started">Getting started</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#repository-layout">Repository layout</a> ·
   <a href="docs/SECURITY_MODEL.md">Security model</a> ·
@@ -19,14 +25,19 @@
 
 ---
 
-## What is Open Pixel?
+## What Is Open Pixel?
 
+<<<<<<< HEAD
 Open Pixel is a cozy browser RPG prototype inspired by social pixel worlds like Pixels.xyz. Players enter as guests, explore a farm village, gather resources, fulfill orders, earn off-chain points, and optionally create a safe wallet proof.
+=======
+Open Pixel is a cozy browser RPG inspired by social pixel worlds like Pixels.xyz. Players enter as guests, perform resource-village actions, fulfill a small board/workstation request, earn off-chain progress, and can optionally create a safe wallet proof.
+>>>>>>> origin/main
 
-The project is intentionally **not** a token economy. There is no staking, no swaps, no NFT marketplace, and no play-to-earn financial loop. The Web3 layer is limited to an optional readable wallet signature that proves quest completion.
+The project is intentionally **not** a token economy. There is no staking, no swaps, no NFT marketplace, and no play-to-earn financial loop. The Web3 layer is limited to an optional readable wallet signature that proves completion.
 
-## Demo
+## Features
 
+<<<<<<< HEAD
 > Demo GIF/video slot. Add the final gameplay capture before submission.
 
 <p align="center">
@@ -56,21 +67,33 @@ Guest player
   → claims guest badge
   → optionally signs readable wallet proof
   → appears on leaderboard
+=======
+- Browser-based pixel RPG with a resource-village gameplay loop: farm, chop, mine, craft, or prepare goods.
+- Guest-first onboarding — fully playable without a wallet or account.
+- Village orders: fulfill a board/workstation request to earn a Game Completion Receipt and Guest Badge.
+- Optional wallet proof using a human-readable `personal_sign` message — no transactions, no gas.
+- Live leaderboard backed by Supabase.
+- Off-chain progress tracking with no token or real-money mechanics.
+
+```text
+Guest player
+-> enters RPG-JS game
+-> performs resource actions
+-> fulfills village order
+-> receives Game Completion Receipt
+-> claims Guest Badge
+-> optionally signs readable Wallet Proof
+-> appears on leaderboard
+>>>>>>> origin/main
 ```
 
-### What the wallet proof does
+### Wallet Proof
 
-The wallet proof is deliberately narrow:
+Wallet proof is deliberately narrow:
 
-- No transaction.
-- No gas.
-- No contract call.
-- No token approval.
-- No NFT approval.
-- No swap.
-- No permit.
-- No `setApprovalForAll`.
-- Only a readable `personal_sign` message.
+- Only a readable `personal_sign` message — no transaction, gas, or contract call.
+- Never requests token/NFT approvals, permits, swaps, or `setApprovalForAll`.
+- The signature proves quest completion and nothing else.
 
 Example message:
 
@@ -90,7 +113,17 @@ This signature only proves quest completion.
 It does not approve tokens, NFTs, swaps, transfers, or transactions.
 ```
 
-## Quick start
+## Tech Stack
+
+- **RPG-JS** — game world, map, resource events, player variables.
+- **React + Vite** — landing page, claim page, wallet proof UX.
+- **Supabase** — persistence for players, quest runs, proofs, and the leaderboard.
+- **Browser wallet provider API** — optional `personal_sign` proof flow; no transaction library required.
+- **TypeScript** across all workspaces; Husky + lint-staged + Prettier for repo hygiene.
+
+## Getting Started
+
+Prerequisites: Node.js >= 22.
 
 ```bash
 npm install
@@ -113,24 +146,24 @@ npm run dev:web
 Supabase setup:
 
 ```bash
-# In Supabase SQL editor
-# paste and run supabase/schema.sql
+# In Supabase SQL editor, paste and run supabase/schema.sql
 ```
 
-Then set:
+Then set the following in `.env`:
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-or-anon-key
 VITE_GAME_URL=/game
 ```
 
-> Never expose a Supabase `service_role` key in the browser. This repo only expects the anon key on the frontend.
+> Never expose a Supabase `service_role` key in the browser. This repo only expects an anon/publishable key on the frontend.
 
-## Repository layout
+## Repository Layout
 
 ```text
 open-pixel/
+<<<<<<< HEAD
   apps/
     game/       # RPG-JS game: map, village, resource loop
     web/        # React/Vite claim page, wallet proof, leaderboard shell
@@ -139,36 +172,35 @@ open-pixel/
   supabase/     # schema and RLS policies
   docs/         # design, security, roadmap, contributor docs
   assets/       # README/logo/demo media
+=======
+apps/
+  game/      # RPG-JS game: map, resource actions, completion loop
+  web/       # React/Vite claim page, wallet proof, leaderboard
+packages/
+  shared/    # proof message helpers + shared types
+supabase/    # schema and RLS policies
+scripts/     # build checks and QA harness
+docs/        # design, security, roadmap, contributor docs
+assets/      # logo and README media
+>>>>>>> origin/main
 ```
 
-## Tech stack
+## Design Choices
 
-- **RPG-JS** — game world, map, events, NPC dialog, player variables.
-- **React + Vite** — landing, claim page, wallet proof UX.
-- **Supabase** — free-tier persistence for players, quest runs, proofs, leaderboard.
-- **Browser wallet provider API** — optional `personal_sign` proof flow; no tx library required.
-- **Husky + lint-staged + Prettier** — basic repo hygiene.
-
-## Design choices
-
-Open Pixel is scoped as a contest demo first:
-
-- Fun quest loop before financial mechanics.
-- Off-chain points before tokens.
+- Fun resource-village loop before financial mechanics.
+- Off-chain progress before tokens.
 - Guest account before wallet.
 - Wallet proof before on-chain transactions.
 - Readable signatures before opaque typed-data signing.
 
-See [`docs/DESIGN.md`](docs/DESIGN.md) for the full plan.
+See [`docs/DESIGN.md`](docs/DESIGN.md) for the current product direction.
 
-## Documentation & community
+## Documentation
 
 - Docs: [`docs/`](docs/)
 - Security model: [`docs/SECURITY_MODEL.md`](docs/SECURITY_MODEL.md)
 - Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Security policy: [`SECURITY.md`](SECURITY.md)
-- Discord: coming soon
-- Hackathon page: coming soon
 
 ## License
 
