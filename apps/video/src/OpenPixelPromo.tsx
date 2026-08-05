@@ -23,8 +23,8 @@ const FPS = 30;
 
 const chapters = [
   "Guest first",
-  "Farm village",
-  "Gather resources",
+  "AI Guide",
+  "3 Pixel Shards",
   "Off-chain points",
   "Optional proof",
 ];
@@ -36,7 +36,7 @@ const scenes = [
     kind: "intro",
     kicker: "Zero Cup prototype",
     title: "Open Pixel",
-    body: "A cozy resource-village RPG with optional Web3 proof.",
+    body: "A cozy pixel quest RPG with optional Web3 proof.",
   },
   {
     from: 135,
@@ -44,15 +44,15 @@ const scenes = [
     kind: "game",
     kicker: "Playable first",
     title: "Start as a guest",
-    body: "Open the browser game, move around with WASD, and explore the farm village.",
+    body: "Open the browser game, move around with WASD, and meet the AI Guide in the field.",
   },
   {
     from: 315,
     duration: 180,
     kind: "gameZoom",
     kicker: "Core loop",
-    title: "Gather village resources",
-    body: "Cozy loop: plant, harvest, chop, mine, fulfill orders. No wallet required to play.",
+    title: "Gather 3 Pixel Shards",
+    body: "Small quest loop: talk, explore, collect, score. No wallet required to play.",
   },
   {
     from: 480,
@@ -75,15 +75,10 @@ const scenes = [
     duration: 105,
     kind: "outro",
     kicker: "Demo-ready loop",
-    title: "Farm. Fulfill. Prove.",
+    title: "Quest. Gather. Prove.",
     body: "Open Pixel keeps Web3 optional and the game playable first.",
   },
 ] as const;
-
-type Scene = Omit<(typeof scenes)[number], "title" | "body"> & {
-  title: string;
-  body: string;
-};
 
 function clamp(
   frame: number,
@@ -117,7 +112,8 @@ function BrandBug() {
   );
 }
 
-function ProgressBar({ frame }: { frame: number }) {
+function ProgressBar() {
+  const frame = useCurrentFrame();
   const width = interpolate(frame, [0, 900], [0, 100], {
     extrapolateRight: "clamp",
   });
@@ -156,7 +152,7 @@ function FrameCard({
   );
 }
 
-function CopyBlock({ scene }: { scene: Scene }) {
+function CopyBlock({ scene }: { scene: (typeof scenes)[number] }) {
   const frame = useCurrentFrame();
   const enter = clamp(frame, [0, 24], [0, 1]);
 
@@ -189,7 +185,7 @@ function PixelMotif() {
   );
 }
 
-function Intro({ scene }: { scene: Scene }) {
+function Intro({ scene }: { scene: (typeof scenes)[number] }) {
   const frame = useCurrentFrame();
   const enter = clamp(frame, [0, 34], [0, 1]);
   return (
@@ -200,13 +196,18 @@ function Intro({ scene }: { scene: Scene }) {
         <CopyBlock scene={scene} />
       </div>
       <PixelMotif />
-      <ProgressBar frame={scene.from + frame} />
+      <ProgressBar />
     </SceneShell>
   );
 }
 
-function GameScene({ scene, zoom = 1 }: { scene: Scene; zoom?: number }) {
-  const frame = useCurrentFrame();
+function GameScene({
+  scene,
+  zoom = 1,
+}: {
+  scene: (typeof scenes)[number];
+  zoom?: number;
+}) {
   return (
     <SceneShell>
       <BrandBug />
@@ -214,16 +215,21 @@ function GameScene({ scene, zoom = 1 }: { scene: Scene; zoom?: number }) {
       <CopyBlock scene={scene} />
       <div className="badge-strip">
         <span>WASD movement</span>
-        <span>Farm village</span>
-        <span>Crops, trees, ore</span>
+        <span>AI Guide NPC</span>
+        <span>Pixel Shards</span>
       </div>
-      <ProgressBar frame={scene.from + frame} />
+      <ProgressBar />
     </SceneShell>
   );
 }
 
-function WebScene({ scene, src }: { scene: Scene; src: string }) {
-  const frame = useCurrentFrame();
+function WebScene({
+  scene,
+  src,
+}: {
+  scene: (typeof scenes)[number];
+  src: string;
+}) {
   return (
     <SceneShell>
       <BrandBug />
@@ -234,13 +240,12 @@ function WebScene({ scene, src }: { scene: Scene; src: string }) {
         <span>No gas</span>
         <span>No approvals</span>
       </div>
-      <ProgressBar frame={scene.from + frame} />
+      <ProgressBar />
     </SceneShell>
   );
 }
 
-function Outro({ scene }: { scene: Scene }) {
-  const frame = useCurrentFrame();
+function Outro({ scene }: { scene: (typeof scenes)[number] }) {
   return (
     <SceneShell>
       <BrandBug />
@@ -253,7 +258,7 @@ function Outro({ scene }: { scene: Scene }) {
         </div>
       </div>
       <PixelMotif />
-      <ProgressBar frame={scene.from + frame} />
+      <ProgressBar />
     </SceneShell>
   );
 }
@@ -282,55 +287,51 @@ function TransitionWipe({
   );
 }
 
-export function OpenPixelPromo({ title, subtitle }: PromoProps) {
-  const promoScenes = scenes.map((scene, index) =>
-    index === 0 ? { ...scene, title, body: subtitle } : scene,
-  );
-
+export function OpenPixelPromo() {
   return (
     <AbsoluteFill className="promo-v2">
       <Audio src={staticFile("generated/voiceover.mp3")} volume={0.9} />
       <Sequence
-        from={promoScenes[0].from}
-        durationInFrames={promoScenes[0].duration}
+        from={scenes[0].from}
+        durationInFrames={scenes[0].duration}
         premountFor={30}
       >
-        <Intro scene={promoScenes[0]} />
+        <Intro scene={scenes[0]} />
       </Sequence>
       <Sequence
-        from={promoScenes[1].from}
-        durationInFrames={promoScenes[1].duration}
+        from={scenes[1].from}
+        durationInFrames={scenes[1].duration}
         premountFor={30}
       >
-        <GameScene scene={promoScenes[1]} zoom={0.98} />
+        <GameScene scene={scenes[1]} zoom={0.98} />
       </Sequence>
       <Sequence
-        from={promoScenes[2].from}
-        durationInFrames={promoScenes[2].duration}
+        from={scenes[2].from}
+        durationInFrames={scenes[2].duration}
         premountFor={30}
       >
-        <GameScene scene={promoScenes[2]} zoom={1.22} />
+        <GameScene scene={scenes[2]} zoom={1.22} />
       </Sequence>
       <Sequence
-        from={promoScenes[3].from}
-        durationInFrames={promoScenes[3].duration}
+        from={scenes[3].from}
+        durationInFrames={scenes[3].duration}
         premountFor={30}
       >
-        <WebScene scene={promoScenes[3]} src="captures/web-home.png" />
+        <WebScene scene={scenes[3]} src="captures/web-home.png" />
       </Sequence>
       <Sequence
-        from={promoScenes[4].from}
-        durationInFrames={promoScenes[4].duration}
+        from={scenes[4].from}
+        durationInFrames={scenes[4].duration}
         premountFor={30}
       >
-        <WebScene scene={promoScenes[4]} src="captures/web-claim.png" />
+        <WebScene scene={scenes[4]} src="captures/web-claim.png" />
       </Sequence>
       <Sequence
-        from={promoScenes[5].from}
-        durationInFrames={promoScenes[5].duration}
+        from={scenes[5].from}
+        durationInFrames={scenes[5].duration}
         premountFor={30}
       >
-        <Outro scene={promoScenes[5]} />
+        <Outro scene={scenes[5]} />
       </Sequence>
       {[130, 310, 475, 640, 790].map((at, index) => (
         <TransitionWipe

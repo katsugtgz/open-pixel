@@ -7,6 +7,11 @@ apps/game/src/tiled/*.tsx
 =======
 .tokensave/
 test-results/
-apps/game/src/tiled/*.tsx
 results.sarif
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+apps/video/dist/
+apps/video/public/generated/
+apps/game/src/tiled/*.tsx
 >>>>>>> origin/main

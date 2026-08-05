@@ -35,7 +35,11 @@ export default {
             ...Presets.RMSpritesheet(3, 4),
           },
           {
+<<<<<<< HEAD
             id: "shard",
+=======
+            id: "pixel-shard",
+>>>>>>> origin/main
             image: "spritesheets/shard.png",
             ...Presets.RMSpritesheet(3, 4),
           },

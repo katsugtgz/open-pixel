@@ -1,19 +1,10 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
-  connectWallet,
-  saveGuestClaim,
-  signQuestProof,
-  type WalletAdapter,
-} from "@/lib/claimProof";
-import { loadLeaderboard } from "@/lib/leaderboard";
-import {
-  createDemoQuestRun,
+  buildProofMessage,
   createGuestId,
-  createRandomId,
   formatSupabaseError,
-  type QuestRun,
-  type QuestRunResources,
+  SECURITY_RECEIPT,
 } from "@open-pixel/shared";
 import "./App.css";
 
@@ -21,10 +12,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 const configuredGameUrl = import.meta.env.VITE_GAME_URL as string | undefined;
-const defaultGameUrl = import.meta.env.DEV
-  ? `${window.location.protocol}//${window.location.hostname}:5174/`
-  : "/game/";
-const rawGameUrl = configuredGameUrl || defaultGameUrl;
+const rawGameUrl = configuredGameUrl || "/game/";
 const gameUrl = rawGameUrl.endsWith("/game") ? `${rawGameUrl}/` : rawGameUrl;
 const repoUrl = "https://github.com/katsugtgz/open-pixel";
 
@@ -33,18 +21,18 @@ const supabase =
 
 const pillars = [
   {
-    title: "Play",
-    body: "Enter as guest. Arrow keys move; Space interacts.",
+    title: "Explore",
+    body: "Start as a guest, meet the AI Guide, and enter a cozy pixel field.",
     stat: "guest-first",
   },
   {
     title: "Gather",
-    body: "Harvest crops, gather wood and ore, fulfill village orders.",
-    stat: "off-chain pts",
+    body: "Collect 3 Pixel Shards, complete the quest, and earn off-chain points.",
+    stat: "+130 pts",
   },
   {
     title: "Prove",
-    body: "Claim a badge. Wallet proof stays optional and readable.",
+    body: "Optional wallet receipt uses readable personal_sign only. No tx. No token.",
     stat: "safe proof",
   },
 ];
@@ -55,50 +43,49 @@ const mockLeaderboard = [
   { name: "Moss Farmer", score: 70, tag: "guest" },
 ];
 
-export type VillageProgress = {
+type QuestRunView = {
+  id: string;
+  guestId: string;
+  displayName: string;
+  questId: string;
   points: number;
-  resources: QuestRunResources;
-  completedAt?: string;
+  shards: number;
+  completedAt: string;
 };
 
-export type AppState = {
+type AppState = {
   guestId: string;
   displayName: string;
   walletAddress: string;
   signature: string;
   status: string;
-  villageProgress?: VillageProgress;
 };
 
-export type AppAction =
+type AppAction =
   | { type: "displayName"; value: string }
   | { type: "walletAddress"; value: string }
   | { type: "signature"; value: string }
-  | { type: "status"; value: string }
-  | { type: "villageProgress"; value: VillageProgress };
+  | { type: "status"; value: string };
 
-export function getGuestId() {
+function getGuestId() {
   const existing = localStorage.getItem("open_pixel_guest_id");
   if (existing) return existing;
-
   const next = createGuestId();
   localStorage.setItem("open_pixel_guest_id", next);
   return next;
 }
 
-export function initialState(): AppState {
+function initialState(): AppState {
   return {
     guestId: getGuestId(),
     displayName: "Pixel Runner",
     walletAddress: "",
     signature: "",
     status: "Ready. Play as guest; wallet proof is optional.",
-    leaderboardRows: DEMO_LEADERBOARD_ROWS,
-    leaderboardSource: "demo",
   };
 }
 
-export function appReducer(state: AppState, action: AppAction): AppState {
+function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "displayName":
       return { ...state, displayName: action.value };
@@ -108,148 +95,31 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, signature: action.value };
     case "status":
       return { ...state, status: action.value };
-    case "villageProgress":
-      return { ...state, villageProgress: action.value };
   }
-}
-
-const DEFAULT_RESOURCES: QuestRunResources = {
-  popberry: 0,
-  whittlewood_log: 0,
-  ochrux_matrix: 0,
-};
-
-/**
- * Build the QuestRun from live village state, not literals.
- */
-export function buildQuestRunFromState(state: AppState): QuestRun {
-  const progress = state.villageProgress;
-  const completedAt = progress?.completedAt ?? new Date(0).toISOString();
-  return {
-    id: `run_${state.guestId.slice(-8)}`,
-    guestId: state.guestId,
-    displayName: state.displayName.trim() || "Pixel Runner",
-    questId: "Quest #1 — Village Resource Loop",
-    points: progress?.points ?? 0,
-    resources: progress?.resources ?? DEFAULT_RESOURCES,
-    shards: progress?.completedAt ? 3 : 0,
-    completedAt,
-  };
-}
-
-export function canClaimGuestBadge(state: AppState): boolean {
-  return state.villageProgress?.completedAt != null;
-}
-
-// Security: postMessage is broadcast to any listener. Pin the expected game
-// origin so a malicious iframe cannot forge a village:complete payload that
-// persists fake points. Relative or unset VITE_GAME_URL falls back to same-origin.
-const EXPECTED_GAME_ORIGIN = (() => {
-  const configured = import.meta.env.VITE_GAME_URL as string | undefined;
-  if (!configured) return new URL(gameUrl, window.location.href).origin;
-  try {
-    return new URL(configured, window.location.href).origin;
-  } catch {
-    return window.location.origin;
-  }
-})();
-
-// Hackathon bridge: game runs on a separate origin and player.emit only reaches
-// the in-game socket (see apps/game/src/modules/village/proof-bridge.ts). This
-// handler accepts the same payload via window.postMessage (cross-origin iframe)
-// or a CustomEvent-shaped event (same-page embedding) until a real socket lands.
-export function isNonNegativeInteger(value: unknown): value is number {
-  return Number.isInteger(value) && Number(value) >= 0;
-}
-
-function normalizeCompletedAt(value: unknown): string | undefined {
-  if (typeof value === "string" && !Number.isNaN(Date.parse(value)))
-    return value;
-  if (typeof value === "number" && Number.isFinite(value))
-    return new Date(value).toISOString();
-  return undefined;
-}
-
-function normalizeVillageProgress(value: unknown): VillageProgress | null {
-  if (!value || typeof value !== "object") return null;
-  const record = value as Record<string, unknown>;
-  const resources = record.resources as Record<string, unknown> | undefined;
-  if (!resources || typeof resources !== "object") return null;
-
-  const progressResources = {
-    popberry: resources.popberry,
-    whittlewood_log: resources.whittlewood_log,
-    ochrux_matrix: resources.ochrux_matrix,
-  };
-  if (
-    !isNonNegativeInteger(progressResources.popberry) ||
-    !isNonNegativeInteger(progressResources.whittlewood_log) ||
-    !isNonNegativeInteger(progressResources.ochrux_matrix)
-  ) {
-    return null;
-  }
-  const points = record.points ?? 0;
-  if (!isNonNegativeInteger(points)) return null;
-
-  return {
-    ...record,
-    resources: progressResources,
-    points,
-    completedAt: normalizeCompletedAt(record.completedAt),
-  } as VillageProgress;
-}
-
-export function makeVillageBridgeHandler(
-  dispatch: React.Dispatch<AppAction>,
-): (event: MessageEvent | CustomEvent) => void {
-  return (event: MessageEvent | CustomEvent) => {
-    const isCustomEvent = "detail" in event;
-    if (
-      !isCustomEvent &&
-      event.origin &&
-      event.origin !== EXPECTED_GAME_ORIGIN &&
-      event.origin !== window.location.origin
-    ) {
-      return;
-    }
-
-    const data = isCustomEvent ? event.detail : event.data;
-    if (!data || typeof data !== "object") return;
-    if ((data as { type?: unknown }).type !== "village:complete") return;
-
-    const payload = normalizeVillageProgress(
-      (data as { payload?: unknown }).payload,
-    );
-    if (!payload) return;
-
-    dispatch({ type: "villageProgress", value: payload });
-  };
 }
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+function receiptLabel(key: string) {
+  return key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`);
+}
+
 function Topbar() {
   return (
     <nav className="topbar" aria-label="Open Pixel navigation">
       <a className="brand" href="#top" aria-label="Open Pixel home">
-        <img
-          className="brand-logo"
-          src="/brand/open-pixel-logo.jpg"
-          alt=""
-          aria-hidden="true"
-        />
+        <span className="brand-mark" aria-hidden="true">
+          OP
+        </span>
         <span>Open Pixel</span>
       </a>
       <div className="nav-links">
-        <a className="nav-play" href={gameUrl}>
-          Play demo
-        </a>
         <a href="#loop">Loop</a>
         <a href="#claim">Claim</a>
         <a href="#proof">Proof</a>
-        <a href={repoUrl} target="_blank" rel="noopener noreferrer">
+        <a href={repoUrl} target="_blank">
           GitHub
         </a>
       </div>
@@ -262,7 +132,17 @@ function HeroSection() {
     <section className="hero" id="top">
       <div className="hero-copy">
         <p className="eyebrow">Zero Cup 2026 · Cozy Web3 RPG</p>
-        <h1>Play a cozy pixel quest. No wallet required.</h1>
+        <h1>Quest, gather, prove — without a token economy.</h1>
+        <p className="subtitle">
+          A Pixels-inspired browser world where guests complete cozy AI quests,
+          collect shards, earn off-chain points, then optionally sign a readable
+          wallet proof. No gas, no approvals, no RMT loop.
+        </p>
+        <div className="control-guide" aria-label="Demo controls">
+          <span>Desktop: Arrow keys move</span>
+          <span>Space talks / collects</span>
+          <span>Mobile: joystick + A button</span>
+        </div>
         <div className="actions">
           <a className="button primary" href={gameUrl}>
             Play demo
@@ -271,25 +151,17 @@ function HeroSection() {
             Claim badge
           </a>
         </div>
-        <p className="subtitle">
-          Harvest crops, gather wood and ore, fulfill village orders, then claim
-          an off-chain badge. Wallet proof stays optional and readable.
-        </p>
-        <div className="control-guide" aria-label="Demo controls">
-          <span className="desktop-control">Desktop: Arrow keys to move</span>
-          <span className="desktop-control">Space to talk / collect</span>
-          <span className="mobile-control">Mobile: joystick + A button</span>
-        </div>
         <div className="trust-row" aria-label="Safety summary">
           <span>guest-first</span>
-          <span>no gas / no token</span>
-          <span>optional personal_sign</span>
+          <span>no token</span>
+          <span>personal_sign only</span>
         </div>
       </div>
 
-      <div className="pixel-window" aria-label="Pixel village preview">
-        <div className="cloud cloud-one" aria-hidden="true" />
-        <div className="cloud cloud-two" aria-hidden="true" />
+      <div className="pixel-window" aria-label="Pixel quest world preview">
+        <div className="sun" />
+        <div className="cloud cloud-one" />
+        <div className="cloud cloud-two" />
         <div className="island">
           <div className="tile grass" />
           <div className="tile flower" />
@@ -302,8 +174,8 @@ function HeroSection() {
           <div className="tile crystal small" />
         </div>
         <div className="dialog-card">
-          <strong>Village Loop</strong>
-          <span>Popberry · WhittlewoodLog · OchruxMatrix → off-chain pts</span>
+          <strong>AI Guide</strong>
+          <span>Gather 3 Pixel Shards → +130 pts</span>
         </div>
       </div>
     </section>
@@ -314,8 +186,8 @@ function LoopSection() {
   return (
     <section className="section" id="loop">
       <div className="section-heading">
-        <p className="eyebrow">Demo loop</p>
-        <h2>Three steps: gather, fulfill, claim.</h2>
+        <p className="eyebrow">Gameplay loop</p>
+        <h2>Small, playable, submission-ready.</h2>
       </div>
       <div className="pillar-grid">
         {pillars.map((pillar) => (
@@ -330,22 +202,16 @@ function LoopSection() {
   );
 }
 
-function DesignSection({
-  rows,
-  source,
-}: {
-  rows: LeaderboardEntry[];
-  source: "supabase" | "demo";
-}) {
+function DesignSection() {
   return (
     <section className="split-section">
       <article className="panel economy-panel">
         <p className="eyebrow">Design stance</p>
-        <h2>Web3 proof, not Web3 economy.</h2>
+        <h2>Borrow the cozy world feel, not the fragile economy.</h2>
         <p>
-          Open Pixel keeps quests, identity, gathering, and visible progress. It
-          skips token emissions, staking, marketplace loops, and speculative
-          rewards.
+          Open Pixel keeps the fun parts: quests, social identity, resource
+          gathering, visible progress. It skips token emissions, staking,
+          marketplace loops, and speculative rewards for this contest build.
         </p>
         <div className="comparison">
           <span>Off-chain points</span>
@@ -355,15 +221,10 @@ function DesignSection({
       </article>
 
       <article className="panel leaderboard-panel">
-        <p className="eyebrow">
-          {source === "supabase" ? "Live leaderboard" : "Leaderboard demo"}
-        </p>
+        <p className="eyebrow">Leaderboard shell</p>
         <h2>Proof-ready scores</h2>
-        {rows.map((row, index) => (
-          <div
-            className="leaderboard-row"
-            key={`${row.name}-${row.score}-${row.tag}`}
-          >
+        {mockLeaderboard.map((row, index) => (
+          <div className="leaderboard-row" key={row.name}>
             <strong>#{index + 1}</strong>
             <span>{row.name}</span>
             <em>{row.score} pts</em>
@@ -377,7 +238,7 @@ function DesignSection({
 
 type ClaimSectionProps = {
   state: AppState;
-  questRun: QuestRun;
+  questRun: QuestRunView;
   onDisplayNameChange(value: string): void;
   onClaim(): void;
   onConnectWallet(): void;
@@ -397,11 +258,6 @@ function ClaimSection({
       <article className="panel claim-panel">
         <p className="eyebrow">Guest claim</p>
         <h2>Claim the demo badge.</h2>
-        <p className="claim-note">
-          Complete village orders in the game to earn resources and off-chain
-          points, then claim your badge here. Your run syncs through Supabase;
-          no wallet is required.
-        </p>
         <label>
           Display name
           <input
@@ -419,12 +275,9 @@ function ClaimSection({
             <strong>{questRun.questId}</strong>
           </p>
           <p>
-            <span>Resources</span>
+            <span>Result</span>
             <strong>
-              {questRun.resources.popberry} Popberry ·{" "}
-              {questRun.resources.whittlewood_log} WhittlewoodLog ·{" "}
-              {questRun.resources.ochrux_matrix} OchruxMatrix ·{" "}
-              {questRun.points} pts
+              {questRun.shards}/3 shards · {questRun.points} pts
             </strong>
           </p>
         </div>
@@ -435,16 +288,14 @@ function ClaimSection({
 
       <article className="panel wallet-panel" id="proof">
         <p className="eyebrow">Optional wallet proof</p>
-        <h2>Sign only if you want proof.</h2>
-        <p>Optional readable personal_sign receipt only.</p>
-        <div className="safety-pills" aria-label="Wallet safety summary">
-          <span>No gas</span>
-          <span>No approvals</span>
-          <span>No transaction</span>
-        </div>
-        <p className="security-receipt">
-          Receipt: personal_sign only · no contract call · no token approval
-        </p>
+        <h2>Readable signature. Nothing else.</h2>
+        <ul>
+          <li>No transaction</li>
+          <li>No gas</li>
+          <li>No token or NFT approval</li>
+          <li>No swap, permit, or contract call</li>
+          <li>Only a readable personal_sign message</li>
+        </ul>
         <div className="wallet-actions">
           <button
             className="button secondary"
@@ -464,12 +315,21 @@ function ClaimSection({
             Sign readable proof
           </button>
         </div>
-        {!state.walletAddress && (
-          <p className="wallet-helper">Connect wallet first to sign proof.</p>
-        )}
+      </article>
+
+      <article className="panel receipt-panel">
+        <p className="eyebrow">Security receipt</p>
+        <h2>What happened?</h2>
+        {Object.entries(SECURITY_RECEIPT).map(([key, value]) => (
+          <p key={key}>
+            <span>{receiptLabel(key)}</span>
+            <strong>{String(value)}</strong>
+          </p>
+        ))}
         {state.signature && (
-          <p className="proof-receipt">
-            Signed: {shortAddress(state.signature)}
+          <p>
+            <span>signature</span>
+            <strong>{shortAddress(state.signature)}</strong>
           </p>
         )}
       </article>
@@ -489,53 +349,24 @@ function StatusBar({ status }: { status: string }) {
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
 
-  const questRun = useMemo(() => buildQuestRunFromState(state), [state]);
-
-  // FIX 2 — register hackathon bridge listeners (postMessage + custom event).
-  useEffect(() => {
-    const handler = makeVillageBridgeHandler(dispatch);
-    window.addEventListener("message", handler);
-    window.addEventListener("village:complete", handler as EventListener);
-    return () => {
-      window.removeEventListener("message", handler);
-      window.removeEventListener("village:complete", handler as EventListener);
-    };
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    void loadLeaderboard(supabase, controller.signal).then((result) => {
-      if (controller.signal.aborted) return;
-
-      dispatch({
-        type: "leaderboard",
-        rows: result.rows,
-        source: result.source,
-      });
-
-      if (result.status) {
-        dispatch({ type: "status", value: result.status });
-      }
-    });
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
+  const questRun = useMemo(
+    () => ({
+      id: `run_${state.guestId.slice(-8)}`,
+      guestId: state.guestId,
+      displayName: state.displayName.trim() || "Pixel Runner",
+      questId: "Quest #1 — Gather Pixel Shards",
+      points: 130,
+      shards: 3,
+      completedAt: new Date().toISOString(),
+    }),
+    [state.displayName, state.guestId],
+  );
 
   function setStatus(value: string) {
     dispatch({ type: "status", value });
   }
 
   async function saveGuestClaim(showSuccess = true) {
-    if (!canClaimGuestBadge(state)) {
-      setStatus(
-        "Complete the village quest first, then claim your guest badge.",
-      );
-      return false;
-    }
-
     if (!supabase) {
       setStatus("Guest badge ready locally. Add Supabase env to sync online.");
       return true;
@@ -563,8 +394,7 @@ function App() {
       display_name: questRun.displayName,
       quest_id: questRun.questId,
       points: questRun.points,
-      resources: questRun.resources,
-      shards: questRun.shards ?? 0,
+      shards: questRun.shards,
       completed_at: questRun.completedAt,
     });
 
@@ -610,15 +440,43 @@ function App() {
       questRunId: questRun.id,
       questId: questRun.questId,
       points: questRun.points,
-      nonce: createRandomId(),
+      nonce: crypto.randomUUID(),
       issuedAt: now.toISOString(),
       expirationTime: expires.toISOString(),
     });
 
-    if (result.signature) {
-      dispatch({ type: "signature", value: result.signature });
+    const sig = (await ethereum.request({
+      method: "personal_sign",
+      params: [message, state.walletAddress],
+    })) as string;
+
+    dispatch({ type: "signature", value: sig });
+    setStatus("Proof signed with personal_sign. No transaction sent.");
+
+    if (supabase) {
+      const { error } = await supabase.from("wallet_proofs").upsert(
+        {
+          quest_run_id: questRun.id,
+          wallet_address: state.walletAddress,
+          message,
+          signature: sig,
+          method: "personal_sign",
+          verified_at: new Date().toISOString(),
+        },
+        { onConflict: "quest_run_id,wallet_address" },
+      );
+
+      if (error) {
+        setStatus(
+          formatSupabaseError(
+            "Proof signed, but Supabase proof save failed",
+            error,
+          ),
+        );
+        return;
+      }
+      setStatus("Proof signed and synced. personal_sign only; no tx.");
     }
-    setStatus(result.status);
   }
 
   return (
@@ -626,19 +484,16 @@ function App() {
       <Topbar />
       <HeroSection />
       <LoopSection />
-      <DesignSection
-        rows={state.leaderboardRows}
-        source={state.leaderboardSource}
-      />
+      <DesignSection />
       <ClaimSection
         state={state}
         questRun={questRun}
         onDisplayNameChange={(value) =>
           dispatch({ type: "displayName", value })
         }
-        onClaim={() => void handleClaim()}
-        onConnectWallet={() => void handleConnectWallet()}
-        onSignProof={() => void handleSignProof()}
+        onClaim={() => void saveGuestClaim()}
+        onConnectWallet={() => void connectWallet()}
+        onSignProof={() => void signProof()}
       />
       <StatusBar status={state.status} />
     </main>
@@ -647,7 +502,9 @@ function App() {
 
 declare global {
   interface Window {
-    ethereum?: WalletAdapter;
+    ethereum?: {
+      request(args: { method: string; params?: unknown[] }): Promise<unknown>;
+    };
   }
 }
 
