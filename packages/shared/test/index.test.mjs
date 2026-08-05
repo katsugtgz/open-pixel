@@ -69,11 +69,27 @@ describe("claim/proof row shaping", () => {
   });
 
   it("creates the canonical demo quest run", () => {
-    assert.equal(questRun.id, "run_guest_12345678");
+    assert.match(
+      questRun.id,
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    assert.notEqual(questRun.id, "run_guest_12345678");
     assert.equal(questRun.displayName, "Pixel Farmer");
     assert.equal(questRun.questId, DEFAULT_QUEST_ID);
     assert.equal(questRun.points, 130);
     assert.equal(questRun.shards, 3);
+  });
+
+  it("generates a fresh non-deterministic id per call", () => {
+    const a = createDemoQuestRun({
+      guestId: "guest_12345678",
+      displayName: "Pixel Farmer",
+    });
+    const b = createDemoQuestRun({
+      guestId: "guest_12345678",
+      displayName: "Pixel Farmer",
+    });
+    assert.notEqual(a.id, b.id);
   });
 
   it("maps claim rows to the expected Supabase tables", () => {
@@ -100,7 +116,7 @@ describe("claim/proof row shaping", () => {
       display_name: "Pixel Farmer",
     });
     assert.deepEqual(toQuestRunRow(questRun), {
-      id: "run_guest_12345678",
+      id: questRun.id,
       guest_id: "guest_12345678",
       display_name: "Pixel Farmer",
       quest_id: "Quest #1 - Restore village nodes",
@@ -108,6 +124,17 @@ describe("claim/proof row shaping", () => {
       shards: 3,
       completed_at: "2026-06-18T00:00:00.000Z",
     });
+  });
+
+  it("truncates display_name to the schema's 32-char limit", () => {
+    const longName = "A".repeat(64);
+    const longRun = createDemoQuestRun({
+      guestId: "guest_long",
+      displayName: longName,
+    });
+    const row = toPlayerRow({ questRun: longRun });
+    assert.equal(row.display_name.length, 32);
+    assert.equal(row.display_name, longName.slice(0, 32));
   });
 
   it("creates readable personal_sign proof rows", () => {
@@ -134,13 +161,26 @@ describe("claim/proof row shaping", () => {
         verifiedAt: "2026-06-18T00:01:00.000Z",
       }),
       {
-        quest_run_id: "run_guest_12345678",
+        quest_run_id: questRun.id,
         wallet_address: "0x1234",
         message: proof.message,
         signature: "0xabcd",
         method: "personal_sign",
         verified_at: "2026-06-18T00:01:00.000Z",
       },
+    );
+  });
+
+  it("rejects invalid issuedAt instead of producing a RangeError", () => {
+    assert.throws(
+      () =>
+        createProofMessage({
+          domain: "open-pixel.test",
+          walletAddress: "0x1234",
+          questRun,
+          issuedAt: "not-a-date",
+        }),
+      /invalid issuedAt/,
     );
   });
 
@@ -184,6 +224,57 @@ describe("leaderboard row mapping", () => {
       }),
       { name: "guest_2", score: 0, tag: "guest" },
     );
+  });
+
+  it("coerces non-finite scores (NaN/Infinity/string-junk) to 0", () => {
+    assert.equal(toLeaderboardEntry({ total_points: "not-a-number" }).score, 0);
+    assert.equal(
+      toLeaderboardEntry({ total_points: Number.POSITIVE_INFINITY }).score,
+      0,
+    );
+    assert.equal(toLeaderboardEntry({ total_points: NaN }).score, 0);
+  });
+});
+
+describe("wallet proof row wallet-address invariant", () => {
+  const questRun = createDemoQuestRun({
+    guestId: "guest_invariant",
+    displayName: "Invariant Tester",
+    completedAt: "2026-06-18T00:00:00.000Z",
+  });
+
+  it("throws when the Wallet: line in the message diverges from walletAddress", () => {
+    const proof = createProofMessage({
+      domain: "open-pixel.test",
+      walletAddress: "0x" + "ab".repeat(20),
+      questRun,
+    });
+    assert.throws(
+      () =>
+        toWalletProofRow({
+          questRun,
+          walletAddress: "0x" + "cd".repeat(20),
+          message: proof.message,
+          signature: "0xdeadbeef",
+        }),
+      /diverges/,
+    );
+  });
+
+  it("passes through when the Wallet: line matches walletAddress (case-insensitive)", () => {
+    const addr = "0x" + "Ab".repeat(20);
+    const proof = createProofMessage({
+      domain: "open-pixel.test",
+      walletAddress: addr,
+      questRun,
+    });
+    const row = toWalletProofRow({
+      questRun,
+      walletAddress: addr.toLowerCase(),
+      message: proof.message,
+      signature: "0xdeadbeef",
+    });
+    assert.equal(row.wallet_address, addr.toLowerCase());
   });
 });
 

@@ -7,7 +7,7 @@ create table if not exists public.players (
   id uuid primary key default gen_random_uuid(),
   guest_id text not null unique,
   wallet_address text unique,
-  display_name text not null default 'Pixel Runner',
+  display_name text not null default 'Pixel Runner' check (char_length(display_name) <= 32),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -17,8 +17,8 @@ create table if not exists public.quest_runs (
   guest_id text not null references public.players(guest_id) on delete cascade,
   display_name text not null,
   quest_id text not null,
-  points integer not null check (points >= 0),
-  shards integer not null check (shards >= 0),
+  points integer not null check (points >= 0 and points <= 200),
+  shards integer not null check (shards >= 0 and shards <= 10),
   completed_at timestamptz not null default now()
 );
 
@@ -32,6 +32,36 @@ create table if not exists public.wallet_proofs (
   verified_at timestamptz not null default now(),
   unique (quest_run_id, wallet_address)
 );
+
+-- Idempotent CHECK constraints: inline checks above only apply on fresh
+-- `create table`. These alter blocks let an already-deployed database pick
+-- up the same guards without manual surgery.
+do $$ begin
+  alter table public.players
+    add constraint players_display_name_length
+    check (char_length(display_name) <= 32);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
+
+do $$ begin
+  alter table public.quest_runs
+    add constraint quest_runs_points_range
+    check (points >= 0 and points <= 200);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
+
+do $$ begin
+  alter table public.quest_runs
+    add constraint quest_runs_shards_range
+    check (shards >= 0 and shards <= 10);
+exception
+  when duplicate_object then null;
+  when duplicate_table then null;
+end $$;
 
 create or replace view public.leaderboard as
 select
@@ -73,12 +103,20 @@ do $$ begin
   create policy "quest runs public update" on public.quest_runs for update using (true) with check (true);
 exception when duplicate_object then null; end $$;
 
+-- wallet_proofs: read-only for anon (leaderboard has_proof check), but NO
+-- public insert/update. Writes happen ONLY through the verify-wallet-proof
+-- Edge Function, which uses the service role key and bypasses RLS. Any
+-- client-side insert with the anon key must be rejected so a verified row
+-- cannot be forged by a direct upsert. The deny policies below also make
+-- the intent explicit if someone later adds a permissive one.
 do $$ begin
   create policy "wallet proofs public read" on public.wallet_proofs for select using (true);
 exception when duplicate_object then null; end $$;
 do $$ begin
-  create policy "wallet proofs public insert" on public.wallet_proofs for insert with check (true);
+  create policy "wallet proofs deny anon insert"
+    on public.wallet_proofs for insert to anon with check (false);
 exception when duplicate_object then null; end $$;
 do $$ begin
-  create policy "wallet proofs public update" on public.wallet_proofs for update using (true) with check (true);
+  create policy "wallet proofs deny anon update"
+    on public.wallet_proofs for update to anon using (false) with check (false);
 exception when duplicate_object then null; end $$;

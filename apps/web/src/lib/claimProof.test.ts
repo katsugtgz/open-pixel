@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createDemoQuestRun, SUPABASE_TABLES } from "@open-pixel/shared";
 import {
   connectWallet,
@@ -111,19 +111,104 @@ describe("signQuestProof", () => {
     expect(result.signature).toBe("0xsig");
   });
 
-  it("keeps the signature even when the proof save fails", async () => {
+  it("signs locally when supabaseUrl / publishable key are absent", async () => {
     const result = await signQuestProof({
       wallet: fakeWallet(async () => "0xsig"),
-      supabase: fakeSupabase({
-        [SUPABASE_TABLES.walletProofs]: { message: "proof-boom" },
-      }),
+      supabase: fakeSupabase(),
       questRun,
       walletAddress: "0xabc",
       domain: "example.test",
     });
+    expect(result.ok).toBe(true);
+    expect(result.signature).toBe("0xsig");
+    expect(result.status).toContain("locally");
+  });
+
+  it("keeps the signature even when the Edge Function rejects the proof", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ verified: false, error: "bad sig" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const result = await signQuestProof({
+      wallet: fakeWallet(async () => "0xsig"),
+      supabase: fakeSupabase(),
+      questRun,
+      walletAddress: "0xabc",
+      domain: "example.test",
+      supabaseUrl: "https://example.supabase.co",
+      supabasePublishableKey: "anon-key",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
     expect(result.ok).toBe(false);
     expect(result.signature).toBe("0xsig");
-    expect(result.status).toContain("proof save failed");
+    expect(result.status).toContain("server verification failed");
+    expect(result.status).toContain("bad sig");
+    fetchSpy.mockRestore();
+  });
+
+  it("surfaces a timeout-specific status and keeps the signature when the Edge Function times out", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValueOnce(
+        new DOMException("signal timed out", "TimeoutError"),
+      );
+
+    const result = await signQuestProof({
+      wallet: fakeWallet(async () => "0xsig"),
+      supabase: fakeSupabase(),
+      questRun,
+      walletAddress: "0xabc",
+      domain: "example.test",
+      supabaseUrl: "https://example.supabase.co",
+      supabasePublishableKey: "anon-key",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(result.ok).toBe(false);
+    expect(result.signature).toBe("0xsig");
+    expect(result.status).toContain("timed out");
+    expect(result.status).not.toMatch(/wallet request failed/i);
+    fetchSpy.mockRestore();
+  });
+
+  it("returns ok when the Edge Function verifies the proof", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ verified: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const result = await signQuestProof({
+      wallet: fakeWallet(async () => "0xsig"),
+      supabase: fakeSupabase(),
+      questRun,
+      walletAddress: "0xabc",
+      domain: "example.test",
+      supabaseUrl: "https://example.supabase.co/",
+      supabasePublishableKey: "anon-key",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    const [endpoint, init] = fetchSpy.mock.calls[0];
+    expect(endpoint).toBe(
+      "https://example.supabase.co/functions/v1/verify-wallet-proof",
+    );
+    const requestInit = init as RequestInit;
+    expect(requestInit.method).toBe("POST");
+    const body = JSON.parse(requestInit.body as string);
+    expect(body).toMatchObject({
+      quest_run_id: questRun.id,
+      wallet_address: "0xabc",
+      signature: "0xsig",
+    });
+    expect(result.ok).toBe(true);
+    expect(result.signature).toBe("0xsig");
+    fetchSpy.mockRestore();
   });
 
   it("fails when the wallet signing throws", async () => {

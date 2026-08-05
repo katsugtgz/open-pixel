@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   connectWallet,
@@ -106,6 +106,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         leaderboardRows: action.rows,
         leaderboardSource: action.source,
       };
+    default:
+      return state;
   }
 }
 
@@ -246,7 +248,10 @@ function DesignSection({
         </p>
         <h2>Proof-ready scores</h2>
         {rows.map((row, index) => (
-          <div className="leaderboard-row" key={`${row.name}-${index}`}>
+          <div
+            className="leaderboard-row"
+            key={`${row.name}-${row.score}-${row.tag}`}
+          >
             <strong>#{index + 1}</strong>
             <span>{row.name}</span>
             <em>{row.score} pts</em>
@@ -363,20 +368,22 @@ function StatusBar({ status }: { status: string }) {
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, initialState);
+  const [completedAt] = useState(() => new Date().toISOString());
   const questRun = useMemo(
     () =>
       createDemoQuestRun({
         guestId: state.guestId,
         displayName: state.displayName,
+        completedAt,
       }),
-    [state.displayName, state.guestId],
+    [completedAt, state.displayName, state.guestId],
   );
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
 
-    void loadLeaderboard(supabase).then((result) => {
-      if (cancelled) return;
+    void loadLeaderboard(supabase, controller.signal).then((result) => {
+      if (controller.signal.aborted) return;
 
       dispatch({
         type: "leaderboard",
@@ -390,7 +397,7 @@ function App() {
     });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, []);
 
@@ -411,6 +418,14 @@ function App() {
     const result = await connectWallet(window.ethereum);
     if (result.ok && result.walletAddress) {
       dispatch({ type: "walletAddress", value: result.walletAddress });
+      setStatus(result.status);
+      return;
+    }
+    if (result.ok && !result.walletAddress) {
+      setStatus(
+        "Wallet connected but no account shared. Enable account access in your wallet and retry.",
+      );
+      return;
     }
     setStatus(result.status);
   }
@@ -422,6 +437,8 @@ function App() {
       questRun,
       walletAddress: state.walletAddress,
       domain: window.location.host,
+      supabaseUrl,
+      supabasePublishableKey,
     });
 
     if (result.signature) {

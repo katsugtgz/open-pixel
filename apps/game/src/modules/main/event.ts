@@ -31,13 +31,16 @@ export function QuestGiver(): EventDefinition {
       const decision = decideGuideAction(snapshotQuest(player));
 
       if (decision.kind === "complete") {
-        player.setVariable(QUEST_VARIABLES.done, decision.setDone);
-        player.gold += decision.rewardPoints;
         await player.showNotification(decision.notification.message, {
           sound: decision.notification.sound,
           type: decision.notification.type,
         });
         await player.showText(decision.text);
+        // Apply state mutations only after the awaited UI side effects
+        // resolve, so a rejected notification does not leave the quest
+        // half-marked-complete.
+        player.setVariable(QUEST_VARIABLES.done, decision.setDone);
+        player.gold += decision.rewardPoints;
         return;
       }
 
@@ -60,6 +63,10 @@ export function PixelShard(): EventDefinition {
       const decision = decideVillageNodeAction(snapshotQuest(player, nodeKey));
 
       if (decision.kind === "restore-node") {
+        // Mark the node collected BEFORE the awaited notification so a
+        // concurrent or rapid second onAction cannot read a stale snapshot
+        // and re-award points. Rolling back on a notification rejection is
+        // not needed: showNotification rejecting already aborts the handler.
         player.setVariable(nodeKey, decision.markCollected);
         player.setVariable(
           QUEST_VARIABLES.nodesRestored,
