@@ -1,0 +1,20 @@
+AGENTS.md
+  h_cc1f32aec57e6b 187
+apps/game/src/modules/village/inventory.ts
+  h_cc1f32aec57e6b 24
+apps/game/src/modules/village/state.ts
+  h_cc1f32aec57e6b 23,35
+docs/agents/resource-village-deterministic-packet.md
+  h_cc1f32aec57e6b 195,200,219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "8f36bed161ea8be92bd3a23c683c35ee69011b26",
+  "prompts": {},
+  "humans": {
+    "h_cc1f32aec57e6b": {
+      "author": "Muhammad Naufal Mahdi <053792227@ecampus.ut.ac.id>"
+    }
+  }
+}
