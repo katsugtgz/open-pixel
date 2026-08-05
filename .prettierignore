@@ -1,5 +1,7 @@
 .worktrees/
+.tokensave/
 test-results/
+results.sarif
 apps/video/dist/
 apps/video/public/generated/
 apps/game/src/tiled/*.tsx
