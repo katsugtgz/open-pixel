@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="data:," />
     <title>Open Pixel — Game</title>
     <meta
       name="viewport"
@@ -11,6 +10,12 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap"
       rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./node_modules/@rpgjs/ui-css/src/reset.css" />
+    <link rel="stylesheet" href="./node_modules/@rpgjs/ui-css/src/index.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/@rpgjs/ui-css/src/theme-default/theme.css"
     />
     <style>
       body,
@@ -54,6 +59,7 @@
         font-family: Fredoka, system-ui, sans-serif;
         font-size: 13px;
         line-height: 1.25;
+        pointer-events: none;
       }
 
       .control-help .quest-hint {
@@ -216,7 +222,7 @@
         }
       }
 
-      @media (min-width: 681px) {
+      @media (min-width: 681px) and (pointer: fine) {
         .control-help .mobile-controls {
           display: none;
         }
@@ -227,7 +233,7 @@
     <div id="rpg"></div>
     <aside class="control-help" aria-label="Game controls">
       <span class="quest-hint"
-        >Talk to AI Guide → restore 3 village nodes.</span
+        >Start at the AI Guide, then collect 3 Pixel Shards.</span
       >
       <span class="desktop-controls"
         ><strong>Controls:</strong> Arrow keys move · Space talks /
