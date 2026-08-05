@@ -4,7 +4,6 @@ import {
   Presets,
   withMobile,
 } from "@rpgjs/client";
-import { provideMain } from "../modules/main";
 import { provideTiledMap } from "@rpgjs/tiledmap/client";
 import { GAME_SMOKE_CONTRACT } from "./gameSmokeContract.js";
 
@@ -16,7 +15,6 @@ export default {
       basePath: assets.mapBasePath,
     }),
     provideClientGlobalConfig(),
-    provideMain(),
     provideClientModules([
       withMobile(),
       {
@@ -37,7 +35,7 @@ export default {
             ...Presets.RMSpritesheet(3, 4),
           },
           {
-            id: "pixel-shard",
+            id: "shard",
             image: "spritesheets/shard.png",
             ...Presets.RMSpritesheet(3, 4),
           },

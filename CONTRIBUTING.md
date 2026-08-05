@@ -24,7 +24,7 @@ npm run dev:web
 Use small, descriptive commits:
 
 ```text
-feat(game): add shard gather quest
+feat(game): add village resource loop
 feat(web): add wallet proof receipt
 docs: document security model
 ```

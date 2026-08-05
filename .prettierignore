@@ -1,7 +1,17 @@
 .worktrees/
-.tokensave/
+<<<<<<< HEAD
 test-results/
-results.sarif
 apps/video/dist/
 apps/video/public/generated/
 apps/game/src/tiled/*.tsx
+=======
+.tokensave/
+test-results/
+results.sarif
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+apps/video/dist/
+apps/video/public/generated/
+apps/game/src/tiled/*.tsx
+>>>>>>> origin/main
